@@ -664,3 +664,62 @@ def test_view_get_by_id(cli_runner, mock_client, mock_network_for_dns, mock_view
 
     assert result.exit_code == 0
     mock_network_for_dns.dns_views.get.assert_called_once_with(10)
+
+
+# =============================================================================
+# View Create Tests
+# =============================================================================
+
+
+def test_view_create(cli_runner, mock_client, mock_network_for_dns, mock_view):
+    """View create should create a new DNS view."""
+    mock_client.networks.list.return_value = [mock_network_for_dns]
+    mock_client.networks.get.return_value = mock_network_for_dns
+    mock_network_for_dns.dns_views.create.return_value = mock_view
+
+    result = cli_runner.invoke(
+        app,
+        [
+            "network",
+            "dns",
+            "view",
+            "create",
+            "test-network",
+            "--name",
+            "internal",
+        ],
+    )
+
+    assert result.exit_code == 0
+    mock_network_for_dns.dns_views.create.assert_called_once()
+    call_kwargs = mock_network_for_dns.dns_views.create.call_args[1]
+    assert call_kwargs["name"] == "internal"
+
+
+def test_view_create_with_options(cli_runner, mock_client, mock_network_for_dns, mock_view):
+    """View create should support all options."""
+    mock_client.networks.list.return_value = [mock_network_for_dns]
+    mock_client.networks.get.return_value = mock_network_for_dns
+    mock_network_for_dns.dns_views.create.return_value = mock_view
+
+    result = cli_runner.invoke(
+        app,
+        [
+            "network",
+            "dns",
+            "view",
+            "create",
+            "test-network",
+            "--name",
+            "internal",
+            "--recursion",
+            "--match-clients",
+            "10.0.0.0/8,192.168.0.0/16",
+        ],
+    )
+
+    assert result.exit_code == 0
+    call_kwargs = mock_network_for_dns.dns_views.create.call_args[1]
+    assert call_kwargs["recursion"] is True
+    # Should be transformed to semicolon-delimited
+    assert call_kwargs["match_clients"] == "10.0.0.0/8;192.168.0.0/16;"
