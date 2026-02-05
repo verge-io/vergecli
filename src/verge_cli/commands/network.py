@@ -6,7 +6,13 @@ from typing import Annotated, Any
 
 import typer
 
-from verge_cli.commands import network_alias, network_dns, network_host, network_rule
+from verge_cli.commands import (
+    network_alias,
+    network_diag,
+    network_dns,
+    network_host,
+    network_rule,
+)
 from verge_cli.context import get_context
 from verge_cli.errors import handle_errors
 from verge_cli.output import output_result, output_success
@@ -20,6 +26,7 @@ app = typer.Typer(
 
 # Register subapps
 app.add_typer(network_alias.app, name="alias")
+app.add_typer(network_diag.app, name="diag")
 app.add_typer(network_dns.app, name="dns")
 app.add_typer(network_host.app, name="host")
 app.add_typer(network_rule.app, name="rule")
