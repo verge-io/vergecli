@@ -63,9 +63,13 @@ def get_client(
             )
             raise typer.Exit(3)
 
-    # Normalize host URL
-    if not effective_host.startswith(("http://", "https://")):
-        effective_host = f"https://{effective_host}"
+    # Normalize host - pyvergeos expects just hostname, not URL
+    if effective_host.startswith("https://"):
+        effective_host = effective_host[8:]
+    elif effective_host.startswith("http://"):
+        effective_host = effective_host[7:]
+    # Strip trailing slash if present
+    effective_host = effective_host.rstrip("/")
 
     # Resolve credentials (CLI > config)
     effective_token = token or api_key or config.token or config.api_key
