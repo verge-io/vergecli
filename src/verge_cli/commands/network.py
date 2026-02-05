@@ -6,6 +6,13 @@ from typing import Annotated, Any
 
 import typer
 
+from verge_cli.commands import (
+    network_alias,
+    network_diag,
+    network_dns,
+    network_host,
+    network_rule,
+)
 from verge_cli.context import get_context
 from verge_cli.errors import handle_errors
 from verge_cli.output import output_result, output_success
@@ -17,8 +24,25 @@ app = typer.Typer(
     no_args_is_help=True,
 )
 
+# Register subapps
+app.add_typer(network_alias.app, name="alias")
+app.add_typer(network_diag.app, name="diag")
+app.add_typer(network_dns.app, name="dns")
+app.add_typer(network_host.app, name="host")
+app.add_typer(network_rule.app, name="rule")
+
 # Default columns for network list output
-NETWORK_LIST_COLUMNS = ["name", "type", "network", "ipaddress", "status", "running"]
+NETWORK_LIST_COLUMNS = [
+    "name",
+    "type",
+    "network",
+    "ipaddress",
+    "status",
+    "running",
+    "restart",
+    "rules",
+    "dns_apply",
+]
 
 
 @app.command("list")
@@ -279,6 +303,125 @@ def network_stop(
     output_success(f"{action} network '{net_obj.name}'", quiet=vctx.quiet)
 
 
+@app.command("restart")
+@handle_errors()
+def network_restart(
+    ctx: typer.Context,
+    network: Annotated[str, typer.Argument(help="Network name or key")],
+    apply_rules: Annotated[
+        bool,
+        typer.Option("--apply-rules/--no-apply-rules", help="Apply firewall rules after restart"),
+    ] = True,
+    wait: Annotated[
+        bool, typer.Option("--wait", "-w", help="Wait for network to be running")
+    ] = False,
+    timeout: Annotated[int, typer.Option("--timeout", "-t", help="Timeout in seconds")] = 300,
+) -> None:
+    """Restart a virtual network."""
+    vctx = get_context(ctx)
+
+    key = resolve_resource_id(vctx.client.networks, network, "network")
+    net_obj = vctx.client.networks.get(key)
+
+    net_obj.restart(apply_rules=apply_rules)
+    output_success(f"Restarted network '{net_obj.name}'", quiet=vctx.quiet)
+
+    if wait:
+        from verge_cli.utils import wait_for_state
+
+        net_obj = wait_for_state(
+            vctx.client.networks.get,
+            key,
+            target_state="running",
+            timeout=timeout,
+            state_field="status",
+            resource_type="network",
+            quiet=vctx.quiet,
+        )
+        output_success(f"Network '{net_obj.name}' is now running", quiet=vctx.quiet)
+
+
+@app.command("apply-rules")
+@handle_errors()
+def network_apply_rules(
+    ctx: typer.Context,
+    network: Annotated[str, typer.Argument(help="Network name or key")],
+) -> None:
+    """Apply pending firewall rules to a network."""
+    vctx = get_context(ctx)
+
+    key = resolve_resource_id(vctx.client.networks, network, "network")
+    net_obj = vctx.client.networks.get(key)
+
+    if not net_obj.get("running"):
+        typer.echo(
+            f"Network '{net_obj.name}' is not running. Rules can only be applied to running networks.",
+            err=True,
+        )
+        raise typer.Exit(1)
+
+    net_obj.apply_rules()
+    output_success(f"Applied firewall rules to network '{net_obj.name}'", quiet=vctx.quiet)
+
+
+@app.command("apply-dns")
+@handle_errors()
+def network_apply_dns(
+    ctx: typer.Context,
+    network: Annotated[str, typer.Argument(help="Network name or key")],
+) -> None:
+    """Apply pending DNS configuration to a network."""
+    vctx = get_context(ctx)
+
+    key = resolve_resource_id(vctx.client.networks, network, "network")
+    net_obj = vctx.client.networks.get(key)
+
+    if not net_obj.get("running"):
+        typer.echo(
+            f"Network '{net_obj.name}' is not running. DNS can only be applied to running networks.",
+            err=True,
+        )
+        raise typer.Exit(1)
+
+    net_obj.apply_dns()
+    output_success(f"Applied DNS configuration to network '{net_obj.name}'", quiet=vctx.quiet)
+
+
+@app.command("status")
+@handle_errors()
+def network_status(
+    ctx: typer.Context,
+    network: Annotated[str, typer.Argument(help="Network name or key")],
+    output: Annotated[
+        str | None,
+        typer.Option("--output", "-o", help="Output format (table, json)"),
+    ] = None,
+) -> None:
+    """Show detailed status of a network including pending changes."""
+    vctx = get_context(ctx)
+
+    key = resolve_resource_id(vctx.client.networks, network, "network")
+    net_obj = vctx.client.networks.get(key)
+
+    status_data = {
+        "name": net_obj.name,
+        "key": net_obj.key,
+        "running": net_obj.get("running", False),
+        "status": net_obj.get("status", "unknown"),
+        "needs_restart": net_obj.get("need_restart", False),
+        "needs_rule_apply": net_obj.get("need_fw_apply", False),
+        "needs_dns_apply": net_obj.get("need_dns_apply", False),
+        "needs_proxy_apply": net_obj.get("need_proxy_apply", False),
+    }
+
+    output_result(
+        status_data,
+        output_format=output or vctx.output_format,
+        quiet=vctx.quiet,
+        no_color=vctx.no_color,
+    )
+
+
 def _network_to_dict(net: Any) -> dict[str, Any]:
     """Convert a Network object to a dictionary for output."""
     return {
@@ -297,4 +440,12 @@ def _network_to_dict(net: Any) -> dict[str, Any]:
         "dhcp_stop": net.get("dhcp_stop"),
         "dns": net.get("dns"),
         "domain": net.get("domain"),
+        # Status flags for pending changes
+        "needs_restart": net.get("need_restart", False),
+        "needs_rule_apply": net.get("need_fw_apply", False),
+        "needs_dns_apply": net.get("need_dns_apply", False),
+        # Short aliases for list columns (Y or empty string)
+        "restart": "Y" if net.get("need_restart", False) else "",
+        "rules": "Y" if net.get("need_fw_apply", False) else "",
+        "dns_apply": "Y" if net.get("need_dns_apply", False) else "",
     }
