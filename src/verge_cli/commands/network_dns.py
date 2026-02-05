@@ -644,3 +644,39 @@ def record_delete(
 
     zone_obj.records.delete(record_key)
     output_success(f"Deleted DNS record '{record_host}'", quiet=vctx.quiet)
+
+
+# =============================================================================
+# View Commands
+# =============================================================================
+
+
+@view_app.command("list")
+@handle_errors()
+def view_list(
+    ctx: typer.Context,
+    network: Annotated[str, typer.Argument(help="Network name or key")],
+    output: Annotated[str | None, typer.Option("--output", "-o", help="Output format")] = None,
+    query: Annotated[str | None, typer.Option("--query", help="Extract field")] = None,
+) -> None:
+    """List DNS views for a network.
+
+    DNS views enable split-horizon DNS where different clients see
+    different responses for the same domain.
+    """
+    vctx = get_context(ctx)
+
+    net_key = resolve_resource_id(vctx.client.networks, network, "network")
+    net_obj = vctx.client.networks.get(net_key)
+
+    views = net_obj.dns_views.list()
+    data = [_view_to_dict(view) for view in views]
+
+    output_result(
+        data,
+        output_format=output or vctx.output_format,
+        query=query or vctx.query,
+        columns=VIEW_LIST_COLUMNS,
+        quiet=vctx.quiet,
+        no_color=vctx.no_color,
+    )
