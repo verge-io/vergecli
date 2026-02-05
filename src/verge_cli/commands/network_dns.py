@@ -680,3 +680,30 @@ def view_list(
         quiet=vctx.quiet,
         no_color=vctx.no_color,
     )
+
+
+@view_app.command("get")
+@handle_errors()
+def view_get(
+    ctx: typer.Context,
+    network: Annotated[str, typer.Argument(help="Network name or key")],
+    view: Annotated[str, typer.Argument(help="View name or key")],
+    output: Annotated[str | None, typer.Option("--output", "-o", help="Output format")] = None,
+    query: Annotated[str | None, typer.Option("--query", help="Extract field")] = None,
+) -> None:
+    """Get details of a DNS view."""
+    vctx = get_context(ctx)
+
+    net_key = resolve_resource_id(vctx.client.networks, network, "network")
+    net_obj = vctx.client.networks.get(net_key)
+
+    view_key = _resolve_view_id(net_obj, view)
+    view_obj = net_obj.dns_views.get(view_key)
+
+    output_result(
+        _view_to_dict(view_obj),
+        output_format=output or vctx.output_format,
+        query=query or vctx.query,
+        quiet=vctx.quiet,
+        no_color=vctx.no_color,
+    )
