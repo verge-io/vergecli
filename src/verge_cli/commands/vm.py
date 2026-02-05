@@ -18,7 +18,7 @@ app = typer.Typer(
 )
 
 # Default columns for VM list output
-VM_LIST_COLUMNS = ["name", "status", "cpu_cores", "ram", "cluster_name", "node_name"]
+VM_LIST_COLUMNS = ["name", "status", "cpu_cores", "ram", "cluster_name", "node_name", "restart"]
 
 
 @app.command("list")
@@ -346,4 +346,8 @@ def _vm_to_dict(vm: Any) -> dict[str, Any]:
         "node_name": vm.node_name,
         "created": vm.get("created"),
         "modified": vm.get("modified"),
+        # Status flag for pending changes
+        "needs_restart": vm.get("need_restart", False),
+        # Short alias for list column (Y or empty string)
+        "restart": "Y" if vm.get("need_restart", False) else "",
     }
