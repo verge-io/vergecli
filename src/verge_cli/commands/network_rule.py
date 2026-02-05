@@ -256,6 +256,7 @@ def rule_update(
     direction: Annotated[str | None, typer.Option("--direction", "-d", help="Direction")] = None,
     action: Annotated[str | None, typer.Option("--action", "-a", help="Action")] = None,
     protocol: Annotated[str | None, typer.Option("--protocol", "-p", help="Protocol")] = None,
+    interface: Annotated[str | None, typer.Option("--interface", help="Interface")] = None,
     source_ip: Annotated[str | None, typer.Option("--source-ip", help="Source IP")] = None,
     source_ports: Annotated[str | None, typer.Option("--source-ports", help="Source ports")] = None,
     dest_ip: Annotated[str | None, typer.Option("--dest-ip", help="Destination IP")] = None,
@@ -294,6 +295,8 @@ def rule_update(
         updates["action"] = action
     if protocol is not None:
         updates["protocol"] = protocol
+    if interface is not None:
+        updates["interface"] = interface
     if source_ip is not None:
         updates["source_ip"] = source_ip
     if source_ports is not None:
