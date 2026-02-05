@@ -442,7 +442,7 @@ def record_create(
 
     create_kwargs: dict[str, Any] = {
         "host": name,
-        "type": record_type,
+        "record_type": record_type,
         "value": address,
         "ttl": ttl,
     }

@@ -385,7 +385,7 @@ def test_record_create_a(cli_runner, mock_client, mock_network_for_dns, mock_zon
     mock_zone.records.create.assert_called_once()
     call_kwargs = mock_zone.records.create.call_args[1]
     assert call_kwargs["host"] == "www"
-    assert call_kwargs["type"] == "A"
+    assert call_kwargs["record_type"] == "A"
     assert call_kwargs["value"] == "10.0.0.100"
 
 
