@@ -21,14 +21,14 @@ def mock_zone():
     """Create a mock DNS Zone object."""
     zone = MagicMock()
     zone.key = 100
-    zone.name = "example.com"
+    zone.domain = "example.com"
 
     def mock_get(key: str, default=None):
         data = {
             "$key": 100,
-            "name": "example.com",
+            "domain": "example.com",
             "type": "master",
-            "serial": 2024010101,
+            "serial_number": 2024010101,
         }
         return data.get(key, default)
 
@@ -45,11 +45,11 @@ def mock_record():
     def mock_get(key: str, default=None):
         data = {
             "$key": 200,
-            "name": "www",
+            "host": "www",
             "type": "A",
-            "address": "10.0.0.100",
+            "value": "10.0.0.100",
             "ttl": 3600,
-            "priority": 0,
+            "mx_preference": 0,
         }
         return data.get(key, default)
 
@@ -137,7 +137,7 @@ def test_zone_create(cli_runner, mock_client, mock_network_for_dns, mock_zone):
             "zone",
             "create",
             "test-network",
-            "--name",
+            "--domain",
             "example.com",
         ],
     )
@@ -145,7 +145,7 @@ def test_zone_create(cli_runner, mock_client, mock_network_for_dns, mock_zone):
     assert result.exit_code == 0
     mock_network_for_dns.dns_zones.create.assert_called_once()
     call_kwargs = mock_network_for_dns.dns_zones.create.call_args[1]
-    assert call_kwargs["name"] == "example.com"
+    assert call_kwargs["domain"] == "example.com"
 
 
 def test_zone_create_with_type(cli_runner, mock_client, mock_network_for_dns, mock_zone):
@@ -162,7 +162,7 @@ def test_zone_create_with_type(cli_runner, mock_client, mock_network_for_dns, mo
             "zone",
             "create",
             "test-network",
-            "--name",
+            "--domain",
             "example.com",
             "--type",
             "slave",
@@ -172,6 +172,7 @@ def test_zone_create_with_type(cli_runner, mock_client, mock_network_for_dns, mo
     assert result.exit_code == 0
     call_kwargs = mock_network_for_dns.dns_zones.create.call_args[1]
     assert call_kwargs["type"] == "slave"
+    assert call_kwargs["domain"] == "example.com"
 
 
 # =============================================================================
@@ -188,12 +189,12 @@ def test_zone_update(cli_runner, mock_client, mock_network_for_dns, mock_zone):
 
     updated_zone = MagicMock()
     updated_zone.key = 100
-    updated_zone.name = "updated.com"
+    updated_zone.domain = "updated.com"
     updated_zone.get = lambda k, d=None: {
         "$key": 100,
-        "name": "updated.com",
+        "domain": "updated.com",
         "type": "master",
-        "serial": 2024010102,
+        "serial_number": 2024010102,
     }.get(k, d)
     mock_network_for_dns.dns_zones.update.return_value = updated_zone
 
@@ -206,7 +207,7 @@ def test_zone_update(cli_runner, mock_client, mock_network_for_dns, mock_zone):
             "update",
             "test-network",
             "example.com",
-            "--name",
+            "--domain",
             "updated.com",
         ],
     )
@@ -383,9 +384,9 @@ def test_record_create_a(cli_runner, mock_client, mock_network_for_dns, mock_zon
     assert result.exit_code == 0
     mock_zone.records.create.assert_called_once()
     call_kwargs = mock_zone.records.create.call_args[1]
-    assert call_kwargs["name"] == "www"
+    assert call_kwargs["host"] == "www"
     assert call_kwargs["type"] == "A"
-    assert call_kwargs["address"] == "10.0.0.100"
+    assert call_kwargs["value"] == "10.0.0.100"
 
 
 def test_record_create_mx(cli_runner, mock_client, mock_network_for_dns, mock_zone):
@@ -399,11 +400,11 @@ def test_record_create_mx(cli_runner, mock_client, mock_network_for_dns, mock_zo
     mx_record.key = 201
     mx_record.get = lambda k, d=None: {
         "$key": 201,
-        "name": "@",
+        "host": "@",
         "type": "MX",
-        "address": "mail.example.com",
+        "value": "mail.example.com",
         "ttl": 3600,
-        "priority": 10,
+        "mx_preference": 10,
     }.get(k, d)
     mock_zone.records.create.return_value = mx_record
 
@@ -429,7 +430,7 @@ def test_record_create_mx(cli_runner, mock_client, mock_network_for_dns, mock_zo
 
     assert result.exit_code == 0
     call_kwargs = mock_zone.records.create.call_args[1]
-    assert call_kwargs["priority"] == 10
+    assert call_kwargs["mx_preference"] == 10
 
 
 def test_record_create_with_ttl(
@@ -485,11 +486,11 @@ def test_record_update(cli_runner, mock_client, mock_network_for_dns, mock_zone,
     updated_record.key = 200
     updated_record.get = lambda k, d=None: {
         "$key": 200,
-        "name": "www",
+        "host": "www",
         "type": "A",
-        "address": "10.0.0.200",
+        "value": "10.0.0.200",
         "ttl": 3600,
-        "priority": 0,
+        "mx_preference": 0,
     }.get(k, d)
     mock_zone.records.update.return_value = updated_record
 
