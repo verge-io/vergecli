@@ -146,6 +146,81 @@ def _record_to_dict(record: Any) -> dict[str, Any]:
 
 
 # =============================================================================
+# View Helper Functions
+# =============================================================================
+
+
+def _transform_comma_to_semicolon(value: str | None) -> str | None:
+    """Transform comma-separated values to semicolon-delimited format for SDK.
+
+    Args:
+        value: Comma-separated string (e.g., "10.0.0.0/8,192.168.0.0/16")
+
+    Returns:
+        Semicolon-delimited string with trailing semicolon (e.g., "10.0.0.0/8;192.168.0.0/16;")
+        or None if input is None.
+    """
+    if value is None:
+        return None
+    # Split by comma, strip whitespace, rejoin with semicolons
+    parts = [p.strip() for p in value.split(",") if p.strip()]
+    if not parts:
+        return None
+    return ";".join(parts) + ";"
+
+
+def _resolve_view_id(network: Any, identifier: str) -> int:
+    """Resolve a view name or ID to a key.
+
+    Args:
+        network: Network object with dns_views collection.
+        identifier: View name or numeric key.
+
+    Returns:
+        The view key.
+
+    Raises:
+        ResourceNotFoundError: If view not found.
+    """
+    # If numeric, treat as key directly
+    if identifier.isdigit():
+        return int(identifier)
+
+    # Try to find by name
+    views = network.dns_views.list()
+    for view in views:
+        name = view.get("name") or getattr(view, "name", "")
+        key = view.get("$key") or getattr(view, "key", None)
+        if name == identifier and key is not None:
+            return int(key)
+
+    raise ResourceNotFoundError(f"DNS view '{identifier}' not found")
+
+
+def _view_to_dict(view: Any) -> dict[str, Any]:
+    """Convert a DNS View object to a dictionary for output.
+
+    Args:
+        view: View object from SDK.
+
+    Returns:
+        Dictionary representation of the view.
+    """
+    match_clients = view.get("match_clients", "")
+    # Transform semicolon-delimited back to comma-separated for display
+    if match_clients:
+        match_clients = match_clients.replace(";", ", ").rstrip(", ")
+
+    return {
+        "id": view.get("$key") or getattr(view, "key", None),
+        "name": view.get("name", ""),
+        "recursion": view.get("recursion", False),
+        "match_clients": match_clients,
+        "max_cache_size": view.get("max_cache_size", 0),
+    }
+
+
+# =============================================================================
 # Zone Commands
 # =============================================================================
 
