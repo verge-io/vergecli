@@ -723,3 +723,48 @@ def test_view_create_with_options(cli_runner, mock_client, mock_network_for_dns,
     assert call_kwargs["recursion"] is True
     # Should be transformed to semicolon-delimited
     assert call_kwargs["match_clients"] == "10.0.0.0/8;192.168.0.0/16;"
+
+
+# =============================================================================
+# View Update Tests
+# =============================================================================
+
+
+def test_view_update(cli_runner, mock_client, mock_network_for_dns, mock_view):
+    """View update should update view with new values."""
+    mock_client.networks.list.return_value = [mock_network_for_dns]
+    mock_client.networks.get.return_value = mock_network_for_dns
+    mock_network_for_dns.dns_views.list.return_value = [mock_view]
+    mock_network_for_dns.dns_views.get.return_value = mock_view
+    mock_network_for_dns.dns_views.update.return_value = mock_view
+
+    result = cli_runner.invoke(
+        app,
+        [
+            "network",
+            "dns",
+            "view",
+            "update",
+            "test-network",
+            "internal",
+            "--recursion",
+        ],
+    )
+
+    assert result.exit_code == 0
+    mock_network_for_dns.dns_views.update.assert_called_once()
+
+
+def test_view_update_no_changes(cli_runner, mock_client, mock_network_for_dns, mock_view):
+    """View update with no options should fail."""
+    mock_client.networks.list.return_value = [mock_network_for_dns]
+    mock_client.networks.get.return_value = mock_network_for_dns
+    mock_network_for_dns.dns_views.list.return_value = [mock_view]
+
+    result = cli_runner.invoke(
+        app,
+        ["network", "dns", "view", "update", "test-network", "internal"],
+    )
+
+    assert result.exit_code == 2
+    assert "No updates specified" in result.output

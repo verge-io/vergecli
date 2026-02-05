@@ -771,3 +771,65 @@ def view_create(
         quiet=vctx.quiet,
         no_color=vctx.no_color,
     )
+
+
+@view_app.command("update")
+@handle_errors()
+def view_update(
+    ctx: typer.Context,
+    network: Annotated[str, typer.Argument(help="Network name or key")],
+    view: Annotated[str, typer.Argument(help="View name or key")],
+    name: Annotated[str | None, typer.Option("--name", "-n", help="New view name")] = None,
+    recursion: Annotated[
+        bool | None, typer.Option("--recursion/--no-recursion", help="Enable recursive DNS")
+    ] = None,
+    match_clients: Annotated[
+        str | None, typer.Option("--match-clients", help="Client networks (comma-separated)")
+    ] = None,
+    match_destinations: Annotated[
+        str | None, typer.Option("--match-destinations", help="Destination networks")
+    ] = None,
+    max_cache_size: Annotated[
+        int | None, typer.Option("--max-cache-size", help="Max cache size in bytes")
+    ] = None,
+) -> None:
+    """Update a DNS view.
+
+    Changes require apply-dns to take effect.
+    """
+    vctx = get_context(ctx)
+
+    net_key = resolve_resource_id(vctx.client.networks, network, "network")
+    net_obj = vctx.client.networks.get(net_key)
+
+    view_key = _resolve_view_id(net_obj, view)
+
+    # Build update kwargs (only non-None values)
+    updates: dict[str, Any] = {}
+    if name is not None:
+        updates["name"] = name
+    if recursion is not None:
+        updates["recursion"] = recursion
+    if match_clients is not None:
+        updates["match_clients"] = _transform_comma_to_semicolon(match_clients)
+    if match_destinations is not None:
+        updates["match_destinations"] = _transform_comma_to_semicolon(match_destinations)
+    if max_cache_size is not None:
+        updates["max_cache_size"] = max_cache_size
+
+    if not updates:
+        typer.echo("No updates specified.", err=True)
+        raise typer.Exit(2)
+
+    view_obj = net_obj.dns_views.update(view_key, **updates)
+
+    view_name = view_obj.get("name") or view
+    output_success(f"Updated DNS view '{view_name}'", quiet=vctx.quiet)
+
+    output_result(
+        _view_to_dict(view_obj),
+        output_format=vctx.output_format,
+        query=vctx.query,
+        quiet=vctx.quiet,
+        no_color=vctx.no_color,
+    )
