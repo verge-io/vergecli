@@ -707,3 +707,67 @@ def view_get(
         quiet=vctx.quiet,
         no_color=vctx.no_color,
     )
+
+
+@view_app.command("create")
+@handle_errors()
+def view_create(
+    ctx: typer.Context,
+    network: Annotated[str, typer.Argument(help="Network name or key")],
+    name: Annotated[str, typer.Option("--name", "-n", help="View name")],
+    recursion: Annotated[
+        bool, typer.Option("--recursion/--no-recursion", help="Enable recursive DNS queries")
+    ] = False,
+    match_clients: Annotated[
+        str | None,
+        typer.Option("--match-clients", help="Client networks to match (comma-separated CIDRs)"),
+    ] = None,
+    match_destinations: Annotated[
+        str | None,
+        typer.Option(
+            "--match-destinations", help="Destination networks to match (comma-separated CIDRs)"
+        ),
+    ] = None,
+    max_cache_size: Annotated[
+        int, typer.Option("--max-cache-size", help="Max RAM for DNS cache in bytes")
+    ] = 33554432,
+) -> None:
+    """Create a new DNS view.
+
+    DNS views enable split-horizon DNS where different clients see
+    different responses for the same domain. Changes require apply-dns.
+
+    Examples:
+        vrg network dns view create mynet --name internal --recursion
+        vrg network dns view create mynet --name external --match-clients "0.0.0.0/0"
+    """
+    vctx = get_context(ctx)
+
+    net_key = resolve_resource_id(vctx.client.networks, network, "network")
+    net_obj = vctx.client.networks.get(net_key)
+
+    create_kwargs: dict[str, Any] = {
+        "name": name,
+        "recursion": recursion,
+        "max_cache_size": max_cache_size,
+    }
+
+    # Transform comma-separated to semicolon-delimited
+    if match_clients:
+        create_kwargs["match_clients"] = _transform_comma_to_semicolon(match_clients)
+    if match_destinations:
+        create_kwargs["match_destinations"] = _transform_comma_to_semicolon(match_destinations)
+
+    view_obj = net_obj.dns_views.create(**create_kwargs)
+
+    view_name = view_obj.get("name") or name
+    view_key = view_obj.get("$key") or getattr(view_obj, "key", None)
+    output_success(f"Created DNS view '{view_name}' (id: {view_key})", quiet=vctx.quiet)
+
+    output_result(
+        _view_to_dict(view_obj),
+        output_format=vctx.output_format,
+        query=vctx.query,
+        quiet=vctx.quiet,
+        no_color=vctx.no_color,
+    )
