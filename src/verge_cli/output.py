@@ -228,7 +228,14 @@ def output_result(
         print(format_json(data))
     else:
         if isinstance(data, list):
-            format_table(data, columns=columns, title=title, no_color=no_color)
+            # Check if it's a list of simple values (not dicts) - e.g., from --query name
+            if data and not isinstance(data[0], dict):
+                # Print simple values as newline-separated list
+                console = get_console(no_color)
+                for item in data:
+                    console.print(item if item is not None else "[dim]-[/dim]")
+            else:
+                format_table(data, columns=columns, title=title, no_color=no_color)
         elif isinstance(data, dict):
             format_table(data, title=title, no_color=no_color)
         else:
