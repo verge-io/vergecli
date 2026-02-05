@@ -13,14 +13,33 @@ from verge_cli.utils import resolve_resource_id
 class TestResolveResourceId:
     """Tests for resource ID resolution."""
 
-    def test_numeric_id_returns_int(self) -> None:
-        """Test that numeric identifiers are returned as integers."""
+    def test_numeric_id_fallback_returns_int(self) -> None:
+        """Test that numeric identifiers fall back to int if no name match."""
         manager = MagicMock()
+        # No VM with name "123"
+        manager.list.return_value = [
+            {"name": "web-server", "$key": 42},
+        ]
 
         result = resolve_resource_id(manager, "123", "VM")
 
         assert result == 123
-        manager.list.assert_not_called()  # Should not query API
+        manager.list.assert_called_once()  # Should query API first
+
+    def test_numeric_name_resolved_by_name(self) -> None:
+        """Test that numeric names are properly resolved by name first."""
+        manager = MagicMock()
+        # VM with numeric name "123" exists with key 999
+        manager.list.return_value = [
+            {"name": "123", "$key": 999},
+            {"name": "web-server", "$key": 42},
+        ]
+
+        result = resolve_resource_id(manager, "123", "VM")
+
+        # Should find by name, not treat "123" as a key
+        assert result == 999
+        manager.list.assert_called_once()
 
     def test_name_single_match(self) -> None:
         """Test resolving a name with single match."""
@@ -80,13 +99,22 @@ class TestResolveResourceId:
 
         assert result == 43
 
-    def test_empty_list_raises_not_found(self) -> None:
-        """Test that empty list raises ResourceNotFoundError."""
+    def test_empty_list_raises_not_found_for_name(self) -> None:
+        """Test that empty list raises ResourceNotFoundError for non-numeric names."""
         manager = MagicMock()
         manager.list.return_value = []
 
         with pytest.raises(ResourceNotFoundError):
             resolve_resource_id(manager, "anything", "VM")
+
+    def test_empty_list_with_numeric_id_returns_int(self) -> None:
+        """Test that empty list with numeric ID falls back to integer."""
+        manager = MagicMock()
+        manager.list.return_value = []
+
+        # Should fall back to treating "456" as a key
+        result = resolve_resource_id(manager, "456", "VM")
+        assert result == 456
 
     def test_list_error_raises_not_found(self) -> None:
         """Test that list errors are wrapped in ResourceNotFoundError."""

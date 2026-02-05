@@ -40,11 +40,7 @@ def resolve_resource_id(
         ResourceNotFoundError: No resource matches.
         MultipleMatchesError: Multiple resources match name.
     """
-    # If identifier is numeric, assume it's a key
-    if identifier.isdigit():
-        return int(identifier)
-
-    # Search by name
+    # Search by name first (handles both named and numeric names)
     try:
         resources = manager.list()
     except Exception as e:
@@ -64,14 +60,18 @@ def resolve_resource_id(
         if name == identifier:
             matches.append({"name": name, "$key": key})
 
-    if len(matches) == 0:
-        raise ResourceNotFoundError(f"{resource_type} '{identifier}' not found")
-
     if len(matches) == 1:
         return matches[0]["$key"]
 
-    # Multiple matches - raise conflict error with details
-    raise MultipleMatchesError(resource_type, identifier, matches)
+    if len(matches) > 1:
+        # Multiple matches - raise conflict error with details
+        raise MultipleMatchesError(resource_type, identifier, matches)
+
+    # No name match found - if identifier is numeric, treat as key
+    if identifier.isdigit():
+        return int(identifier)
+
+    raise ResourceNotFoundError(f"{resource_type} '{identifier}' not found")
 
 
 def wait_for_state(
