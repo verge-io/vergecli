@@ -33,7 +33,7 @@ def mock_network_with_flags():
 
 
 def test_network_list_shows_status_flags(cli_runner, mock_client, mock_network_with_flags):
-    """Network list should show restart/rules/dns columns."""
+    """Network list should show restart/rules/dns_apply columns."""
     mock_client.networks.list.return_value = [mock_network_with_flags]
 
     result = cli_runner.invoke(app, ["network", "list"])
@@ -41,9 +41,9 @@ def test_network_list_shows_status_flags(cli_runner, mock_client, mock_network_w
     assert result.exit_code == 0
     # Check that status flag columns appear (may be truncated in table output)
     output_lower = result.output.lower()
-    assert "resta" in output_lower  # restart column (may be truncated)
+    assert "rest" in output_lower  # restart column (may be truncated as "rest…")
     assert "rules" in output_lower  # rules column
-    assert "dns" in output_lower  # dns column
+    assert "apply" in output_lower  # dns_apply column (truncated as "apply")
 
 
 def test_network_get_shows_status_flags(cli_runner, mock_client, mock_network_with_flags):
