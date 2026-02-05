@@ -126,7 +126,14 @@ def diag_leases(
     net_key = resolve_resource_id(vctx.client.networks, network, "network")
     net_obj = vctx.client.networks.get(net_key)
 
-    leases = net_obj.diagnostics(diagnostic_type="dhcp_leases")
+    result = net_obj.diagnostics(diagnostic_type="dhcp_leases")
+
+    # SDK returns a dict with dhcp_leases key containing the actual leases
+    if isinstance(result, dict) and "dhcp_leases" in result:
+        leases = result["dhcp_leases"]
+    else:
+        leases = result
+
     data = [_item_to_dict(lease) for lease in leases]
 
     output_result(
@@ -159,7 +166,14 @@ def diag_addresses(
     net_key = resolve_resource_id(vctx.client.networks, network, "network")
     net_obj = vctx.client.networks.get(net_key)
 
-    addresses = net_obj.diagnostics(diagnostic_type="addresses")
+    result = net_obj.diagnostics(diagnostic_type="addresses")
+
+    # SDK returns a dict with addresses key containing the actual addresses
+    if isinstance(result, dict) and "addresses" in result:
+        addresses = result["addresses"]
+    else:
+        addresses = result
+
     data = [_item_to_dict(addr) for addr in addresses]
 
     output_result(
