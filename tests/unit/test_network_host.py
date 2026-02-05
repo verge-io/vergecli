@@ -96,7 +96,7 @@ def test_host_create(cli_runner, mock_client, mock_network_for_hosts, mock_host)
 
     assert result.exit_code == 0
     mock_network_for_hosts.hosts.create.assert_called_once_with(
-        host="webserver.local", ip="10.0.0.50", type="host"
+        hostname="webserver.local", ip="10.0.0.50", host_type="host"
     )
 
 
@@ -124,7 +124,7 @@ def test_host_create_domain_type(cli_runner, mock_client, mock_network_for_hosts
 
     assert result.exit_code == 0
     mock_network_for_hosts.hosts.create.assert_called_once_with(
-        host="example.com", ip="10.0.0.60", type="domain"
+        hostname="example.com", ip="10.0.0.60", host_type="domain"
     )
 
 
@@ -161,7 +161,7 @@ def test_host_update(cli_runner, mock_client, mock_network_for_hosts, mock_host)
 
     assert result.exit_code == 0
     mock_network_for_hosts.hosts.update.assert_called_once_with(
-        300, host="webserver.local", ip="10.0.0.99", type="host"
+        300, hostname="webserver.local", ip="10.0.0.99", host_type="host"
     )
 
 

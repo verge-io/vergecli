@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Annotated, Any
+from typing import TYPE_CHECKING, Annotated, Any, cast
+
+if TYPE_CHECKING:
+    from pyvergeos.resources.hosts import HostType
 
 import typer
 
@@ -141,7 +144,7 @@ def host_create(
     net_key = resolve_resource_id(vctx.client.networks, network, "network")
     net_obj = vctx.client.networks.get(net_key)
 
-    host_obj = net_obj.hosts.create(host=hostname, ip=ip, type=host_type)
+    host_obj = net_obj.hosts.create(hostname=hostname, ip=ip, host_type=cast("HostType", host_type))
 
     output_success(
         f"Created host override '{host_obj.get('host', hostname)}' -> {host_obj.get('ip', ip)}",
@@ -192,7 +195,9 @@ def host_update(
     new_type = host_type if host_type is not None else existing.get("type", "host")
 
     # SDK has hosts.update() so we can update directly
-    host_obj = net_obj.hosts.update(host_key, host=new_hostname, ip=new_ip, type=new_type)
+    host_obj = net_obj.hosts.update(
+        host_key, hostname=new_hostname, ip=new_ip, host_type=cast("HostType", new_type)
+    )
 
     output_success(f"Updated host override '{new_hostname}'", quiet=vctx.quiet)
 
