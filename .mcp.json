@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "marvin": {
+      "type": "http",
+      "url": "https://marvin.vergeos.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${MARVIN_API_TOKEN}"
+      }
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"]
+    },
+    "Sentry": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote@latest", "https://mcp.sentry.dev/mcp"]
+    }
+  }
+}
