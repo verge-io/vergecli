@@ -18,7 +18,17 @@ app = typer.Typer(
 )
 
 # Default columns for network list output
-NETWORK_LIST_COLUMNS = ["name", "type", "network", "ipaddress", "status", "running"]
+NETWORK_LIST_COLUMNS = [
+    "name",
+    "type",
+    "network",
+    "ipaddress",
+    "status",
+    "running",
+    "restart",
+    "rules",
+    "dns",
+]
 
 
 @app.command("list")
@@ -297,4 +307,11 @@ def _network_to_dict(net: Any) -> dict[str, Any]:
         "dhcp_stop": net.get("dhcp_stop"),
         "dns": net.get("dns"),
         "domain": net.get("domain"),
+        # Status flags for pending changes
+        "needs_restart": net.get("need_restart", False),
+        "needs_rule_apply": net.get("need_fw_apply", False),
+        "needs_dns_apply": net.get("need_dns_apply", False),
+        # Short aliases for list columns (Y or empty string)
+        "restart": "Y" if net.get("need_restart", False) else "",
+        "rules": "Y" if net.get("need_fw_apply", False) else "",
     }
