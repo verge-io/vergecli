@@ -634,3 +634,33 @@ def test_view_list_empty(cli_runner, mock_client, mock_network_for_dns):
     result = cli_runner.invoke(app, ["network", "dns", "view", "list", "test-network"])
 
     assert result.exit_code == 0
+
+
+# =============================================================================
+# View Get Tests
+# =============================================================================
+
+
+def test_view_get(cli_runner, mock_client, mock_network_for_dns, mock_view):
+    """View get should show view details."""
+    mock_client.networks.list.return_value = [mock_network_for_dns]
+    mock_client.networks.get.return_value = mock_network_for_dns
+    mock_network_for_dns.dns_views.list.return_value = [mock_view]
+    mock_network_for_dns.dns_views.get.return_value = mock_view
+
+    result = cli_runner.invoke(app, ["network", "dns", "view", "get", "test-network", "internal"])
+
+    assert result.exit_code == 0
+    assert "internal" in result.output
+
+
+def test_view_get_by_id(cli_runner, mock_client, mock_network_for_dns, mock_view):
+    """View get should work with numeric ID."""
+    mock_client.networks.list.return_value = [mock_network_for_dns]
+    mock_client.networks.get.return_value = mock_network_for_dns
+    mock_network_for_dns.dns_views.get.return_value = mock_view
+
+    result = cli_runner.invoke(app, ["network", "dns", "view", "get", "test-network", "10"])
+
+    assert result.exit_code == 0
+    mock_network_for_dns.dns_views.get.assert_called_once_with(10)
