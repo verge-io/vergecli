@@ -1,0 +1,1 @@
+"""Verge CLI test suite."""
