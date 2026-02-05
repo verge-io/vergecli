@@ -37,10 +37,10 @@ app.add_typer(zone_app, name="zone")
 app.add_typer(record_app, name="record")
 
 # Default columns for zone list output
-ZONE_LIST_COLUMNS = ["name", "type", "serial"]
+ZONE_LIST_COLUMNS = ["domain", "type", "serial"]
 
 # Default columns for record list output
-RECORD_LIST_COLUMNS = ["name", "type", "address", "ttl", "priority"]
+RECORD_LIST_COLUMNS = ["host", "type", "value", "ttl", "priority"]
 
 
 # =============================================================================
@@ -65,12 +65,12 @@ def _resolve_zone_id(network: Any, identifier: str) -> int:
     if identifier.isdigit():
         return int(identifier)
 
-    # Try to find by name
+    # Try to find by domain name
     zones = network.dns_zones.list()
     for zone in zones:
-        name = zone.get("name") or getattr(zone, "name", "")
+        domain = zone.get("domain") or getattr(zone, "domain", "")
         key = zone.get("$key") or getattr(zone, "key", None)
-        if name == identifier and key is not None:
+        if domain == identifier and key is not None:
             return int(key)
 
     raise ResourceNotFoundError(f"DNS zone '{identifier}' not found")
@@ -87,9 +87,9 @@ def _zone_to_dict(zone: Any) -> dict[str, Any]:
     """
     return {
         "key": zone.get("$key") or getattr(zone, "key", None),
-        "name": zone.get("name", ""),
+        "domain": zone.get("domain", ""),
         "type": zone.get("type", "master"),
-        "serial": zone.get("serial", 0),
+        "serial": zone.get("serial_number", 0),
     }
 
 
@@ -118,9 +118,9 @@ def _resolve_record_id(zone: Any, identifier: str) -> int:
     # Try to find by name
     records = zone.records.list()
     for record in records:
-        name = record.get("name") or getattr(record, "name", "")
+        host = record.get("host") or getattr(record, "host", "")
         key = record.get("$key") or getattr(record, "key", None)
-        if name == identifier and key is not None:
+        if host == identifier and key is not None:
             return int(key)
 
     raise ResourceNotFoundError(f"DNS record '{identifier}' not found")
@@ -137,11 +137,11 @@ def _record_to_dict(record: Any) -> dict[str, Any]:
     """
     return {
         "key": record.get("$key") or getattr(record, "key", None),
-        "name": record.get("name", ""),
+        "host": record.get("host", ""),
         "type": record.get("type", "A"),
-        "address": record.get("address", ""),
-        "ttl": record.get("ttl", 3600),
-        "priority": record.get("priority", 0),
+        "value": record.get("value", ""),
+        "ttl": record.get("ttl", ""),
+        "priority": record.get("mx_preference", 0),
     }
 
 
@@ -213,7 +213,7 @@ def zone_get(
 def zone_create(
     ctx: typer.Context,
     network: Annotated[str, typer.Argument(help="Network name or key")],
-    name: Annotated[str, typer.Option("--name", "-n", help="Zone name (domain)")],
+    domain: Annotated[str, typer.Option("--domain", "-d", help="Zone domain name")],
     zone_type: Annotated[
         str, typer.Option("--type", "-t", help="Zone type (master/slave)")
     ] = "master",
@@ -229,15 +229,15 @@ def zone_create(
     net_obj = vctx.client.networks.get(net_key)
 
     create_kwargs: dict[str, Any] = {
-        "name": name,
+        "domain": domain,
         "type": zone_type,
     }
 
     zone_obj = net_obj.dns_zones.create(**create_kwargs)
 
-    zone_name = zone_obj.get("name") or zone_obj.name
+    zone_domain = zone_obj.get("domain") or getattr(zone_obj, "domain", "")
     zone_key_val = zone_obj.get("$key") or zone_obj.key
-    output_success(f"Created DNS zone '{zone_name}' (key: {zone_key_val})", quiet=vctx.quiet)
+    output_success(f"Created DNS zone '{zone_domain}' (key: {zone_key_val})", quiet=vctx.quiet)
 
     output_result(
         _zone_to_dict(zone_obj),
@@ -253,8 +253,8 @@ def zone_create(
 def zone_update(
     ctx: typer.Context,
     network: Annotated[str, typer.Argument(help="Network name or key")],
-    zone: Annotated[str, typer.Argument(help="Zone name or key")],
-    name: Annotated[str | None, typer.Option("--name", "-n", help="New zone name")] = None,
+    zone: Annotated[str, typer.Argument(help="Zone domain or key")],
+    domain: Annotated[str | None, typer.Option("--domain", "-d", help="New domain name")] = None,
     zone_type: Annotated[
         str | None, typer.Option("--type", "-t", help="Zone type (master/slave)")
     ] = None,
@@ -272,8 +272,8 @@ def zone_update(
 
     # Build update kwargs (only non-None values)
     updates: dict[str, Any] = {}
-    if name is not None:
-        updates["name"] = name
+    if domain is not None:
+        updates["domain"] = domain
     if zone_type is not None:
         updates["type"] = zone_type
 
@@ -283,8 +283,8 @@ def zone_update(
 
     zone_obj = net_obj.dns_zones.update(zone_key, **updates)
 
-    zone_name = zone_obj.get("name") or zone_obj.name
-    output_success(f"Updated DNS zone '{zone_name}'", quiet=vctx.quiet)
+    zone_domain = zone_obj.get("domain") or getattr(zone_obj, "domain", "")
+    output_success(f"Updated DNS zone '{zone_domain}'", quiet=vctx.quiet)
 
     output_result(
         _zone_to_dict(zone_obj),
@@ -316,14 +316,14 @@ def zone_delete(
     zone_key = _resolve_zone_id(net_obj, zone)
     zone_obj = net_obj.dns_zones.get(zone_key)
 
-    zone_name = zone_obj.get("name") or str(zone_key)
+    zone_domain = zone_obj.get("domain") or str(zone_key)
 
-    if not confirm_action(f"Delete DNS zone '{zone_name}' and all its records?", yes=yes):
+    if not confirm_action(f"Delete DNS zone '{zone_domain}' and all its records?", yes=yes):
         typer.echo("Cancelled.")
         raise typer.Exit(0)
 
     net_obj.dns_zones.delete(zone_key)
-    output_success(f"Deleted DNS zone '{zone_name}'", quiet=vctx.quiet)
+    output_success(f"Deleted DNS zone '{zone_domain}'", quiet=vctx.quiet)
 
 
 # =============================================================================
@@ -441,20 +441,20 @@ def record_create(
     zone_obj = net_obj.dns_zones.get(zone_key)
 
     create_kwargs: dict[str, Any] = {
-        "name": name,
+        "host": name,
         "type": record_type,
-        "address": address,
+        "value": address,
         "ttl": ttl,
     }
 
     if priority is not None:
-        create_kwargs["priority"] = priority
+        create_kwargs["mx_preference"] = priority
 
     record_obj = zone_obj.records.create(**create_kwargs)
 
-    record_name = record_obj.get("name") or name
-    record_addr = record_obj.get("address") or address
-    output_success(f"Created DNS record '{record_name}' -> {record_addr}", quiet=vctx.quiet)
+    record_host = record_obj.get("host") or name
+    record_value = record_obj.get("value") or address
+    output_success(f"Created DNS record '{record_host}' -> {record_value}", quiet=vctx.quiet)
 
     output_result(
         _record_to_dict(record_obj),
@@ -497,15 +497,15 @@ def record_update(
     # Build update kwargs (only non-None values)
     updates: dict[str, Any] = {}
     if name is not None:
-        updates["name"] = name
+        updates["host"] = name
     if record_type is not None:
         updates["type"] = record_type
     if address is not None:
-        updates["address"] = address
+        updates["value"] = address
     if ttl is not None:
         updates["ttl"] = ttl
     if priority is not None:
-        updates["priority"] = priority
+        updates["mx_preference"] = priority
 
     if not updates:
         typer.echo("No updates specified.", err=True)
@@ -513,8 +513,8 @@ def record_update(
 
     record_obj = zone_obj.records.update(record_key, **updates)
 
-    record_name = record_obj.get("name") or record
-    output_success(f"Updated DNS record '{record_name}'", quiet=vctx.quiet)
+    record_host = record_obj.get("host") or record
+    output_success(f"Updated DNS record '{record_host}'", quiet=vctx.quiet)
 
     output_result(
         _record_to_dict(record_obj),
@@ -549,11 +549,11 @@ def record_delete(
     record_key = _resolve_record_id(zone_obj, record)
     record_obj = zone_obj.records.get(record_key)
 
-    record_name = record_obj.get("name") or str(record_key)
+    record_host = record_obj.get("host") or str(record_key)
 
-    if not confirm_action(f"Delete DNS record '{record_name}'?", yes=yes):
+    if not confirm_action(f"Delete DNS record '{record_host}'?", yes=yes):
         typer.echo("Cancelled.")
         raise typer.Exit(0)
 
     zone_obj.records.delete(record_key)
-    output_success(f"Deleted DNS record '{record_name}'", quiet=vctx.quiet)
+    output_success(f"Deleted DNS record '{record_host}'", quiet=vctx.quiet)
