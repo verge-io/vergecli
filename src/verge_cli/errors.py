@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import traceback
 from functools import wraps
-from typing import TYPE_CHECKING, Callable, TypeVar
+from typing import Any, Callable, ParamSpec, TypeVar
 
 import typer
 from pyvergeos.exceptions import (
@@ -19,11 +19,8 @@ from pyvergeos.exceptions import (
 )
 from rich.console import Console
 
-if TYPE_CHECKING:
-    from typing import ParamSpec
-
-    P = ParamSpec("P")
-    T = TypeVar("T")
+P = ParamSpec("P")
+T = TypeVar("T")
 
 
 # Exit codes
@@ -74,7 +71,7 @@ class MultipleMatchesError(CliError):
     exit_code = ExitCode.CONFLICT_ERROR
     message = "Multiple resources match the given name"
 
-    def __init__(self, resource_type: str, name: str, matches: list[dict]) -> None:
+    def __init__(self, resource_type: str, name: str, matches: list[dict[str, Any]]) -> None:
         self.resource_type = resource_type
         self.name = name
         self.matches = matches
