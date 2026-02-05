@@ -305,7 +305,7 @@ def _network_to_dict(net: Any) -> dict[str, Any]:
         "dhcp_enabled": net.get("dhcp_enabled"),
         "dhcp_start": net.get("dhcp_start"),
         "dhcp_stop": net.get("dhcp_stop"),
-        "dns": net.get("dns"),
+        "dns_server": net.get("dns"),
         "domain": net.get("domain"),
         # Status flags for pending changes
         "needs_restart": net.get("need_restart", False),
@@ -314,4 +314,5 @@ def _network_to_dict(net: Any) -> dict[str, Any]:
         # Short aliases for list columns (Y or empty string)
         "restart": "Y" if net.get("need_restart", False) else "",
         "rules": "Y" if net.get("need_fw_apply", False) else "",
+        "dns": "Y" if net.get("need_dns_apply", False) else "",
     }
