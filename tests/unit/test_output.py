@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from datetime import datetime
 
-from verge_cli.output import extract_field, format_json, format_value
+from verge_cli.output import extract_field, format_json, format_value, output_result
 
 
 class TestExtractField:
@@ -136,3 +136,43 @@ class TestFormatValue:
         assert "1" in result
         assert "2" in result
         assert "3" in result
+
+
+class TestOutputResult:
+    """Tests for output_result function."""
+
+    def test_list_of_simple_values_table_format(self, capsys) -> None:
+        """Test that list of simple values (from --query) prints as newline-separated."""
+        # This is what happens when you do: vrg vm list --query name
+        data = ["vm1", "vm2", "vm3"]
+        output_result(data, output_format="table", no_color=True)
+        captured = capsys.readouterr()
+        assert "vm1" in captured.out
+        assert "vm2" in captured.out
+        assert "vm3" in captured.out
+
+    def test_list_of_simple_values_json_format(self, capsys) -> None:
+        """Test that list of simple values outputs as JSON array."""
+        data = ["vm1", "vm2", "vm3"]
+        output_result(data, output_format="json", no_color=True)
+        captured = capsys.readouterr()
+        parsed = json.loads(captured.out)
+        assert parsed == ["vm1", "vm2", "vm3"]
+
+    def test_list_of_dicts_still_formats_as_table(self, capsys) -> None:
+        """Test that list of dicts still uses table format."""
+        data = [{"name": "vm1", "status": "running"}, {"name": "vm2", "status": "stopped"}]
+        output_result(data, output_format="table", no_color=True)
+        captured = capsys.readouterr()
+        # Should have table headers
+        assert "Name" in captured.out
+        assert "Status" in captured.out
+
+    def test_query_on_list_extracts_and_outputs_values(self, capsys) -> None:
+        """Test that --query on a list extracts and outputs simple values."""
+        data = [{"name": "vm1"}, {"name": "vm2"}, {"name": "vm3"}]
+        output_result(data, output_format="table", query="name", no_color=True)
+        captured = capsys.readouterr()
+        assert "vm1" in captured.out
+        assert "vm2" in captured.out
+        assert "vm3" in captured.out
