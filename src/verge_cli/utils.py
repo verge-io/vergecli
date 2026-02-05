@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import time
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import TYPE_CHECKING, Any, Callable, Protocol
 
 from rich.console import Console
 from rich.status import Status
@@ -15,10 +15,18 @@ if TYPE_CHECKING:
 
 
 class ResourceManager(Protocol):
-    """Protocol for pyvergeos resource managers."""
+    """Protocol for pyvergeos resource managers.
 
-    def list(self, **kwargs: Any) -> list[Any]: ...
-    def get(self, key: int | None = None, **kwargs: Any) -> Any: ...
+    This protocol is designed to be compatible with pyvergeos SDK managers
+    (VMManager, NetworkManager, etc.) which have explicit keyword arguments
+    rather than **kwargs in their method signatures.
+
+    Note: We use `list` and `get` with minimal signatures to maximize
+    compatibility with SDK managers that have specific keyword arguments.
+    """
+
+    def list(self) -> list[Any]: ...
+    def get(self, key: int | None = ...) -> Any: ...
 
 
 def resolve_resource_id(
@@ -75,7 +83,7 @@ def resolve_resource_id(
 
 
 def wait_for_state(
-    get_resource: callable,
+    get_resource: Callable[..., Any],
     resource_key: int,
     target_state: str | list[str],
     timeout: int = 300,
