@@ -105,6 +105,22 @@ def test_rule_create(cli_runner, mock_client, mock_network_for_rules, mock_rule)
     mock_network_for_rules.rules.create.assert_called_once()
 
 
+def test_rule_update(cli_runner, mock_client, mock_network_for_rules, mock_rule):
+    """Rule update should update a rule."""
+    mock_client.networks.list.return_value = [mock_network_for_rules]
+    mock_client.networks.get.return_value = mock_network_for_rules
+    mock_network_for_rules.rules.list.return_value = [mock_rule]
+    mock_network_for_rules.rules.update.return_value = mock_rule
+
+    result = cli_runner.invoke(
+        app,
+        ["network", "rule", "update", "test-network", "Allow-HTTPS", "--enabled"],
+    )
+
+    assert result.exit_code == 0
+    mock_network_for_rules.rules.update.assert_called_once()
+
+
 def test_rule_delete(cli_runner, mock_client, mock_network_for_rules, mock_rule):
     """Rule delete should delete a rule."""
     mock_client.networks.list.return_value = [mock_network_for_rules]
