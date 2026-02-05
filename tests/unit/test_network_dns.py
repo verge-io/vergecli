@@ -768,3 +768,42 @@ def test_view_update_no_changes(cli_runner, mock_client, mock_network_for_dns, m
 
     assert result.exit_code == 2
     assert "No updates specified" in result.output
+
+
+# =============================================================================
+# View Delete Tests
+# =============================================================================
+
+
+def test_view_delete(cli_runner, mock_client, mock_network_for_dns, mock_view):
+    """View delete should delete a DNS view."""
+    mock_client.networks.list.return_value = [mock_network_for_dns]
+    mock_client.networks.get.return_value = mock_network_for_dns
+    mock_network_for_dns.dns_views.list.return_value = [mock_view]
+    mock_network_for_dns.dns_views.get.return_value = mock_view
+
+    result = cli_runner.invoke(
+        app,
+        ["network", "dns", "view", "delete", "test-network", "internal", "--yes"],
+    )
+
+    assert result.exit_code == 0
+    mock_network_for_dns.dns_views.delete.assert_called_once_with(10)
+
+
+def test_view_delete_cancelled(cli_runner, mock_client, mock_network_for_dns, mock_view):
+    """View delete should be cancellable."""
+    mock_client.networks.list.return_value = [mock_network_for_dns]
+    mock_client.networks.get.return_value = mock_network_for_dns
+    mock_network_for_dns.dns_views.list.return_value = [mock_view]
+    mock_network_for_dns.dns_views.get.return_value = mock_view
+
+    result = cli_runner.invoke(
+        app,
+        ["network", "dns", "view", "delete", "test-network", "internal"],
+        input="n\n",
+    )
+
+    assert result.exit_code == 0
+    assert "Cancelled" in result.output
+    mock_network_for_dns.dns_views.delete.assert_not_called()

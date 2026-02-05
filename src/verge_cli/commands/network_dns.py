@@ -833,3 +833,34 @@ def view_update(
         quiet=vctx.quiet,
         no_color=vctx.no_color,
     )
+
+
+@view_app.command("delete")
+@handle_errors()
+def view_delete(
+    ctx: typer.Context,
+    network: Annotated[str, typer.Argument(help="Network name or key")],
+    view: Annotated[str, typer.Argument(help="View name or key")],
+    yes: Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation")] = False,
+) -> None:
+    """Delete a DNS view.
+
+    This will delete the view and all its zones and records.
+    Changes require apply-dns to take effect.
+    """
+    vctx = get_context(ctx)
+
+    net_key = resolve_resource_id(vctx.client.networks, network, "network")
+    net_obj = vctx.client.networks.get(net_key)
+
+    view_key = _resolve_view_id(net_obj, view)
+    view_obj = net_obj.dns_views.get(view_key)
+
+    view_name = view_obj.get("name") or str(view_key)
+
+    if not confirm_action(f"Delete DNS view '{view_name}' and all its zones?", yes=yes):
+        typer.echo("Cancelled.")
+        raise typer.Exit(0)
+
+    net_obj.dns_views.delete(view_key)
+    output_success(f"Deleted DNS view '{view_name}'", quiet=vctx.quiet)
