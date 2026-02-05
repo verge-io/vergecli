@@ -4,6 +4,8 @@
 
 A Python CLI for managing VergeOS virtual machines, networks, tenants, storage, and more. Targets system administrators, DevOps engineers, and MSPs who need terminal-based automation.
 
+**Status:** Phase 1 MVP in progress — see `docs/plans/2026-02-04-phase1-mvp-implementation.md` for task checklist.
+
 ## Tech Stack
 
 - **Language**: Python 3.9+
@@ -219,11 +221,39 @@ Create `tests/unit/test_<resource>.py` with mocked SDK responses.
 - **Integration tests**: Mark with `@pytest.mark.integration`, require env vars
 - **Coverage target**: 90% on critical paths (auth, CRUD)
 
+### Test Commands
+
+```bash
+uv run pytest                           # All tests
+uv run pytest tests/unit/               # Unit tests only
+uv run pytest -m integration            # Integration tests (needs VERGE_HOST, VERGE_TOKEN)
+uv run pytest -m "not integration"      # Skip integration tests
+uv run pytest tests/unit/test_vm.py -v  # Single file with verbose
+uv run pytest -k "test_list"            # Tests matching pattern
+```
+
+### Available Test Fixtures
+
+From `tests/conftest.py`:
+
+| Fixture | Purpose |
+|---------|---------|
+| `cli_runner` | Typer's `CliRunner` for invoking CLI commands |
+| `mock_client` | Mocked pyvergeos client (patches `verge_cli.auth.get_client`) |
+| `mock_vm` | Mock VM object with standard attributes |
+| `mock_network` | Mock Network object with standard attributes |
+| `temp_config_dir` | Temporary `~/.vrg` directory |
+| `sample_config_file` | Pre-populated test config file |
+
+### Example Test Pattern
+
 ```python
-# tests/conftest.py pattern
-@pytest.fixture
-def mock_client(mocker):
-    mock = MagicMock()
-    mocker.patch("verge_cli.auth.get_client", return_value=mock)
-    return mock
+def test_vm_list(cli_runner, mock_client, mock_vm):
+    mock_client.vms.list.return_value = [mock_vm]
+
+    result = cli_runner.invoke(app, ["vm", "list"])
+
+    assert result.exit_code == 0
+    assert "test-vm" in result.output
+    mock_client.vms.list.assert_called_once()
 ```
