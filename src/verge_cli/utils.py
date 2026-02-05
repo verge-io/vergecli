@@ -15,10 +15,18 @@ if TYPE_CHECKING:
 
 
 class ResourceManager(Protocol):
-    """Protocol for pyvergeos resource managers."""
+    """Protocol for pyvergeos resource managers.
 
-    def list(self, **kwargs: Any) -> list[Any]: ...
-    def get(self, key: int | None = None, **kwargs: Any) -> Any: ...
+    This protocol is designed to be compatible with pyvergeos SDK managers
+    (VMManager, NetworkManager, etc.) which have explicit keyword arguments
+    rather than **kwargs in their method signatures.
+
+    Note: We use `list` and `get` with minimal signatures to maximize
+    compatibility with SDK managers that have specific keyword arguments.
+    """
+
+    def list(self) -> list[Any]: ...
+    def get(self, key: int | None = ...) -> Any: ...
 
 
 def resolve_resource_id(
