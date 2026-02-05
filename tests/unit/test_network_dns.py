@@ -57,6 +57,27 @@ def mock_record():
     return record
 
 
+@pytest.fixture
+def mock_view():
+    """Create a mock DNS View object."""
+    view = MagicMock()
+    view.key = 10
+    view.name = "internal"
+
+    def mock_get(key: str, default=None):
+        data = {
+            "$key": 10,
+            "name": "internal",
+            "recursion": True,
+            "match_clients": "10.0.0.0/8;192.168.0.0/16;",
+            "max_cache_size": 33554432,
+        }
+        return data.get(key, default)
+
+    view.get = mock_get
+    return view
+
+
 # =============================================================================
 # Zone List Tests
 # =============================================================================
@@ -585,3 +606,31 @@ def test_record_delete_cancelled(
     assert result.exit_code == 0
     assert "Cancelled" in result.output
     mock_zone.records.delete.assert_not_called()
+
+
+# =============================================================================
+# View List Tests
+# =============================================================================
+
+
+def test_view_list(cli_runner, mock_client, mock_network_for_dns, mock_view):
+    """View list should show DNS views for a network."""
+    mock_client.networks.list.return_value = [mock_network_for_dns]
+    mock_client.networks.get.return_value = mock_network_for_dns
+    mock_network_for_dns.dns_views.list.return_value = [mock_view]
+
+    result = cli_runner.invoke(app, ["network", "dns", "view", "list", "test-network"])
+
+    assert result.exit_code == 0
+    assert "internal" in result.output
+
+
+def test_view_list_empty(cli_runner, mock_client, mock_network_for_dns):
+    """View list should handle empty view list."""
+    mock_client.networks.list.return_value = [mock_network_for_dns]
+    mock_client.networks.get.return_value = mock_network_for_dns
+    mock_network_for_dns.dns_views.list.return_value = []
+
+    result = cli_runner.invoke(app, ["network", "dns", "view", "list", "test-network"])
+
+    assert result.exit_code == 0
