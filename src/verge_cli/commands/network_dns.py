@@ -32,15 +32,26 @@ record_app = typer.Typer(
     no_args_is_help=True,
 )
 
+# View subapp
+view_app = typer.Typer(
+    name="view",
+    help="Manage DNS views.",
+    no_args_is_help=True,
+)
+
 # Register subapps
 app.add_typer(zone_app, name="zone")
 app.add_typer(record_app, name="record")
+app.add_typer(view_app, name="view")
 
 # Default columns for zone list output
-ZONE_LIST_COLUMNS = ["domain", "type", "serial"]
+ZONE_LIST_COLUMNS = ["id", "domain", "type", "view_name", "serial"]
 
 # Default columns for record list output
-RECORD_LIST_COLUMNS = ["host", "type", "value", "ttl", "priority"]
+RECORD_LIST_COLUMNS = ["id", "host", "type", "value", "ttl", "priority"]
+
+# Default columns for view list output
+VIEW_LIST_COLUMNS = ["id", "name", "recursion", "match_clients"]
 
 
 # =============================================================================
@@ -86,9 +97,10 @@ def _zone_to_dict(zone: Any) -> dict[str, Any]:
         Dictionary representation of the zone.
     """
     return {
-        "key": zone.get("$key") or getattr(zone, "key", None),
+        "id": zone.get("$key") or getattr(zone, "key", None),
         "domain": zone.get("domain", ""),
         "type": zone.get("type", "master"),
+        "view_name": zone.get("view_name", ""),
         "serial": zone.get("serial_number", 0),
     }
 
@@ -136,7 +148,7 @@ def _record_to_dict(record: Any) -> dict[str, Any]:
         Dictionary representation of the record.
     """
     return {
-        "key": record.get("$key") or getattr(record, "key", None),
+        "id": record.get("$key") or getattr(record, "key", None),
         "host": record.get("host", ""),
         "type": record.get("type", "A"),
         "value": record.get("value", ""),
