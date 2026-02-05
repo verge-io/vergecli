@@ -69,14 +69,23 @@ class Config:
 
     default: ProfileConfig = field(default_factory=ProfileConfig)
     profiles: dict[str, ProfileConfig] = field(default_factory=dict)
+    default_profile_name: str | None = None
 
     def get_profile(self, name: str | None = None) -> ProfileConfig:
-        """Get a profile by name, falling back to default."""
-        if name is None or name == "default":
+        """Get a profile by name, falling back to default.
+
+        If no name is provided, uses the default_profile_name from config,
+        then falls back to the [default] section.
+        """
+        effective_name = name
+        if effective_name is None:
+            effective_name = self.default_profile_name
+
+        if effective_name is None or effective_name == "default":
             return self.default
-        if name in self.profiles:
-            return self.profiles[name]
-        raise ValueError(f"Profile '{name}' not found in config")
+        if effective_name in self.profiles:
+            return self.profiles[effective_name]
+        raise ValueError(f"Profile '{effective_name}' not found in config")
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for TOML serialization."""
@@ -116,7 +125,8 @@ def load_config(path: Path | None = None) -> Config:
     )
 
     profiles: dict[str, ProfileConfig] = {}
-    profile_data = data.get("profile", {})
+    # Support both "profile" and "profiles" keys for compatibility
+    profile_data = data.get("profile", data.get("profiles", {}))
     for name, pdata in profile_data.items():
         profiles[name] = ProfileConfig(
             host=pdata.get("host"),
@@ -129,7 +139,12 @@ def load_config(path: Path | None = None) -> Config:
             timeout=pdata.get("timeout", 30),
         )
 
-    return Config(default=default_profile, profiles=profiles)
+    # Get the default profile name from config
+    default_profile_name = data.get("default_profile")
+
+    return Config(
+        default=default_profile, profiles=profiles, default_profile_name=default_profile_name
+    )
 
 
 def save_config(config: Config, path: Path | None = None) -> None:
