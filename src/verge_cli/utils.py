@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import time
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import TYPE_CHECKING, Any, Callable, Protocol
 
 from rich.console import Console
 from rich.status import Status
@@ -83,7 +83,7 @@ def resolve_resource_id(
 
 
 def wait_for_state(
-    get_resource: callable,
+    get_resource: Callable[..., Any],
     resource_key: int,
     target_state: str | list[str],
     timeout: int = 300,
