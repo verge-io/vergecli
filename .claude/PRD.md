@@ -1091,7 +1091,6 @@ man vrg-network
 - [ ] Network commands (full CRUD + rules)
 - [ ] Output formatting (table, JSON)
 - [ ] Basic error handling and exit codes
-- [ ] PyPI package release
 
 ### Phase 2: Infrastructure (v0.2.0)
 - [ ] Cluster and node commands
