@@ -6,7 +6,7 @@ from typing import Annotated, Any
 
 import typer
 
-from verge_cli.commands import network_rule
+from verge_cli.commands import network_alias, network_rule
 from verge_cli.context import get_context
 from verge_cli.errors import handle_errors
 from verge_cli.output import output_result, output_success
@@ -19,6 +19,7 @@ app = typer.Typer(
 )
 
 # Register subapps
+app.add_typer(network_alias.app, name="alias")
 app.add_typer(network_rule.app, name="rule")
 
 # Default columns for network list output
