@@ -37,6 +37,14 @@ def network_list(
         str | None,
         typer.Option("--filter", help="OData filter expression"),
     ] = None,
+    output: Annotated[
+        str | None,
+        typer.Option("--output", "-o", help="Output format (table, json)"),
+    ] = None,
+    query: Annotated[
+        str | None,
+        typer.Option("--query", help="Extract field using dot notation (e.g., 'name')"),
+    ] = None,
 ) -> None:
     """List virtual networks."""
     vctx = get_context(ctx)
@@ -57,8 +65,8 @@ def network_list(
 
     output_result(
         data,
-        output_format=vctx.output_format,
-        query=vctx.query,
+        output_format=output or vctx.output_format,
+        query=query or vctx.query,
         columns=NETWORK_LIST_COLUMNS,
         quiet=vctx.quiet,
         no_color=vctx.no_color,
@@ -70,6 +78,14 @@ def network_list(
 def network_get(
     ctx: typer.Context,
     network: Annotated[str, typer.Argument(help="Network name or key")],
+    output: Annotated[
+        str | None,
+        typer.Option("--output", "-o", help="Output format (table, json)"),
+    ] = None,
+    query: Annotated[
+        str | None,
+        typer.Option("--query", help="Extract field using dot notation (e.g., 'name')"),
+    ] = None,
 ) -> None:
     """Get details of a virtual network."""
     vctx = get_context(ctx)
@@ -79,8 +95,8 @@ def network_get(
 
     output_result(
         _network_to_dict(net_obj),
-        output_format=vctx.output_format,
-        query=vctx.query,
+        output_format=output or vctx.output_format,
+        query=query or vctx.query,
         quiet=vctx.quiet,
         no_color=vctx.no_color,
     )
