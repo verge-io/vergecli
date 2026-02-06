@@ -28,13 +28,25 @@ verge-cli/
 │   ├── config.py           # TOML config loading/saving, env var handling
 │   ├── auth.py             # pyvergeos client creation with credentials
 │   ├── context.py          # VergeContext dataclass passed to commands
-│   ├── output.py           # Table/JSON formatters with Rich
+│   ├── columns.py          # ColumnDef system for table column definitions
+│   ├── output.py           # Table/JSON/CSV formatters with Rich
 │   ├── errors.py           # Exception classes and exit code mapping
 │   ├── utils.py            # Resolver (name→key) and waiter utilities
+│   ├── template/           # VM template subsystem
+│   │   ├── builder.py      # Builds VM + sub-resources from parsed template
+│   │   ├── loader.py       # YAML loading, variable substitution, --set merging
+│   │   ├── resolver.py     # Name→key resolution for template references
+│   │   ├── schema.py       # JSON schema validation for .vrg.yaml files
+│   │   └── units.py        # Unit conversion (e.g., "4GB" → 4096 MB)
+│   ├── schemas/
+│   │   └── vrg-vm-template.schema.json  # JSON schema for .vrg.yaml
 │   └── commands/
 │       ├── configure.py    # `vrg configure` command
 │       ├── system.py       # `vrg system` commands
-│       ├── vm.py           # `vrg vm` commands
+│       ├── vm.py           # `vrg vm` commands (CRUD + power + template create)
+│       ├── vm_drive.py     # `vrg vm drive` sub-resource commands
+│       ├── vm_nic.py       # `vrg vm nic` sub-resource commands
+│       ├── vm_device.py    # `vrg vm device` sub-resource commands
 │       ├── network.py      # `vrg network` commands
 │       ├── network_rule.py # `vrg network rule` commands
 │       ├── network_dns.py  # `vrg network dns` commands
@@ -42,10 +54,14 @@ verge-cli/
 │       ├── network_alias.py # `vrg network alias` commands
 │       └── network_diag.py # `vrg network diag` commands
 ├── tests/
-│   ├── conftest.py         # Shared fixtures (cli_runner, mock_client)
-│   ├── unit/               # Unit tests (mock SDK)
+│   ├── conftest.py         # Shared fixtures (cli_runner, mock_client, etc.)
+│   ├── unit/               # Unit tests (mock SDK, ~28 test files)
 │   └── integration/        # Integration tests (real API, marked)
-├── docs/plans/             # Implementation plans
+├── docs/
+│   ├── cookbook.md          # Task-oriented recipes
+│   ├── templates.md        # Template language reference
+│   ├── KNOWN_ISSUES.md     # Current limitations and workarounds
+│   └── plans/              # Implementation plans
 ├── .claude/
 │   ├── PRD.md              # Full product requirements
 │   └── skills/             # Claude Code skills
@@ -79,8 +95,12 @@ uv run pytest tests/unit/test_config.py -v
 uv run ruff check
 uv run ruff check --fix
 
+# Format checking (CI enforces this)
+uv run ruff format --check .
+uv run ruff format .          # auto-format
+
 # Type checking
-uv run mypy .
+uv run mypy src/verge_cli
 
 # Build package
 uv build
@@ -91,8 +111,10 @@ uv build
 | Document | When to Read |
 |----------|--------------|
 | `.claude/PRD.md` | Full requirements, command reference, API mapping |
-| `docs/plans/2026-02-04-phase1-mvp-implementation.md` | Current implementation plan with task checklist |
-| `README.md` | Installation and quick start |
+| `README.md` | Installation, quick start, command overview |
+| `docs/templates.md` | Template language reference (.vrg.yaml format) |
+| `docs/cookbook.md` | Task-oriented recipes for common workflows |
+| `docs/KNOWN_ISSUES.md` | Current limitations and workarounds |
 
 ## Architecture
 
@@ -110,7 +132,8 @@ def list(ctx: typer.Context):
     vctx = get_context(ctx)  # Gets authenticated client
     vms = vctx.client.vms.list()
     output_result(
-        vms,
+        [_vm_to_dict(v) for v in vms],  # Convert SDK objects to dicts
+        columns=COLUMNS,                 # ColumnDef list for table/csv
         output_format=vctx.output_format,
         query=vctx.query,
         quiet=vctx.quiet,
@@ -135,6 +158,20 @@ Commands accept `<ID|NAME>` arguments. Use `resolve_resource_id()` from `utils.p
 4. Default profile
 5. Interactive prompt (future)
 
+### Template System
+
+The `verge_cli.template` package handles `.vrg.yaml` template-based VM creation:
+
+| Module | Responsibility |
+|--------|----------------|
+| `units.py` | Parses human-friendly sizes like `"4GB"` → `4096` MB |
+| `resolver.py` | Resolves template name references (network, tier) to API keys |
+| `loader.py` | YAML loading, `${VAR}` substitution, `--set` override merging |
+| `schema.py` | Validates templates against `schemas/vrg-vm-template.schema.json` |
+| `builder.py` | Orchestrates VM + drives + NICs + devices + cloud-init creation |
+
+Template flow: `loader.py` → `schema.py` → `resolver.py` → `builder.py`
+
 ### Exit Codes
 
 | Code | Meaning |
@@ -153,9 +190,38 @@ Commands accept `<ID|NAME>` arguments. Use `resolve_resource_id()` from `utils.p
 
 ## Code Conventions
 
+### ColumnDef System
+
+All command output uses `ColumnDef` from `verge_cli.columns` to define table columns. Each command module defines a `COLUMNS` list:
+
+```python
+from verge_cli.columns import ColumnDef
+
+COLUMNS: list[ColumnDef] = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("name"),
+    ColumnDef("status", style_map={"running": "green", "stopped": "red"}),
+    ColumnDef("description", wide_only=True),  # Only shown in -o wide
+]
+```
+
+`ColumnDef` supports:
+- `header` — Custom display header (defaults to title-cased key)
+- `wide_only` — Only shown in `wide` output format
+- `style_map` — Dict mapping values to Rich styles
+- `style_fn` — Callable `(value, row) -> style` for dynamic styling
+- `format_fn` — Callable `(value, for_csv=False) -> str` for custom formatting
+- `normalize_fn` — Callable to normalize values before style lookup
+
 ### Output Formatting
 
-Use `rich.box.SIMPLE` for tables (copy-paste friendly). Check `sys.stdout.isatty()` to disable fancy formatting when piping. For JSON, use `json.dumps(data, default=str)` to handle datetime serialization.
+Use `rich.box.SIMPLE` for tables (copy-paste friendly). Check `sys.stdout.isatty()` to disable fancy formatting when piping.
+
+Output helpers in `verge_cli.output`:
+- `output_result(data, ...)` — Main output dispatcher (table/wide/json/csv)
+- `output_success(message, ...)` — Green checkmark success message
+- `output_error(message, ...)` — Red error message to stderr
+- `output_warning(message, ...)` — Yellow warning message
 
 ### Waiting on Async Operations
 
@@ -196,11 +262,29 @@ Create `src/verge_cli/commands/<resource>.py`:
 ```python
 """<Resource> management commands."""
 import typer
+from verge_cli.columns import ColumnDef
 from verge_cli.context import get_context
 from verge_cli.output import output_result
 from verge_cli.utils import resolve_resource_id
 
 app = typer.Typer(help="Manage <resources>.")
+
+# Define columns for table/wide/csv output
+COLUMNS: list[ColumnDef] = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("name"),
+    ColumnDef("status", style_map={"running": "green", "stopped": "red"}),
+    ColumnDef("description", wide_only=True),
+]
+
+def _to_dict(obj: object) -> dict:
+    """Convert SDK object to dict for output."""
+    return {
+        "$key": obj.key,
+        "name": obj.name,
+        "status": obj.get("status"),
+        "description": obj.get("description"),
+    }
 
 @app.command("list")
 def list_resources(ctx: typer.Context):
@@ -208,7 +292,8 @@ def list_resources(ctx: typer.Context):
     vctx = get_context(ctx)
     items = vctx.client.<resources>.list()
     output_result(
-        items,
+        [_to_dict(i) for i in items],
+        columns=COLUMNS,
         output_format=vctx.output_format,
         query=vctx.query,
         quiet=vctx.quiet,
@@ -222,7 +307,8 @@ def get(ctx: typer.Context, identifier: str):
     key = resolve_resource_id(vctx.client.<resources>, identifier)
     item = vctx.client.<resources>.get(key)
     output_result(
-        item,
+        _to_dict(item),
+        columns=COLUMNS,
         output_format=vctx.output_format,
         query=vctx.query,
         quiet=vctx.quiet,
@@ -269,6 +355,9 @@ From `tests/conftest.py`:
 | `mock_vm` | Mock VM object with standard attributes |
 | `mock_network` | Mock Network object with standard attributes |
 | `mock_dns_view` | Mock DNS View object with standard attributes |
+| `mock_drive` | Mock Drive object (VM sub-resource) |
+| `mock_nic` | Mock NIC object (VM sub-resource) |
+| `mock_device` | Mock Device/TPM object (VM sub-resource) |
 | `temp_config_dir` | Temporary `~/.vrg` directory |
 | `sample_config_file` | Pre-populated test config file |
 
