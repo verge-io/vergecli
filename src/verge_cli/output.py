@@ -135,11 +135,11 @@ def format_table(
     # Legacy string-columns path (backward compatibility)
     assert str_columns is not None
     table = Table(title=title, box=SIMPLE, show_header=True, header_style="bold")
-    for col in str_columns:
-        table.add_column(col.replace("_", " ").title())
+    for col_name in str_columns:
+        table.add_column(col_name.replace("_", " ").title())
 
     for row in data:
-        table.add_row(*[format_value(row.get(col)) for col in str_columns])
+        table.add_row(*[format_value(row.get(col_name)) for col_name in str_columns])
 
     console.print(table)
 
