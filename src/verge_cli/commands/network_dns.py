@@ -157,6 +157,9 @@ def _record_to_dict(record: Any) -> dict[str, Any]:
         "value": record.get("value", ""),
         "ttl": record.get("ttl", ""),
         "priority": record.get("mx_preference", 0),
+        "weight": record.get("weight", 0),
+        "port": record.get("port", 0),
+        "description": record.get("description", ""),
     }
 
 
@@ -446,7 +449,8 @@ def zone_delete(
 def record_list(
     ctx: typer.Context,
     network: Annotated[str, typer.Argument(help="Network name or key")],
-    zone: Annotated[str, typer.Argument(help="Zone name or key")],
+    view: Annotated[str, typer.Argument(help="View name or key")],
+    zone: Annotated[str, typer.Argument(help="Zone domain or key")],
     record_type: Annotated[
         str | None, typer.Option("--type", "-t", help="Filter by record type (A/AAAA/CNAME/MX/TXT)")
     ] = None,
@@ -463,8 +467,11 @@ def record_list(
     net_key = resolve_resource_id(vctx.client.networks, network, "network")
     net_obj = vctx.client.networks.get(net_key)
 
-    zone_key = _resolve_zone_id(net_obj, zone)
-    zone_obj = net_obj.dns_zones.get(zone_key)
+    view_key = _resolve_view_id(net_obj, view)
+    view_obj = net_obj.dns_views.get(view_key)
+
+    zone_key = _resolve_zone_id(view_obj, zone)
+    zone_obj = view_obj.zones.get(zone_key)
 
     # Build filter kwargs
     filter_kwargs: dict[str, Any] = {}
@@ -489,8 +496,9 @@ def record_list(
 def record_get(
     ctx: typer.Context,
     network: Annotated[str, typer.Argument(help="Network name or key")],
-    zone: Annotated[str, typer.Argument(help="Zone name or key")],
-    record: Annotated[str, typer.Argument(help="Record name or key")],
+    view: Annotated[str, typer.Argument(help="View name or key")],
+    zone: Annotated[str, typer.Argument(help="Zone domain or key")],
+    record: Annotated[str, typer.Argument(help="Record ID")],
     output: Annotated[str | None, typer.Option("--output", "-o", help="Output format")] = None,
     query: Annotated[str | None, typer.Option("--query", help="Extract field")] = None,
 ) -> None:
@@ -500,8 +508,11 @@ def record_get(
     net_key = resolve_resource_id(vctx.client.networks, network, "network")
     net_obj = vctx.client.networks.get(net_key)
 
-    zone_key = _resolve_zone_id(net_obj, zone)
-    zone_obj = net_obj.dns_zones.get(zone_key)
+    view_key = _resolve_view_id(net_obj, view)
+    view_obj = net_obj.dns_views.get(view_key)
+
+    zone_key = _resolve_zone_id(view_obj, zone)
+    zone_obj = view_obj.zones.get(zone_key)
 
     record_key = _resolve_record_id(zone_obj, record)
     record_obj = zone_obj.records.get(record_key)
@@ -520,13 +531,14 @@ def record_get(
 def record_create(
     ctx: typer.Context,
     network: Annotated[str, typer.Argument(help="Network name or key")],
-    zone: Annotated[str, typer.Argument(help="Zone name or key")],
+    view: Annotated[str, typer.Argument(help="View name or key")],
+    zone: Annotated[str, typer.Argument(help="Zone domain or key")],
     name: Annotated[str, typer.Option("--name", "-n", help="Record name (e.g., www, @, mail)")],
     record_type: Annotated[
         str, typer.Option("--type", "-t", help="Record type (A/AAAA/CNAME/MX/TXT/NS/PTR/SRV)")
     ],
-    address: Annotated[
-        str, typer.Option("--address", "-a", help="Record value/address (IP or hostname)")
+    value: Annotated[
+        str, typer.Option("--value", "-v", help="Record value (IP, hostname, or text)")
     ],
     ttl: Annotated[int, typer.Option("--ttl", help="Time to live in seconds")] = 3600,
     priority: Annotated[
@@ -539,21 +551,24 @@ def record_create(
     Changes require apply-dns to take effect.
 
     Examples:
-        vrg network dns record create mynet example.com --name www --type A --address 10.0.0.100
-        vrg network dns record create mynet example.com --name @ --type MX --address mail.example.com --priority 10
+        vrg network dns record create mynet internal example.com --name www --type A --value 10.0.0.100
+        vrg network dns record create mynet internal example.com --name @ --type MX --value mail.example.com --priority 10
     """
     vctx = get_context(ctx)
 
     net_key = resolve_resource_id(vctx.client.networks, network, "network")
     net_obj = vctx.client.networks.get(net_key)
 
-    zone_key = _resolve_zone_id(net_obj, zone)
-    zone_obj = net_obj.dns_zones.get(zone_key)
+    view_key = _resolve_view_id(net_obj, view)
+    view_obj = net_obj.dns_views.get(view_key)
+
+    zone_key = _resolve_zone_id(view_obj, zone)
+    zone_obj = view_obj.zones.get(zone_key)
 
     create_kwargs: dict[str, Any] = {
         "host": name,
         "record_type": record_type,
-        "value": address,
+        "value": value,
         "ttl": ttl,
     }
 
@@ -563,7 +578,7 @@ def record_create(
     record_obj = zone_obj.records.create(**create_kwargs)
 
     record_host = record_obj.get("host") or name
-    record_value = record_obj.get("value") or address
+    record_value = record_obj.get("value") or value
     output_success(f"Created DNS record '{record_host}' -> {record_value}", quiet=vctx.quiet)
 
     output_result(
@@ -580,12 +595,13 @@ def record_create(
 def record_update(
     ctx: typer.Context,
     network: Annotated[str, typer.Argument(help="Network name or key")],
-    zone: Annotated[str, typer.Argument(help="Zone name or key")],
-    record: Annotated[str, typer.Argument(help="Record name or key")],
+    view: Annotated[str, typer.Argument(help="View name or key")],
+    zone: Annotated[str, typer.Argument(help="Zone domain or key")],
+    record: Annotated[str, typer.Argument(help="Record ID")],
     name: Annotated[str | None, typer.Option("--name", "-n", help="New record name")] = None,
     record_type: Annotated[str | None, typer.Option("--type", "-t", help="Record type")] = None,
-    address: Annotated[
-        str | None, typer.Option("--address", "-a", help="New record value/address")
+    value: Annotated[
+        str | None, typer.Option("--value", "-v", help="New record value (IP, hostname, or text)")
     ] = None,
     ttl: Annotated[int | None, typer.Option("--ttl", help="Time to live")] = None,
     priority: Annotated[int | None, typer.Option("--priority", "-p", help="Priority")] = None,
@@ -599,8 +615,11 @@ def record_update(
     net_key = resolve_resource_id(vctx.client.networks, network, "network")
     net_obj = vctx.client.networks.get(net_key)
 
-    zone_key = _resolve_zone_id(net_obj, zone)
-    zone_obj = net_obj.dns_zones.get(zone_key)
+    view_key = _resolve_view_id(net_obj, view)
+    view_obj = net_obj.dns_views.get(view_key)
+
+    zone_key = _resolve_zone_id(view_obj, zone)
+    zone_obj = view_obj.zones.get(zone_key)
 
     record_key = _resolve_record_id(zone_obj, record)
 
@@ -610,8 +629,8 @@ def record_update(
         updates["host"] = name
     if record_type is not None:
         updates["type"] = record_type
-    if address is not None:
-        updates["value"] = address
+    if value is not None:
+        updates["value"] = value
     if ttl is not None:
         updates["ttl"] = ttl
     if priority is not None:
@@ -640,8 +659,9 @@ def record_update(
 def record_delete(
     ctx: typer.Context,
     network: Annotated[str, typer.Argument(help="Network name or key")],
-    zone: Annotated[str, typer.Argument(help="Zone name or key")],
-    record: Annotated[str, typer.Argument(help="Record name or key")],
+    view: Annotated[str, typer.Argument(help="View name or key")],
+    zone: Annotated[str, typer.Argument(help="Zone domain or key")],
+    record: Annotated[str, typer.Argument(help="Record ID")],
     yes: Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation")] = False,
 ) -> None:
     """Delete a DNS record.
@@ -653,8 +673,11 @@ def record_delete(
     net_key = resolve_resource_id(vctx.client.networks, network, "network")
     net_obj = vctx.client.networks.get(net_key)
 
-    zone_key = _resolve_zone_id(net_obj, zone)
-    zone_obj = net_obj.dns_zones.get(zone_key)
+    view_key = _resolve_view_id(net_obj, view)
+    view_obj = net_obj.dns_views.get(view_key)
+
+    zone_key = _resolve_zone_id(view_obj, zone)
+    zone_obj = view_obj.zones.get(zone_key)
 
     record_key = _resolve_record_id(zone_obj, record)
     record_obj = zone_obj.records.get(record_key)

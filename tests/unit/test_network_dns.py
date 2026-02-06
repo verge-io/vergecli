@@ -324,16 +324,20 @@ def test_zone_delete_cancelled(cli_runner, mock_client, mock_network_for_dns, mo
 # =============================================================================
 
 
-def test_record_list(cli_runner, mock_client, mock_network_for_dns, mock_zone, mock_record):
+def test_record_list(
+    cli_runner, mock_client, mock_network_for_dns, mock_view, mock_zone, mock_record
+):
     """Record list should show DNS records for a zone."""
     mock_client.networks.list.return_value = [mock_network_for_dns]
     mock_client.networks.get.return_value = mock_network_for_dns
-    mock_network_for_dns.dns_zones.list.return_value = [mock_zone]
-    mock_network_for_dns.dns_zones.get.return_value = mock_zone
+    mock_network_for_dns.dns_views.list.return_value = [mock_view]
+    mock_network_for_dns.dns_views.get.return_value = mock_view
+    mock_view.zones.list.return_value = [mock_zone]
+    mock_view.zones.get.return_value = mock_zone
     mock_zone.records.list.return_value = [mock_record]
 
     result = cli_runner.invoke(
-        app, ["network", "dns", "record", "list", "test-network", "example.com"]
+        app, ["network", "dns", "record", "list", "test-network", "internal", "example.com"]
     )
 
     assert result.exit_code == 0
@@ -341,18 +345,30 @@ def test_record_list(cli_runner, mock_client, mock_network_for_dns, mock_zone, m
 
 
 def test_record_list_with_type_filter(
-    cli_runner, mock_client, mock_network_for_dns, mock_zone, mock_record
+    cli_runner, mock_client, mock_network_for_dns, mock_view, mock_zone, mock_record
 ):
     """Record list should support filtering by record type."""
     mock_client.networks.list.return_value = [mock_network_for_dns]
     mock_client.networks.get.return_value = mock_network_for_dns
-    mock_network_for_dns.dns_zones.list.return_value = [mock_zone]
-    mock_network_for_dns.dns_zones.get.return_value = mock_zone
+    mock_network_for_dns.dns_views.list.return_value = [mock_view]
+    mock_network_for_dns.dns_views.get.return_value = mock_view
+    mock_view.zones.list.return_value = [mock_zone]
+    mock_view.zones.get.return_value = mock_zone
     mock_zone.records.list.return_value = [mock_record]
 
     result = cli_runner.invoke(
         app,
-        ["network", "dns", "record", "list", "test-network", "example.com", "--type", "A"],
+        [
+            "network",
+            "dns",
+            "record",
+            "list",
+            "test-network",
+            "internal",
+            "example.com",
+            "--type",
+            "A",
+        ],
     )
 
     assert result.exit_code == 0
@@ -364,17 +380,21 @@ def test_record_list_with_type_filter(
 # =============================================================================
 
 
-def test_record_get(cli_runner, mock_client, mock_network_for_dns, mock_zone, mock_record):
+def test_record_get(
+    cli_runner, mock_client, mock_network_for_dns, mock_view, mock_zone, mock_record
+):
     """Record get should show record details."""
     mock_client.networks.list.return_value = [mock_network_for_dns]
     mock_client.networks.get.return_value = mock_network_for_dns
-    mock_network_for_dns.dns_zones.list.return_value = [mock_zone]
-    mock_network_for_dns.dns_zones.get.return_value = mock_zone
+    mock_network_for_dns.dns_views.list.return_value = [mock_view]
+    mock_network_for_dns.dns_views.get.return_value = mock_view
+    mock_view.zones.list.return_value = [mock_zone]
+    mock_view.zones.get.return_value = mock_zone
     mock_zone.records.list.return_value = [mock_record]
     mock_zone.records.get.return_value = mock_record
 
     result = cli_runner.invoke(
-        app, ["network", "dns", "record", "get", "test-network", "example.com", "www"]
+        app, ["network", "dns", "record", "get", "test-network", "internal", "example.com", "www"]
     )
 
     assert result.exit_code == 0
@@ -382,16 +402,20 @@ def test_record_get(cli_runner, mock_client, mock_network_for_dns, mock_zone, mo
     assert "10.0.0.100" in result.output
 
 
-def test_record_get_by_id(cli_runner, mock_client, mock_network_for_dns, mock_zone, mock_record):
+def test_record_get_by_id(
+    cli_runner, mock_client, mock_network_for_dns, mock_view, mock_zone, mock_record
+):
     """Record get should work with numeric ID."""
     mock_client.networks.list.return_value = [mock_network_for_dns]
     mock_client.networks.get.return_value = mock_network_for_dns
-    mock_network_for_dns.dns_zones.list.return_value = [mock_zone]
-    mock_network_for_dns.dns_zones.get.return_value = mock_zone
+    mock_network_for_dns.dns_views.list.return_value = [mock_view]
+    mock_network_for_dns.dns_views.get.return_value = mock_view
+    mock_view.zones.list.return_value = [mock_zone]
+    mock_view.zones.get.return_value = mock_zone
     mock_zone.records.get.return_value = mock_record
 
     result = cli_runner.invoke(
-        app, ["network", "dns", "record", "get", "test-network", "example.com", "200"]
+        app, ["network", "dns", "record", "get", "test-network", "internal", "example.com", "200"]
     )
 
     assert result.exit_code == 0
@@ -403,12 +427,16 @@ def test_record_get_by_id(cli_runner, mock_client, mock_network_for_dns, mock_zo
 # =============================================================================
 
 
-def test_record_create_a(cli_runner, mock_client, mock_network_for_dns, mock_zone, mock_record):
+def test_record_create_a(
+    cli_runner, mock_client, mock_network_for_dns, mock_view, mock_zone, mock_record
+):
     """Record create should create an A record."""
     mock_client.networks.list.return_value = [mock_network_for_dns]
     mock_client.networks.get.return_value = mock_network_for_dns
-    mock_network_for_dns.dns_zones.list.return_value = [mock_zone]
-    mock_network_for_dns.dns_zones.get.return_value = mock_zone
+    mock_network_for_dns.dns_views.list.return_value = [mock_view]
+    mock_network_for_dns.dns_views.get.return_value = mock_view
+    mock_view.zones.list.return_value = [mock_zone]
+    mock_view.zones.get.return_value = mock_zone
     mock_zone.records.create.return_value = mock_record
 
     result = cli_runner.invoke(
@@ -419,12 +447,13 @@ def test_record_create_a(cli_runner, mock_client, mock_network_for_dns, mock_zon
             "record",
             "create",
             "test-network",
+            "internal",
             "example.com",
             "--name",
             "www",
             "--type",
             "A",
-            "--address",
+            "--value",
             "10.0.0.100",
         ],
     )
@@ -437,12 +466,14 @@ def test_record_create_a(cli_runner, mock_client, mock_network_for_dns, mock_zon
     assert call_kwargs["value"] == "10.0.0.100"
 
 
-def test_record_create_mx(cli_runner, mock_client, mock_network_for_dns, mock_zone):
+def test_record_create_mx(cli_runner, mock_client, mock_network_for_dns, mock_view, mock_zone):
     """Record create should support MX records with priority."""
     mock_client.networks.list.return_value = [mock_network_for_dns]
     mock_client.networks.get.return_value = mock_network_for_dns
-    mock_network_for_dns.dns_zones.list.return_value = [mock_zone]
-    mock_network_for_dns.dns_zones.get.return_value = mock_zone
+    mock_network_for_dns.dns_views.list.return_value = [mock_view]
+    mock_network_for_dns.dns_views.get.return_value = mock_view
+    mock_view.zones.list.return_value = [mock_zone]
+    mock_view.zones.get.return_value = mock_zone
 
     mx_record = MagicMock()
     mx_record.key = 201
@@ -464,12 +495,13 @@ def test_record_create_mx(cli_runner, mock_client, mock_network_for_dns, mock_zo
             "record",
             "create",
             "test-network",
+            "internal",
             "example.com",
             "--name",
             "@",
             "--type",
             "MX",
-            "--address",
+            "--value",
             "mail.example.com",
             "--priority",
             "10",
@@ -482,13 +514,15 @@ def test_record_create_mx(cli_runner, mock_client, mock_network_for_dns, mock_zo
 
 
 def test_record_create_with_ttl(
-    cli_runner, mock_client, mock_network_for_dns, mock_zone, mock_record
+    cli_runner, mock_client, mock_network_for_dns, mock_view, mock_zone, mock_record
 ):
     """Record create should support custom TTL."""
     mock_client.networks.list.return_value = [mock_network_for_dns]
     mock_client.networks.get.return_value = mock_network_for_dns
-    mock_network_for_dns.dns_zones.list.return_value = [mock_zone]
-    mock_network_for_dns.dns_zones.get.return_value = mock_zone
+    mock_network_for_dns.dns_views.list.return_value = [mock_view]
+    mock_network_for_dns.dns_views.get.return_value = mock_view
+    mock_view.zones.list.return_value = [mock_zone]
+    mock_view.zones.get.return_value = mock_zone
     mock_zone.records.create.return_value = mock_record
 
     result = cli_runner.invoke(
@@ -499,12 +533,13 @@ def test_record_create_with_ttl(
             "record",
             "create",
             "test-network",
+            "internal",
             "example.com",
             "--name",
             "www",
             "--type",
             "A",
-            "--address",
+            "--value",
             "10.0.0.100",
             "--ttl",
             "7200",
@@ -521,12 +556,16 @@ def test_record_create_with_ttl(
 # =============================================================================
 
 
-def test_record_update(cli_runner, mock_client, mock_network_for_dns, mock_zone, mock_record):
+def test_record_update(
+    cli_runner, mock_client, mock_network_for_dns, mock_view, mock_zone, mock_record
+):
     """Record update should update record with new values."""
     mock_client.networks.list.return_value = [mock_network_for_dns]
     mock_client.networks.get.return_value = mock_network_for_dns
-    mock_network_for_dns.dns_zones.list.return_value = [mock_zone]
-    mock_network_for_dns.dns_zones.get.return_value = mock_zone
+    mock_network_for_dns.dns_views.list.return_value = [mock_view]
+    mock_network_for_dns.dns_views.get.return_value = mock_view
+    mock_view.zones.list.return_value = [mock_zone]
+    mock_view.zones.get.return_value = mock_zone
     mock_zone.records.list.return_value = [mock_record]
     mock_zone.records.get.return_value = mock_record
 
@@ -550,9 +589,10 @@ def test_record_update(cli_runner, mock_client, mock_network_for_dns, mock_zone,
             "record",
             "update",
             "test-network",
+            "internal",
             "example.com",
             "www",
-            "--address",
+            "--value",
             "10.0.0.200",
         ],
     )
@@ -562,19 +602,21 @@ def test_record_update(cli_runner, mock_client, mock_network_for_dns, mock_zone,
 
 
 def test_record_update_no_changes(
-    cli_runner, mock_client, mock_network_for_dns, mock_zone, mock_record
+    cli_runner, mock_client, mock_network_for_dns, mock_view, mock_zone, mock_record
 ):
     """Record update with no options should fail."""
     mock_client.networks.list.return_value = [mock_network_for_dns]
     mock_client.networks.get.return_value = mock_network_for_dns
-    mock_network_for_dns.dns_zones.list.return_value = [mock_zone]
-    mock_network_for_dns.dns_zones.get.return_value = mock_zone
+    mock_network_for_dns.dns_views.list.return_value = [mock_view]
+    mock_network_for_dns.dns_views.get.return_value = mock_view
+    mock_view.zones.list.return_value = [mock_zone]
+    mock_view.zones.get.return_value = mock_zone
     mock_zone.records.list.return_value = [mock_record]
     mock_zone.records.get.return_value = mock_record
 
     result = cli_runner.invoke(
         app,
-        ["network", "dns", "record", "update", "test-network", "example.com", "www"],
+        ["network", "dns", "record", "update", "test-network", "internal", "example.com", "www"],
     )
 
     assert result.exit_code == 2
@@ -586,12 +628,16 @@ def test_record_update_no_changes(
 # =============================================================================
 
 
-def test_record_delete(cli_runner, mock_client, mock_network_for_dns, mock_zone, mock_record):
+def test_record_delete(
+    cli_runner, mock_client, mock_network_for_dns, mock_view, mock_zone, mock_record
+):
     """Record delete should delete a DNS record."""
     mock_client.networks.list.return_value = [mock_network_for_dns]
     mock_client.networks.get.return_value = mock_network_for_dns
-    mock_network_for_dns.dns_zones.list.return_value = [mock_zone]
-    mock_network_for_dns.dns_zones.get.return_value = mock_zone
+    mock_network_for_dns.dns_views.list.return_value = [mock_view]
+    mock_network_for_dns.dns_views.get.return_value = mock_view
+    mock_view.zones.list.return_value = [mock_zone]
+    mock_view.zones.get.return_value = mock_zone
     mock_zone.records.list.return_value = [mock_record]
     mock_zone.records.get.return_value = mock_record
 
@@ -603,6 +649,7 @@ def test_record_delete(cli_runner, mock_client, mock_network_for_dns, mock_zone,
             "record",
             "delete",
             "test-network",
+            "internal",
             "example.com",
             "www",
             "--yes",
@@ -614,19 +661,21 @@ def test_record_delete(cli_runner, mock_client, mock_network_for_dns, mock_zone,
 
 
 def test_record_delete_cancelled(
-    cli_runner, mock_client, mock_network_for_dns, mock_zone, mock_record
+    cli_runner, mock_client, mock_network_for_dns, mock_view, mock_zone, mock_record
 ):
     """Record delete should be cancellable."""
     mock_client.networks.list.return_value = [mock_network_for_dns]
     mock_client.networks.get.return_value = mock_network_for_dns
-    mock_network_for_dns.dns_zones.list.return_value = [mock_zone]
-    mock_network_for_dns.dns_zones.get.return_value = mock_zone
+    mock_network_for_dns.dns_views.list.return_value = [mock_view]
+    mock_network_for_dns.dns_views.get.return_value = mock_view
+    mock_view.zones.list.return_value = [mock_zone]
+    mock_view.zones.get.return_value = mock_zone
     mock_zone.records.list.return_value = [mock_record]
     mock_zone.records.get.return_value = mock_record
 
     result = cli_runner.invoke(
         app,
-        ["network", "dns", "record", "delete", "test-network", "example.com", "www"],
+        ["network", "dns", "record", "delete", "test-network", "internal", "example.com", "www"],
         input="n\n",
     )
 
