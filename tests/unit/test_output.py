@@ -4,8 +4,19 @@ from __future__ import annotations
 
 import json
 from datetime import datetime
+from typing import Any
 
-from verge_cli.output import extract_field, format_json, format_value, output_result
+from rich.text import Text
+
+from verge_cli.columns import (
+    FLAG_STYLES,
+    STATUS_STYLES,
+    ColumnDef,
+    default_format,
+    format_bool_yn,
+    normalize_lower,
+)
+from verge_cli.output import extract_field, format_json, format_value, output_result, render_cell
 
 
 class TestExtractField:
@@ -176,3 +187,123 @@ class TestOutputResult:
         assert "vm1" in captured.out
         assert "vm2" in captured.out
         assert "vm3" in captured.out
+
+
+class TestDefaultFormat:
+    def test_none_table(self) -> None:
+        assert default_format(None) == "-"
+
+    def test_none_csv(self) -> None:
+        assert default_format(None, for_csv=True) == ""
+
+    def test_bool_true_table(self) -> None:
+        assert default_format(True) == "yes"
+
+    def test_bool_false_table(self) -> None:
+        assert default_format(False) == "no"
+
+    def test_bool_true_csv(self) -> None:
+        assert default_format(True, for_csv=True) == "true"
+
+    def test_bool_false_csv(self) -> None:
+        assert default_format(False, for_csv=True) == "false"
+
+    def test_string_passthrough(self) -> None:
+        assert default_format("hello") == "hello"
+
+    def test_int_passthrough(self) -> None:
+        assert default_format(42) == "42"
+
+    def test_datetime(self) -> None:
+        dt = datetime(2024, 1, 15, 10, 30, 45)
+        assert default_format(dt) == "2024-01-15 10:30:45"
+
+
+class TestRenderCell:
+    def test_plain_text_no_style(self) -> None:
+        col = ColumnDef("name")
+        result = render_cell("test-vm", {}, col)
+        assert isinstance(result, Text)
+        assert str(result) == "test-vm"
+
+    def test_style_map_applied(self) -> None:
+        col = ColumnDef("status", style_map=STATUS_STYLES, normalize_fn=normalize_lower)
+        result = render_cell("running", {}, col)
+        assert isinstance(result, Text)
+        assert str(result) == "running"
+        assert result.style == "green"
+
+    def test_style_map_with_normalize(self) -> None:
+        col = ColumnDef("status", style_map=STATUS_STYLES, normalize_fn=normalize_lower)
+        result = render_cell("Running", {}, col)
+        assert isinstance(result, Text)
+        assert result.style == "green"
+
+    def test_flag_bool_styled(self) -> None:
+        col = ColumnDef("needs_restart", style_map=FLAG_STYLES, format_fn=format_bool_yn)
+        result = render_cell(True, {}, col)
+        assert isinstance(result, Text)
+        assert str(result) == "Y"
+        assert result.style == "yellow bold"
+
+    def test_flag_false_dim(self) -> None:
+        col = ColumnDef("needs_restart", style_map=FLAG_STYLES, format_fn=format_bool_yn)
+        result = render_cell(False, {}, col)
+        assert isinstance(result, Text)
+        assert str(result) == "-"
+        assert result.style == "dim"
+
+    def test_csv_returns_string(self) -> None:
+        col = ColumnDef("status", style_map=STATUS_STYLES, normalize_fn=normalize_lower)
+        result = render_cell("running", {}, col, for_csv=True)
+        assert isinstance(result, str)
+        assert result == "running"
+
+    def test_csv_flag_machine_friendly(self) -> None:
+        col = ColumnDef("needs_restart", style_map=FLAG_STYLES, format_fn=format_bool_yn)
+        result = render_cell(True, {}, col, for_csv=True)
+        assert isinstance(result, str)
+        assert result == "true"
+
+    def test_default_style_fallback(self) -> None:
+        col = ColumnDef("notes", default_style="dim")
+        result = render_cell("some text", {}, col)
+        assert isinstance(result, Text)
+        assert result.style == "dim"
+
+    def test_style_fn_escape_hatch(self) -> None:
+        def warn_high_ram(value: Any, row: dict[str, Any]) -> str | None:
+            if isinstance(value, int) and value > 8000:
+                return "red bold"
+            return None
+
+        col = ColumnDef("ram", style_fn=warn_high_ram)
+        result = render_cell(16384, {"ram": 16384}, col)
+        assert isinstance(result, Text)
+        assert result.style == "red bold"
+
+    def test_style_resolution_order(self) -> None:
+        """style_map wins over style_fn wins over default_style."""
+        col = ColumnDef(
+            "status",
+            style_map={"running": "green"},
+            style_fn=lambda v, r: "yellow",
+            default_style="dim",
+            normalize_fn=normalize_lower,
+        )
+        result = render_cell("running", {}, col)
+        assert result.style == "green"
+
+        result = render_cell("unknown_value", {}, col)
+        assert result.style == "yellow"
+
+    def test_none_value_table(self) -> None:
+        col = ColumnDef("notes")
+        result = render_cell(None, {}, col)
+        assert isinstance(result, Text)
+        assert str(result) == "-"
+
+    def test_none_value_csv(self) -> None:
+        col = ColumnDef("notes")
+        result = render_cell(None, {}, col, for_csv=True)
+        assert result == ""
