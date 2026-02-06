@@ -50,7 +50,7 @@ def _resolve_nic(vm_obj: Any, identifier: str) -> int:
     nics = vm_obj.nics.list()
     matches = [n for n in nics if n.name == identifier]
     if len(matches) == 1:
-        return matches[0].key
+        return int(matches[0].key)
     if len(matches) > 1:
         typer.echo(f"Error: Multiple NICs match '{identifier}'. Use a numeric key.", err=True)
         raise typer.Exit(7)
