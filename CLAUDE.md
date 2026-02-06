@@ -4,11 +4,11 @@
 
 A Python CLI for managing VergeOS virtual machines, networks, tenants, storage, and more. Targets system administrators, DevOps engineers, and MSPs who need terminal-based automation.
 
-**Status:** Phase 1 MVP in progress — see `docs/plans/2026-02-04-phase1-mvp-implementation.md` for task checklist.
+**Status:** Phase 1 MVP complete — see `docs/plans/2026-02-04-phase1-mvp-implementation.md` for task checklist.
 
 ## Tech Stack
 
-- **Language**: Python 3.9+
+- **Language**: Python 3.10+
 - **Package Manager**: uv (with pip/pipx for installation)
 - **CLI Framework**: Typer with Rich for output formatting
 - **SDK**: pyvergeos (full API wrapper)
@@ -33,7 +33,14 @@ verge-cli/
 │   ├── utils.py            # Resolver (name→key) and waiter utilities
 │   └── commands/
 │       ├── configure.py    # `vrg configure` command
-│       └── ...             # Future: vm.py, network.py, tenant.py, etc.
+│       ├── system.py       # `vrg system` commands
+│       ├── vm.py           # `vrg vm` commands
+│       ├── network.py      # `vrg network` commands
+│       ├── network_rule.py # `vrg network rule` commands
+│       ├── network_dns.py  # `vrg network dns` commands
+│       ├── network_host.py # `vrg network host` commands
+│       ├── network_alias.py # `vrg network alias` commands
+│       └── network_diag.py # `vrg network diag` commands
 ├── tests/
 │   ├── conftest.py         # Shared fixtures (cli_runner, mock_client)
 │   ├── unit/               # Unit tests (mock SDK)
@@ -111,7 +118,7 @@ Commands accept `<ID|NAME>` arguments. Use `resolve_resource_id()` from `utils.p
 - Text strings → search by name via SDK
 - 0 matches → `NotFoundError` (exit 6)
 - 1 match → return Key
-- Multiple matches → `MultipleMatchesError` (exit 7), list matches
+- Multiple matches → `MultipleMatchesError` (exit 7, conflict), list matches
 
 ### Credential Resolution Order
 
@@ -130,9 +137,9 @@ Commands accept `<ID|NAME>` arguments. Use `resolve_resource_id()` from `utils.p
 | 2 | Invalid arguments |
 | 3 | Configuration error |
 | 4 | Authentication error |
-| 5 | Authorization error |
+| 5 | Permission denied |
 | 6 | Resource not found |
-| 7 | Multiple matches (ambiguous name) |
+| 7 | Conflict (duplicate name) |
 | 8 | Validation error |
 | 9 | Timeout error |
 | 10 | Connection error |
@@ -242,6 +249,7 @@ From `tests/conftest.py`:
 | `mock_client` | Mocked pyvergeos client (patches `verge_cli.auth.get_client`) |
 | `mock_vm` | Mock VM object with standard attributes |
 | `mock_network` | Mock Network object with standard attributes |
+| `mock_dns_view` | Mock DNS View object with standard attributes |
 | `temp_config_dir` | Temporary `~/.vrg` directory |
 | `sample_config_file` | Pre-populated test config file |
 
