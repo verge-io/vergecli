@@ -123,12 +123,12 @@ vrg network create --name dev-net --cidr 10.0.0.0/24 --ip 10.0.0.1 --dhcp
 vrg network start dev-net
 ```
 
-3. Add a firewall rule to allow inbound SSH:
+3. Add a firewall rule to allow incoming SSH:
 
 ```bash
 vrg network rule create dev-net \
-  --action allow --direction inbound \
-  --protocol tcp --port 22
+  --name allow-ssh --action accept --direction incoming \
+  --protocol tcp --dest-ports 22
 ```
 
 4. Apply the firewall rules so they take effect:
@@ -146,10 +146,16 @@ vrg network host create dev-net \
 
 ### Verify
 
-Ping the static host from the network's router to confirm connectivity:
+Confirm the host override was created:
 
 ```bash
-vrg network diag ping dev-net --target 10.0.0.50
+vrg network host list dev-net
+```
+
+Check active DHCP leases on the network:
+
+```bash
+vrg network diag leases dev-net
 ```
 
 ---
@@ -166,25 +172,25 @@ vrg network diag ping dev-net --target 10.0.0.50
 vrg network dns view create dev-net --name internal
 ```
 
-2. Create a master zone under that view (use the view key returned in step 1):
+2. Create a master zone under that view (use the view key returned in step 1 as the second positional argument):
 
 ```bash
-vrg network dns zone create dev-net \
-  --domain example.local --type master --view 1
+vrg network dns zone create dev-net 1 \
+  --domain example.local --type master
 ```
 
-3. Add an A record pointing `www` to a server IP (use the zone key returned in step 2):
+3. Add an A record pointing `www` to a server IP. DNS record commands take three positional arguments: network, view, and zone:
 
 ```bash
-vrg network dns record create dev-net 1 \
-  --host www --type A --value 10.0.0.10 --ttl 3600
+vrg network dns record create dev-net 1 1 \
+  --name www --type A --value 10.0.0.10 --ttl 3600
 ```
 
 4. Add a CNAME record pointing `mail` to the `www` host:
 
 ```bash
-vrg network dns record create dev-net 1 \
-  --host mail --type CNAME --value www.example.local --ttl 3600
+vrg network dns record create dev-net 1 1 \
+  --name mail --type CNAME --value www.example.local --ttl 3600
 ```
 
 5. Apply DNS configuration so the changes take effect:
@@ -195,10 +201,10 @@ vrg network apply-dns dev-net
 
 ### Verify
 
-Query the DNS server from the network to confirm resolution:
+List records in the zone to confirm they were created:
 
 ```bash
-vrg network diag dns dev-net --host www.example.local
+vrg network dns record list dev-net 1 1
 ```
 
-You should see `www.example.local` resolve to `10.0.0.10`.
+You should see the `www` A record and `mail` CNAME record in the output.

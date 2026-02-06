@@ -45,7 +45,7 @@ vrg vm list
 - **DNS** — manage DNS views, zones, and records (A, CNAME, MX, TXT, etc.)
 - **DHCP Host Overrides** — assign static IPs via hostname-based overrides
 - **IP Aliases** — add secondary IP addresses to networks
-- **Network Diagnostics** — ping, traceroute, DNS lookup from within networks
+- **Network Diagnostics** — DHCP leases, address tables, and traffic statistics
 - **Configuration Profiles** — multiple environments with named profiles
 - **Multiple Auth Methods** — bearer token, API key, or username/password
 - **Flexible Output** — table or JSON format with `--query` field extraction
@@ -54,7 +54,7 @@ vrg vm list
 
 | Command | Subcommands |
 |---------|-------------|
-| `vrg vm` | `list`, `get`, `create`, `update`, `delete`, `start`, `stop`, `restart`, `reset`, `status` |
+| `vrg vm` | `list`, `get`, `create`, `update`, `delete`, `start`, `stop`, `restart`, `reset` |
 | `vrg network` | `list`, `get`, `create`, `update`, `delete`, `start`, `stop`, `restart`, `status`, `apply-rules`, `apply-dns` |
 | `vrg network rule` | `list`, `get`, `create`, `update`, `delete`, `enable`, `disable` |
 | `vrg network dns zone` | `list`, `get`, `create`, `update`, `delete` |
@@ -62,9 +62,9 @@ vrg vm list
 | `vrg network dns view` | `list`, `get`, `create`, `update`, `delete` |
 | `vrg network host` | `list`, `get`, `create`, `update`, `delete` |
 | `vrg network alias` | `list`, `get`, `create`, `update`, `delete` |
-| `vrg network diag` | `ping`, `traceroute`, `dns`, `resolve` |
+| `vrg network diag` | `leases`, `addresses`, `stats` |
 | `vrg system` | `info`, `version` |
-| `vrg configure` | `setup`, `show`, `list`, `remove` |
+| `vrg configure` | `setup`, `show`, `list` |
 
 Run `vrg <command> --help` for detailed usage of any command.
 
