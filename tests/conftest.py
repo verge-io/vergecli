@@ -71,6 +71,7 @@ def mock_vm() -> MagicMock:
             "os_family": "linux",
             "created": "2024-01-01T00:00:00Z",
             "modified": "2024-01-02T00:00:00Z",
+            "need_restart": False,
         }
         return data.get(key, default)
 
@@ -100,6 +101,9 @@ def mock_network() -> MagicMock:
             "dhcp_stop": "10.0.0.200",
             "dns": "10.0.0.1",
             "domain": "test.local",
+            "need_restart": False,
+            "need_fw_apply": False,
+            "need_dns_apply": False,
         }
         return data.get(key, default)
 
