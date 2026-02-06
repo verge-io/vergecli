@@ -167,3 +167,42 @@ def test_rule_disable(cli_runner, mock_client, mock_network_for_rules, mock_rule
 
     assert result.exit_code == 0
     mock_rule.disable.assert_called_once()
+
+
+def test_rule_update_description(cli_runner, mock_client):
+    """Rule update should support --description option."""
+    mock_net = MagicMock()
+    mock_net.key = 1
+    mock_net.name = "test-network"
+    mock_client.networks.list.return_value = [mock_net]
+    mock_client.networks.get.return_value = mock_net
+
+    mock_rule = MagicMock()
+    mock_rule.key = 100
+    mock_rule.name = "test-rule"
+    mock_rule.get = lambda k, d=None: {
+        "$key": 100,
+        "name": "test-rule",
+        "description": "New desc",
+    }.get(k, d)
+
+    mock_net.rules.list.return_value = [mock_rule]
+    mock_net.rules.get.return_value = mock_rule
+    mock_net.rules.update.return_value = mock_rule
+
+    result = cli_runner.invoke(
+        app,
+        [
+            "network",
+            "rule",
+            "update",
+            "test-network",
+            "test-rule",
+            "--description",
+            "New description",
+        ],
+    )
+
+    assert result.exit_code == 0
+    call_kwargs = mock_net.rules.update.call_args[1]
+    assert call_kwargs["description"] == "New description"

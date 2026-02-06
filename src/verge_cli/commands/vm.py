@@ -281,7 +281,11 @@ def vm_restart(
     wait: Annotated[bool, typer.Option("--wait", "-w", help="Wait for VM to restart")] = False,
     timeout: Annotated[int, typer.Option("--timeout", help="Wait timeout in seconds")] = 300,
 ) -> None:
-    """Restart a virtual machine (graceful reboot)."""
+    """Restart a virtual machine (graceful stop then start).
+
+    This performs a graceful shutdown followed by power on. For a hard reset
+    (like pressing the reset button), use 'vrg vm reset' instead.
+    """
     vctx = get_context(ctx)
 
     key = resolve_resource_id(vctx.client.vms, vm, "VM")
@@ -291,19 +295,31 @@ def vm_restart(
         typer.echo(f"VM '{vm_obj.name}' is not running. Use 'vrg vm start' instead.")
         raise typer.Exit(1)
 
-    vm_obj.guest_reboot()
-    output_success(f"Restarting VM '{vm_obj.name}'", quiet=vctx.quiet)
+    # Graceful stop
+    vm_obj.power_off(force=False)
+    output_success(f"Stopping VM '{vm_obj.name}'...", quiet=vctx.quiet)
+
+    # Wait for stop
+    vm_obj = wait_for_state(
+        get_resource=vctx.client.vms.get,
+        resource_key=key,
+        target_state=["stopped", "offline"],
+        timeout=timeout // 2,  # Use half timeout for stop
+        state_field="status",
+        resource_type="VM",
+        quiet=True,
+    )
+
+    # Start
+    vm_obj.power_on()
+    output_success(f"Starting VM '{vm_obj.name}'...", quiet=vctx.quiet)
 
     if wait:
-        # Wait for running state (VM should restart and come back up)
-        import time
-
-        time.sleep(5)  # Give it a moment to start rebooting
         vm_obj = wait_for_state(
             get_resource=vctx.client.vms.get,
             resource_key=key,
             target_state="running",
-            timeout=timeout,
+            timeout=timeout // 2,
             state_field="status",
             resource_type="VM",
             quiet=vctx.quiet,

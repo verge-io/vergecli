@@ -159,6 +159,13 @@ def network_create(
         str | None,
         typer.Option("--dhcp-stop", help="DHCP range end IP"),
     ] = None,
+    vnet_default_gateway: Annotated[
+        str | None,
+        typer.Option(
+            "--vnet-default-gateway",
+            help="Route traffic through this network (name or key)",
+        ),
+    ] = None,
 ) -> None:
     """Create a new virtual network."""
     vctx = get_context(ctx)
@@ -180,6 +187,9 @@ def network_create(
             create_kwargs["dhcp_start"] = dhcp_start
         if dhcp_stop:
             create_kwargs["dhcp_stop"] = dhcp_stop
+    if vnet_default_gateway:
+        gw_key = resolve_resource_id(vctx.client.networks, vnet_default_gateway, "network")
+        create_kwargs["interface_network"] = gw_key
 
     net_obj = vctx.client.networks.create(**create_kwargs)
 
