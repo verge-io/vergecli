@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
+import click
 import typer
 
 from verge_cli import __version__
@@ -89,7 +90,8 @@ def main(
         typer.Option(
             "--output",
             "-o",
-            help="Output format (table, json).",
+            help="Output format.",
+            click_type=click.Choice(["table", "wide", "json", "csv"]),
         ),
     ] = "table",
     query: Annotated[

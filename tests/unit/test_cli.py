@@ -96,6 +96,21 @@ class TestNetworkCommands:
         assert "stop" in result.stdout
 
 
+class TestOutputFlag:
+    """Tests for --output flag validation."""
+
+    def test_output_flag_accepts_valid_formats(self, cli_runner, mock_client):
+        """Test that --output accepts table, wide, json, csv."""
+        for fmt in ["table", "wide", "json", "csv"]:
+            result = cli_runner.invoke(app, ["--output", fmt, "system", "info"])
+            assert result.exit_code != 2, f"--output {fmt} rejected: {result.output}"
+
+    def test_output_flag_rejects_invalid_format(self, cli_runner):
+        """Test that --output rejects invalid formats."""
+        result = cli_runner.invoke(app, ["--output", "yaml", "system", "info"])
+        assert result.exit_code == 2
+
+
 class TestSystemCommands:
     """Tests for system commands."""
 
