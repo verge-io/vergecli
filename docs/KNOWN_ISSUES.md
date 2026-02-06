@@ -43,6 +43,21 @@ In `utils.py`, `resolve_resource_id()` returned early if `identifier.isdigit()`.
 **Fix Applied:**
 Changed `resolve_resource_id()` to always search by name first. If no name match is found AND the identifier is numeric, it falls back to treating it as a key. This allows both numeric names and numeric keys to work correctly.
 
+## Limitations
+
+### 3. No update/edit command for VM devices
+
+**Severity:** Low
+**Found:** 2026-02-06
+
+**Description:**
+`vrg vm device` supports `list`, `get`, `create`, and `delete` but has no `update` command. Device properties (name, enabled, settings) cannot be modified after creation — the device must be deleted and recreated.
+
+**Reason:**
+The VergeOS API does not currently support updating device settings after creation.
+
+---
+
 ## Bugs
 
 No known bugs at this time.

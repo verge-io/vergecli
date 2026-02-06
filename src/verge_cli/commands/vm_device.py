@@ -30,15 +30,12 @@ def _get_vm(ctx: typer.Context, vm_identifier: str) -> tuple[Any, Any]:
 
 def _device_to_dict(device: Any) -> dict[str, Any]:
     """Convert a Device object to a dict for output."""
-    settings = device.get("settings_args", {})
     return {
         "key": device.key,
         "name": device.name,
         "device_type": device.device_type,
         "enabled": device.is_enabled,
         "optional": device.is_optional,
-        "model": settings.get("model", ""),
-        "version": settings.get("version", ""),
     }
 
 
@@ -104,7 +101,7 @@ def device_create(
     vm: Annotated[str, typer.Argument(help="VM name or key")],
     name: Annotated[str | None, typer.Option("--name", "-n", help="Device name")] = None,
     model: Annotated[str, typer.Option("--model", "-m", help="TPM model (tis, crb)")] = "crb",
-    version: Annotated[str, typer.Option("--version", "-V", help="TPM version (1.2, 2)")] = "2",
+    version: Annotated[str, typer.Option("--version", "-V", help="TPM version (1, 2)")] = "2",
 ) -> None:
     """Add a TPM device to a VM."""
     vctx, vm_obj = _get_vm(ctx, vm)
