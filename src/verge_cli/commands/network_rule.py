@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Annotated, Any
 
+import click
 import typer
 
 from verge_cli.context import get_context
@@ -171,7 +172,13 @@ def rule_create(
         str, typer.Option("--direction", "-d", help="Direction (incoming/outgoing)")
     ] = "incoming",
     action: Annotated[
-        str, typer.Option("--action", "-a", help="Action (accept/drop/reject/translate/route)")
+        str,
+        typer.Option(
+            "--action",
+            "-a",
+            help="Action",
+            click_type=click.Choice(["accept", "drop", "reject", "translate", "route"]),
+        ),
     ] = "accept",
     protocol: Annotated[
         str, typer.Option("--protocol", "-p", help="Protocol (tcp/udp/tcpudp/icmp/any)")
@@ -254,7 +261,15 @@ def rule_update(
     rule: Annotated[str, typer.Argument(help="Rule name or key")],
     name: Annotated[str | None, typer.Option("--name", "-n", help="New rule name")] = None,
     direction: Annotated[str | None, typer.Option("--direction", "-d", help="Direction")] = None,
-    action: Annotated[str | None, typer.Option("--action", "-a", help="Action")] = None,
+    action: Annotated[
+        str | None,
+        typer.Option(
+            "--action",
+            "-a",
+            help="Action",
+            click_type=click.Choice(["accept", "drop", "reject", "translate", "route"]),
+        ),
+    ] = None,
     protocol: Annotated[str | None, typer.Option("--protocol", "-p", help="Protocol")] = None,
     interface: Annotated[str | None, typer.Option("--interface", help="Interface")] = None,
     source_ip: Annotated[str | None, typer.Option("--source-ip", help="Source IP")] = None,

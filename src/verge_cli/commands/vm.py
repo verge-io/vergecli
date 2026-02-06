@@ -31,7 +31,7 @@ def vm_list(
     ] = None,
     filter: Annotated[
         str | None,
-        typer.Option("--filter", help="OData filter expression"),
+        typer.Option("--filter", help="OData filter expression (e.g., \"name eq 'foo'\")"),
     ] = None,
     output: Annotated[
         str | None,
@@ -48,7 +48,7 @@ def vm_list(
     # Build filter
     odata_filter = filter
     if status:
-        status_filter = f"machine#status#status eq '{status}'"
+        status_filter = f"status eq '{status}'"
         odata_filter = f"({odata_filter}) and {status_filter}" if odata_filter else status_filter
 
     vms = vctx.client.vms.list(filter=odata_filter)

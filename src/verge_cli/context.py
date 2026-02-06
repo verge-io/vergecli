@@ -26,7 +26,6 @@ class VergeContext:
     output_format: str
     verbosity: int
     quiet: bool
-    fields: str | None = None
     query: str | None = None
     no_color: bool = False
 
@@ -57,7 +56,6 @@ def get_context(ctx: typer.Context) -> VergeContext:
         output_format=obj["output_format"],
         verbosity=obj["verbosity"],
         quiet=obj["quiet"],
-        fields=obj["fields"],
         query=obj["query"],
         no_color=obj["no_color"],
     )
