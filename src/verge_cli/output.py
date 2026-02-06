@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import csv
 import json
 import sys
 from datetime import datetime
@@ -210,6 +211,37 @@ def render_cell(
     return Text(display)
 
 
+def format_csv(
+    data: list[dict[str, Any]],
+    columns: list[ColumnDef] | None = None,
+) -> None:
+    """Format and print data as CSV.
+
+    All columns (including wide_only) are included in CSV output.
+    Uses render_cell with for_csv=True for machine-friendly values.
+
+    Args:
+        data: List of dicts to output.
+        columns: ColumnDef list. Auto-detects from data if None.
+    """
+    if columns is not None:
+        coldefs = columns
+    elif data:
+        coldefs = [ColumnDef(k) for k in data[0].keys()]
+    else:
+        coldefs = []
+
+    writer = csv.writer(sys.stdout, lineterminator="\n")
+
+    # Header row
+    writer.writerow([col.resolved_header for col in coldefs])
+
+    # Data rows
+    for row in data:
+        cells = [render_cell(row.get(col.key), row, col, for_csv=True) for col in coldefs]
+        writer.writerow(cells)
+
+
 def extract_field(data: Any, query: str) -> Any:
     """Extract a field using simple dot notation.
 
@@ -275,7 +307,7 @@ def output_result(
     data: Any,
     output_format: str = "table",
     query: str | None = None,
-    columns: list[str] | None = None,
+    columns: list[ColumnDef] | list[str] | None = None,
     title: str | None = None,
     quiet: bool = False,
     no_color: bool = False,
@@ -284,9 +316,9 @@ def output_result(
 
     Args:
         data: Data to output.
-        output_format: Format type ("table" or "json").
+        output_format: Format type ("table", "wide", "json", "csv").
         query: Optional dot-notation query for field extraction.
-        columns: Column names for table output.
+        columns: ColumnDef or string list for table/csv output.
         title: Optional title for table output.
         quiet: If True, output minimal data (just the value for queries).
         no_color: Disable colored output.
@@ -295,31 +327,78 @@ def output_result(
     if query:
         data = extract_field(data, query)
         if quiet:
-            # In quiet mode with a query, just print the raw value
             if isinstance(data, (list, dict)):
                 print(json.dumps(data, default=json_serializer))
             else:
                 print(data if data is not None else "")
             return
 
+    # JSON format — raw data, no styling
     if output_format == "json":
         print(format_json(data))
-    else:
-        if isinstance(data, list):
-            # Check if it's a list of simple values (not dicts) - e.g., from --query name
-            if data and not isinstance(data[0], dict):
-                # Print simple values as newline-separated list
-                console = get_console(no_color)
-                for item in data:
-                    console.print(item if item is not None else "[dim]-[/dim]")
-            else:
-                format_table(data, columns=columns, title=title, no_color=no_color)
-        elif isinstance(data, dict):
-            format_table(data, title=title, no_color=no_color)
-        else:
-            # Simple value
+        return
+
+    # CSV format
+    if output_format == "csv":
+        _output_csv(data, columns=columns, query=query)
+        return
+
+    # Table or wide format
+    wide = output_format == "wide"
+    if isinstance(data, list):
+        if data and not isinstance(data[0], dict):
+            # List of simple values (e.g., from --query name)
             console = get_console(no_color)
-            console.print(data if data is not None else "[dim]No result[/dim]")
+            for item in data:
+                console.print(item if item is not None else "[dim]-[/dim]")
+        else:
+            format_table(data, columns=columns, title=title, no_color=no_color, wide=wide)
+    elif isinstance(data, dict):
+        format_table(data, title=title, no_color=no_color)
+    else:
+        console = get_console(no_color)
+        console.print(data if data is not None else "[dim]No result[/dim]")
+
+
+def _output_csv(
+    data: Any,
+    columns: list[ColumnDef] | list[str] | None = None,
+    query: str | None = None,
+) -> None:
+    """Route data to CSV output based on data type.
+
+    Handles all query result shapes: list[dict], list[scalar], dict, scalar.
+    """
+    writer = csv.writer(sys.stdout, lineterminator="\n")
+
+    # list[dict] — normal CSV with columns
+    if isinstance(data, list) and data and isinstance(data[0], dict):
+        # Convert list[str] columns to ColumnDef if needed
+        coldefs: list[ColumnDef] | None = None
+        if columns is not None and len(columns) > 0:
+            if isinstance(columns[0], ColumnDef):
+                coldefs = columns  # type: ignore[assignment]
+            else:
+                coldefs = [ColumnDef(str(k)) for k in columns]
+        format_csv(data, columns=coldefs)
+        return
+
+    # list[scalar] — one column
+    if isinstance(data, list):
+        writer.writerow(["value"])
+        for item in data:
+            writer.writerow([default_format(item, for_csv=True)])
+        return
+
+    # dict — one row, keys as headers (insertion order)
+    if isinstance(data, dict):
+        writer.writerow(list(data.keys()))
+        writer.writerow([default_format(v, for_csv=True) for v in data.values()])
+        return
+
+    # scalar — one row, one column
+    writer.writerow(["value"])
+    writer.writerow([default_format(data, for_csv=True)])
 
 
 def output_success(message: str, quiet: bool = False, no_color: bool = False) -> None:
