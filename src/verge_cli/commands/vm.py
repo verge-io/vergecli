@@ -6,7 +6,7 @@ from typing import Annotated, Any
 
 import typer
 
-from verge_cli.commands import vm_drive, vm_nic
+from verge_cli.commands import vm_device, vm_drive, vm_nic
 from verge_cli.context import get_context
 from verge_cli.errors import handle_errors
 from verge_cli.output import output_result, output_success
@@ -18,6 +18,7 @@ app = typer.Typer(
     no_args_is_help=True,
 )
 
+app.add_typer(vm_device.app, name="device")
 app.add_typer(vm_drive.app, name="drive")
 app.add_typer(vm_nic.app, name="nic")
 
