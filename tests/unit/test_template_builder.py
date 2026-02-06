@@ -131,6 +131,8 @@ class TestProvisionVm:
 
         call_kwargs = mock_ctx.client.vms.create.call_args[1]
         assert call_kwargs["cloudinit_datasource"] == "NoCloud"
+        # cloud_init dict passed to SDK with leading / on file names
+        assert call_kwargs["cloud_init"] == {"/user-data": "#cloud-config\nhostname: test"}
 
     def test_drive_failure_partial_provision(self, mock_ctx):
         vm = mock_ctx.client.vms.create.return_value

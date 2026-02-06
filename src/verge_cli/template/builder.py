@@ -62,7 +62,7 @@ def provision_vm(client: Any, vm_config: dict[str, Any]) -> ProvisionResult:
     """Provision a single VM from a validated, unit-converted config dict.
 
     Orchestration:
-    1. Create VM via client.vms.create()
+    1. Create VM via client.vms.create() (includes cloud-init files if any)
     2. Create drives via vm.drives.create()
     3. Create NICs via vm.nics.create()
     4. Create devices via vm.devices.create()
@@ -90,21 +90,27 @@ def provision_vm(client: Any, vm_config: dict[str, Any]) -> ProvisionResult:
         if mt == "q35":
             vm_kwargs["machine_type"] = "pc-q35-10.0"
 
-    # Handle cloud-init
+    # Handle cloud-init: pass datasource + file contents to SDK
     cloudinit = vm_config.get("cloudinit")
     if cloudinit:
         ds = cloudinit.get("datasource", "")
         vm_kwargs["cloudinit_datasource"] = _CLOUDINIT_DATASOURCE_MAP.get(ds, ds)
-        files = cloudinit.get("files")
+        # Build cloud_init dict for SDK: {"/filename": "contents", ...}
+        files = cloudinit.get("files", [])
         if files:
-            cloud_init_data = {f["name"]: f["content"] for f in files}
-            vm_kwargs["cloud_init"] = cloud_init_data
+            cloud_init_dict: dict[str, str] = {}
+            for f in files:
+                name = f["name"]
+                if not name.startswith("/"):
+                    name = f"/{name}"
+                cloud_init_dict[name] = f.get("content", "")
+            vm_kwargs["cloud_init"] = cloud_init_dict
 
     # Handle advanced_options as kwargs pass-through
     if "advanced_options" in vm_config:
         vm_kwargs["advanced_options"] = vm_config["advanced_options"]
 
-    # 2. Create VM
+    # 2. Create VM (SDK handles cloud-init file creation internally)
     vm = client.vms.create(**vm_kwargs)
     result = ProvisionResult(vm_key=int(vm.key), vm_name=str(vm.name))
 
