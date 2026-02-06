@@ -62,11 +62,12 @@ def provision_vm(client: Any, vm_config: dict[str, Any]) -> ProvisionResult:
     """Provision a single VM from a validated, unit-converted config dict.
 
     Orchestration:
-    1. Create VM via client.vms.create() (includes cloud-init files if any)
-    2. Create drives via vm.drives.create()
-    3. Create NICs via vm.nics.create()
-    4. Create devices via vm.devices.create()
-    5. Power on if requested
+    1. Create VM via client.vms.create()
+    2. Update cloud-init files if datasource configured
+    3. Create drives via vm.drives.create()
+    4. Create NICs via vm.nics.create()
+    5. Create devices via vm.devices.create()
+    6. Power on if requested
 
     Args:
         client: pyvergeos VergeClient.
@@ -90,31 +91,27 @@ def provision_vm(client: Any, vm_config: dict[str, Any]) -> ProvisionResult:
         if mt == "q35":
             vm_kwargs["machine_type"] = "pc-q35-10.0"
 
-    # Handle cloud-init: pass datasource + file contents to SDK
+    # Handle cloud-init datasource (API auto-creates /user-data and /meta-data)
     cloudinit = vm_config.get("cloudinit")
     if cloudinit:
         ds = cloudinit.get("datasource", "")
         vm_kwargs["cloudinit_datasource"] = _CLOUDINIT_DATASOURCE_MAP.get(ds, ds)
-        # Build cloud_init dict for SDK: {"/filename": "contents", ...}
-        files = cloudinit.get("files", [])
-        if files:
-            cloud_init_dict: dict[str, str] = {}
-            for f in files:
-                name = f["name"]
-                if not name.startswith("/"):
-                    name = f"/{name}"
-                cloud_init_dict[name] = f.get("content", "")
-            vm_kwargs["cloud_init"] = cloud_init_dict
 
     # Handle advanced_options as kwargs pass-through
     if "advanced_options" in vm_config:
         vm_kwargs["advanced_options"] = vm_config["advanced_options"]
 
-    # 2. Create VM (SDK handles cloud-init file creation internally)
+    # 2. Create VM
     vm = client.vms.create(**vm_kwargs)
     result = ProvisionResult(vm_key=int(vm.key), vm_name=str(vm.name))
 
-    # 3. Create drives
+    # 3. Update cloud-init files with template contents
+    # The API auto-creates /user-data and /meta-data when datasource is set,
+    # so we update them rather than creating new ones.
+    if cloudinit:
+        _update_cloudinit_files(client, int(vm.key), cloudinit, result)
+
+    # 4. Create drives
     for drive_config in vm_config.get("drives", []):
         try:
             drive_kwargs = _build_drive_kwargs(drive_config)
@@ -123,7 +120,7 @@ def provision_vm(client: Any, vm_config: dict[str, Any]) -> ProvisionResult:
         except Exception as e:
             result.errors.append(f"Drive '{drive_config.get('name', '?')}': {e}")
 
-    # 4. Create NICs
+    # 5. Create NICs
     for nic_config in vm_config.get("nics", []):
         try:
             nic_kwargs = _build_nic_kwargs(nic_config)
@@ -132,7 +129,7 @@ def provision_vm(client: Any, vm_config: dict[str, Any]) -> ProvisionResult:
         except Exception as e:
             result.errors.append(f"NIC '{nic_config.get('name', '?')}': {e}")
 
-    # 5. Create devices (TPM only for now)
+    # 6. Create devices (TPM only for now)
     for device_config in vm_config.get("devices", []):
         try:
             device_kwargs = _build_device_kwargs(device_config)
@@ -141,7 +138,7 @@ def provision_vm(client: Any, vm_config: dict[str, Any]) -> ProvisionResult:
         except Exception as e:
             result.errors.append(f"Device '{device_config.get('name', '?')}': {e}")
 
-    # 6. Power on if requested
+    # 7. Power on if requested
     if vm_config.get("power_on_after_create", False):
         try:
             vm.power_on()
@@ -156,6 +153,38 @@ def provision_vm(client: Any, vm_config: dict[str, Any]) -> ProvisionResult:
         raise ProvisionError(msg, result)
 
     return result
+
+
+def _update_cloudinit_files(
+    client: Any,
+    vm_key: int,
+    cloudinit: dict[str, Any],
+    result: ProvisionResult,
+) -> None:
+    """Update auto-created cloud-init files with template contents.
+
+    When cloudinit_datasource is set, the API auto-creates /user-data and
+    /meta-data files. This function updates those files with template content.
+    """
+    from pyvergeos.resources.cloudinit_files import CloudInitFileManager
+
+    ci_mgr = CloudInitFileManager(client)
+    existing = ci_mgr.list_for_vm(vm_key)
+    # Build lookup: name -> key
+    existing_map = {f.name: int(f.key) for f in existing}
+
+    for file_spec in cloudinit.get("files", []):
+        name = file_spec["name"]
+        if not name.startswith("/"):
+            name = f"/{name}"
+        content = file_spec.get("content", "")
+        try:
+            if name in existing_map:
+                ci_mgr.update(existing_map[name], contents=content)
+            else:
+                ci_mgr.create(vm_key=vm_key, name=name, contents=content)
+        except Exception as e:
+            result.errors.append(f"Cloud-init file '{name}': {e}")
 
 
 def _build_drive_kwargs(config: dict[str, Any]) -> dict[str, Any]:
