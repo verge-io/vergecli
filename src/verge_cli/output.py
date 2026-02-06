@@ -13,7 +13,7 @@ from rich.console import Console
 from rich.table import Table
 from rich.text import Text
 
-from verge_cli.columns import ColumnDef, default_format
+from verge_cli.columns import ColumnDef, default_format, json_serializer
 
 
 def is_tty() -> bool:
@@ -37,20 +37,6 @@ def get_console(no_color: bool = False) -> Console:
         force_terminal=force_terminal,
         no_color=no_color or not is_tty(),
     )
-
-
-def json_serializer(obj: Any) -> str:
-    """JSON serializer that handles datetime and other types.
-
-    Args:
-        obj: Object to serialize.
-
-    Returns:
-        String representation.
-    """
-    if isinstance(obj, datetime):
-        return obj.isoformat()
-    return str(obj)
 
 
 def format_json(data: Any, query: str | None = None) -> str:
@@ -371,15 +357,21 @@ def _output_csv(
     """
     writer = csv.writer(sys.stdout, lineterminator="\n")
 
+    # Resolve ColumnDef list once for reuse
+    coldefs: list[ColumnDef] | None = None
+    if columns is not None and len(columns) > 0:
+        if isinstance(columns[0], ColumnDef):
+            coldefs = columns  # type: ignore[assignment]
+        else:
+            coldefs = [ColumnDef(str(k)) for k in columns]
+
     # list[dict] — normal CSV with columns
     if isinstance(data, list) and data and isinstance(data[0], dict):
-        # Convert list[str] columns to ColumnDef if needed
-        coldefs: list[ColumnDef] | None = None
-        if columns is not None and len(columns) > 0:
-            if isinstance(columns[0], ColumnDef):
-                coldefs = columns  # type: ignore[assignment]
-            else:
-                coldefs = [ColumnDef(str(k)) for k in columns]
+        format_csv(data, columns=coldefs)
+        return
+
+    # empty list with columns — emit headers only
+    if isinstance(data, list) and not data and coldefs is not None:
         format_csv(data, columns=coldefs)
         return
 

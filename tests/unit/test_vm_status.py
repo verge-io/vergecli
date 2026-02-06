@@ -91,7 +91,7 @@ def test_vm_list_no_y_when_restart_not_needed(
     assert result.exit_code == 0
     # The restart column should be empty (no Y)
     # Note: "Y" might appear elsewhere, so we check JSON output for certainty
-    result_json = cli_runner.invoke(app, ["vm", "list", "-o", "json"])
+    result_json = cli_runner.invoke(app, ["--output", "json", "vm", "list"])
     assert result_json.exit_code == 0
     assert '"needs_restart": false' in result_json.output
 
@@ -125,7 +125,7 @@ def test_vm_get_json_output_includes_needs_restart(
     mock_client.vms.list.return_value = [mock_vm_with_needs_restart]
     mock_client.vms.get.return_value = mock_vm_with_needs_restart
 
-    result = cli_runner.invoke(app, ["vm", "get", "test-vm", "-o", "json"])
+    result = cli_runner.invoke(app, ["--output", "json", "vm", "get", "test-vm"])
 
     assert result.exit_code == 0
     assert '"needs_restart": true' in result.output
@@ -140,7 +140,7 @@ def test_vm_list_json_output_includes_needs_restart(
         mock_vm_without_needs_restart,
     ]
 
-    result = cli_runner.invoke(app, ["vm", "list", "-o", "json"])
+    result = cli_runner.invoke(app, ["--output", "json", "vm", "list"])
 
     assert result.exit_code == 0
     assert '"needs_restart": true' in result.output
