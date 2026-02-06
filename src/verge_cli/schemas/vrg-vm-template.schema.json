@@ -23,7 +23,7 @@
     "defaults": { "$ref": "#/definitions/vmDefaults" },
     "vms": {
       "type": "array",
-      "items": { "$ref": "#/definitions/vmSpec" }
+      "items": { "$ref": "#/definitions/vmSetItem" }
     }
   },
   "oneOf": [
@@ -50,6 +50,73 @@
         { "type": "integer" },
         { "type": "string" }
       ]
+    },
+    "vmSetItem": {
+      "type": "object",
+      "description": "VM in a VirtualMachineSet (only name required, os_family from defaults)",
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "enabled": { "type": "boolean", "default": true },
+        "os_family": {
+          "type": "string",
+          "enum": ["linux", "windows", "freebsd", "other"]
+        },
+        "os_description": { "type": "string" },
+        "cpu_cores": { "type": "integer", "minimum": 1, "default": 1 },
+        "cpu_type": { "type": "string", "default": "auto" },
+        "ram": { "$ref": "#/definitions/sizeValue" },
+        "machine_type": {
+          "type": "string",
+          "enum": ["q35", "pc"],
+          "default": "q35"
+        },
+        "boot_order": {
+          "type": "string",
+          "enum": ["d", "cd", "cdn", "c", "dc", "n", "nd", "do"],
+          "default": "cd"
+        },
+        "allow_hotplug": { "type": "boolean", "default": true },
+        "uefi": { "type": "boolean", "default": false },
+        "secure_boot": { "type": "boolean", "default": false },
+        "console": {
+          "type": "string",
+          "enum": ["vnc", "spice"],
+          "default": "vnc"
+        },
+        "video": {
+          "type": "string",
+          "enum": ["std", "cirrus", "vmware", "qxl", "virtio", "none"],
+          "default": "std"
+        },
+        "guest_agent": { "type": "boolean", "default": false },
+        "rtc_base": {
+          "type": "string",
+          "enum": ["utc", "localtime"],
+          "default": "utc"
+        },
+        "cluster": { "$ref": "#/definitions/nameOrId" },
+        "failover_cluster": { "$ref": "#/definitions/nameOrId" },
+        "preferred_node": { "$ref": "#/definitions/nameOrId" },
+        "ha_group": { "type": "string" },
+        "snapshot_profile": { "$ref": "#/definitions/nameOrId" },
+        "power_on_after_create": { "type": "boolean", "default": false },
+        "advanced_options": { "type": "string" },
+        "cloudinit": { "$ref": "#/definitions/cloudinitSpec" },
+        "drives": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/driveSpec" }
+        },
+        "nics": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/nicSpec" }
+        },
+        "devices": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/deviceSpec" }
+        }
+      }
     },
     "vmDefaults": {
       "type": "object",
