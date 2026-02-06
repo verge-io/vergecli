@@ -6,7 +6,7 @@ from typing import Annotated, Any
 
 import typer
 
-from verge_cli.commands import vm_drive
+from verge_cli.commands import vm_drive, vm_nic
 from verge_cli.context import get_context
 from verge_cli.errors import handle_errors
 from verge_cli.output import output_result, output_success
@@ -19,6 +19,7 @@ app = typer.Typer(
 )
 
 app.add_typer(vm_drive.app, name="drive")
+app.add_typer(vm_nic.app, name="nic")
 
 # Default columns for VM list output
 VM_LIST_COLUMNS = ["name", "status", "cpu_cores", "ram", "cluster_name", "node_name", "restart"]
