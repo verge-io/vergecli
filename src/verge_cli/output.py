@@ -69,17 +69,19 @@ def format_json(data: Any, query: str | None = None) -> str:
 
 def format_table(
     data: list[dict[str, Any]] | dict[str, Any],
-    columns: list[str] | None = None,
+    columns: list[ColumnDef] | list[str] | None = None,
     title: str | None = None,
     no_color: bool = False,
+    wide: bool = False,
 ) -> None:
     """Format and print data as a table.
 
     Args:
         data: List of dicts or single dict to display.
-        columns: Column names to display (auto-detected if None).
+        columns: ColumnDef list, string list (backward compat), or None (auto-detect).
         title: Optional table title.
         no_color: Disable colors.
+        wide: If True, include wide_only columns.
     """
     console = get_console(no_color)
 
@@ -100,17 +102,43 @@ def format_table(
         console.print("[dim]No results found.[/dim]")
         return
 
-    # Auto-detect columns from first row if not specified
-    if columns is None:
-        columns = list(data[0].keys())
+    # Resolve columns
+    coldefs: list[ColumnDef] | None = None
+    str_columns: list[str] | None = None
 
+    if columns is not None and len(columns) > 0:
+        if isinstance(columns[0], ColumnDef):
+            coldefs = columns  # type: ignore[assignment]
+        else:
+            str_columns = columns  # type: ignore[assignment]
+    else:
+        # Auto-detect from first row
+        str_columns = list(data[0].keys())
+
+    # ColumnDef path
+    if coldefs is not None:
+        # Filter wide_only unless wide mode
+        visible = [c for c in coldefs if wide or not c.wide_only]
+
+        table = Table(title=title, box=SIMPLE, show_header=True, header_style="bold")
+        for col in visible:
+            table.add_column(col.resolved_header)
+
+        for row in data:
+            cells = [render_cell(row.get(col.key), row, col) for col in visible]
+            table.add_row(*cells)
+
+        console.print(table)
+        return
+
+    # Legacy string-columns path (backward compatibility)
+    assert str_columns is not None
     table = Table(title=title, box=SIMPLE, show_header=True, header_style="bold")
-
-    for col in columns:
+    for col in str_columns:
         table.add_column(col.replace("_", " ").title())
 
     for row in data:
-        table.add_row(*[format_value(row.get(col)) for col in columns])
+        table.add_row(*[format_value(row.get(col)) for col in str_columns])
 
     console.print(table)
 

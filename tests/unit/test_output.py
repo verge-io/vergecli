@@ -16,7 +16,14 @@ from verge_cli.columns import (
     format_bool_yn,
     normalize_lower,
 )
-from verge_cli.output import extract_field, format_json, format_value, output_result, render_cell
+from verge_cli.output import (
+    extract_field,
+    format_json,
+    format_table,
+    format_value,
+    output_result,
+    render_cell,
+)
 
 
 class TestExtractField:
@@ -307,3 +314,60 @@ class TestRenderCell:
         col = ColumnDef("notes")
         result = render_cell(None, {}, col, for_csv=True)
         assert result == ""
+
+
+class TestFormatTableWithColumnDefs:
+    def test_list_of_dicts_with_coldefs(self, capsys) -> None:
+        data = [
+            {"name": "vm1", "status": "running", "desc": "Web server"},
+            {"name": "vm2", "status": "stopped", "desc": "DB server"},
+        ]
+        cols = [
+            ColumnDef("name"),
+            ColumnDef("status", style_map=STATUS_STYLES, normalize_fn=normalize_lower),
+            ColumnDef("desc", wide_only=True),
+        ]
+        format_table(data, columns=cols, no_color=True)
+        out = capsys.readouterr().out
+        assert "Name" in out
+        assert "Status" in out
+        assert "vm1" in out
+        assert "vm2" in out
+        # wide_only column should be hidden in non-wide mode
+        assert "Desc" not in out
+
+    def test_wide_mode_shows_all_columns(self, capsys) -> None:
+        data = [
+            {"name": "vm1", "status": "running", "desc": "Web server"},
+        ]
+        cols = [
+            ColumnDef("name"),
+            ColumnDef("status"),
+            ColumnDef("desc", header="Description", wide_only=True),
+        ]
+        format_table(data, columns=cols, wide=True, no_color=True)
+        out = capsys.readouterr().out
+        assert "Description" in out
+        assert "Web server" in out
+
+    def test_empty_list_shows_message(self, capsys) -> None:
+        cols = [ColumnDef("name")]
+        format_table([], columns=cols, no_color=True)
+        out = capsys.readouterr().out
+        assert "No results found" in out
+
+    def test_single_dict_key_value(self, capsys) -> None:
+        """Single dict still renders as key-value table."""
+        data = {"name": "vm1", "status": "running"}
+        format_table(data, no_color=True)
+        out = capsys.readouterr().out
+        assert "name" in out
+        assert "vm1" in out
+
+    def test_backward_compat_string_columns(self, capsys) -> None:
+        """list[str] columns still work for backward compatibility."""
+        data = [{"name": "vm1", "status": "running"}]
+        format_table(data, columns=["name", "status"], no_color=True)
+        out = capsys.readouterr().out
+        assert "Name" in out
+        assert "vm1" in out
