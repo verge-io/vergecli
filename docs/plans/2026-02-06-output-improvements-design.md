@@ -86,11 +86,13 @@ def normalize_lower(value: Any) -> Any:
     return str(value).strip().lower() if isinstance(value, str) else value
 
 def format_bool_yn(value: Any) -> str:
-    """Format bool as Y/- for flag columns."""
+    """Format bool as Y/- for flag columns (table/wide only)."""
     if isinstance(value, bool):
         return "Y" if value else "-"
     return str(value) if value is not None else "-"
 ```
+
+**Note:** `format_fn` is only called for table/wide output. CSV always uses `default_format(..., for_csv=True)`, which renders bools as `"true"/"false"` and None as `""`. This keeps `format_fn` simple (`Callable[[Any], str]`) and ensures CSV output is clean machine-readable data regardless of table display choices.
 
 ### Render Pipeline
 
@@ -112,10 +114,14 @@ def render_cell(raw_value, row, coldef, *, for_csv=False) -> str | Text:
         style = coldef.default_style
 
     # 3. Format display value
-    if coldef.format_fn is not None:
+    #    For CSV: always use default_format (clean machine output, no Y/- flags)
+    #    For table/wide: use format_fn if provided, else default_format
+    if for_csv:
+        display = default_format(raw_value, for_csv=True)
+    elif coldef.format_fn is not None:
         display = coldef.format_fn(raw_value)
     else:
-        display = default_format(raw_value, for_csv=for_csv)
+        display = default_format(raw_value)
 
     # 4. Return
     if for_csv:
@@ -167,8 +173,10 @@ Missing value sentinel: `"-"` in table/wide, `""` in CSV.
 |-----------------------|-------------|
 | `list[dict]` | Normal CSV table, one row per dict |
 | `list[scalar]` | 1-column CSV, header = query field name or `"value"` |
-| `dict` | 1 row, dict keys as column headers |
+| `dict` | 1 row, dict keys as column headers (insertion order — matches `_to_dict()` field order) |
 | `scalar` | 1 row, 1 column, header = `"value"` |
+
+**Dict column ordering:** Preserve insertion order (Python 3.7+ guarantee). This is deterministic because `_to_dict()` functions define a fixed field order. No alphabetical sorting — insertion order matches the logical grouping in the source code.
 
 ### Global --output Flag
 
