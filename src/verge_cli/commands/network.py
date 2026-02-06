@@ -49,14 +49,6 @@ def network_list(
         str | None,
         typer.Option("--filter", help="OData filter expression (e.g., \"name eq 'foo'\")"),
     ] = None,
-    output: Annotated[
-        str | None,
-        typer.Option("--output", "-o", help="Output format (table, json)"),
-    ] = None,
-    query: Annotated[
-        str | None,
-        typer.Option("--query", help="Extract field using dot notation (e.g., 'name')"),
-    ] = None,
 ) -> None:
     """List virtual networks."""
     vctx = get_context(ctx)
@@ -77,8 +69,8 @@ def network_list(
 
     output_result(
         data,
-        output_format=output or vctx.output_format,
-        query=query or vctx.query,
+        output_format=vctx.output_format,
+        query=vctx.query,
         columns=NETWORK_COLUMNS,
         quiet=vctx.quiet,
         no_color=vctx.no_color,
@@ -90,14 +82,6 @@ def network_list(
 def network_get(
     ctx: typer.Context,
     network: Annotated[str, typer.Argument(help="Network name or key")],
-    output: Annotated[
-        str | None,
-        typer.Option("--output", "-o", help="Output format (table, json)"),
-    ] = None,
-    query: Annotated[
-        str | None,
-        typer.Option("--query", help="Extract field using dot notation (e.g., 'name')"),
-    ] = None,
 ) -> None:
     """Get details of a virtual network."""
     vctx = get_context(ctx)
@@ -107,8 +91,8 @@ def network_get(
 
     output_result(
         _network_to_dict(net_obj),
-        output_format=output or vctx.output_format,
-        query=query or vctx.query,
+        output_format=vctx.output_format,
+        query=vctx.query,
         quiet=vctx.quiet,
         no_color=vctx.no_color,
     )
@@ -390,10 +374,6 @@ def network_apply_dns(
 def network_status(
     ctx: typer.Context,
     network: Annotated[str, typer.Argument(help="Network name or key")],
-    output: Annotated[
-        str | None,
-        typer.Option("--output", "-o", help="Output format (table, json)"),
-    ] = None,
 ) -> None:
     """Show detailed status of a network including pending changes."""
     vctx = get_context(ctx)
@@ -414,7 +394,7 @@ def network_status(
 
     output_result(
         status_data,
-        output_format=output or vctx.output_format,
+        output_format=vctx.output_format,
         quiet=vctx.quiet,
         no_color=vctx.no_color,
     )

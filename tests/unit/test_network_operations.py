@@ -134,7 +134,7 @@ def test_network_status_json_output(cli_runner, mock_client, mock_running_networ
     mock_client.networks.list.return_value = [mock_running_network]
     mock_client.networks.get.return_value = mock_running_network
 
-    result = cli_runner.invoke(app, ["network", "status", "test-network", "-o", "json"])
+    result = cli_runner.invoke(app, ["--output", "json", "network", "status", "test-network"])
 
     assert result.exit_code == 0
     assert "needs_restart" in result.output
