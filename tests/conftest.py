@@ -131,6 +131,100 @@ def mock_dns_view() -> MagicMock:
 
 
 @pytest.fixture
+def mock_drive() -> MagicMock:
+    """Create a mock Drive object."""
+    drive = MagicMock()
+    drive.key = 10
+    drive.name = "OS Disk"
+    drive.size_gb = 50.0
+    drive.used_gb = 12.5
+    drive.interface_display = "VirtIO SCSI"
+    drive.media_display = "Disk"
+    drive.is_enabled = True
+    drive.is_readonly = False
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data = {
+            "$key": 10,
+            "name": "OS Disk",
+            "description": "Operating System Disk",
+            "interface": "virtio-scsi",
+            "media": "disk",
+            "disksize": 53687091200,
+            "preferred_tier": 3,
+            "enabled": True,
+            "readonly": False,
+            "machine": 38,
+        }
+        return data.get(key, default)
+
+    drive.get = mock_get
+    return drive
+
+
+@pytest.fixture
+def mock_nic() -> MagicMock:
+    """Create a mock NIC object."""
+    nic = MagicMock()
+    nic.key = 20
+    nic.name = "Primary Network"
+    nic.interface_display = "VirtIO"
+    nic.is_enabled = True
+    nic.mac_address = "52:54:00:12:34:56"
+    nic.ip_address = "10.0.0.100"
+    nic.network_name = "DMZ Internal"
+    nic.network_key = 3
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data = {
+            "$key": 20,
+            "name": "Primary Network",
+            "description": "LAN connection",
+            "interface": "virtio",
+            "enabled": True,
+            "mac": "52:54:00:12:34:56",
+            "ipaddress": "10.0.0.100",
+            "vnet": 3,
+            "vnet_name": "DMZ Internal",
+            "machine": 38,
+        }
+        return data.get(key, default)
+
+    nic.get = mock_get
+    return nic
+
+
+@pytest.fixture
+def mock_device() -> MagicMock:
+    """Create a mock Device object (TPM)."""
+    device = MagicMock()
+    device.key = 30
+    device.name = "TPM"
+    device.device_type = "TPM"
+    device.device_type_raw = "tpm"
+    device.is_enabled = True
+    device.is_optional = False
+    device.is_tpm = True
+    device.is_gpu = False
+    device.is_usb = False
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data = {
+            "$key": 30,
+            "name": "TPM",
+            "type": "tpm",
+            "enabled": True,
+            "optional": False,
+            "settings_args": {"model": "crb", "version": "2"},
+            "machine": 38,
+        }
+        return data.get(key, default)
+
+    device.get = mock_get
+    return device
+
+
+@pytest.fixture
 def temp_config_dir(tmp_path: Path) -> Path:
     """Create a temporary config directory."""
     config_dir = tmp_path / ".vrg"
