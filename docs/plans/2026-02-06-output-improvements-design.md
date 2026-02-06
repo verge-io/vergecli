@@ -29,7 +29,11 @@ New file: `src/verge_cli/columns.py`
 ```python
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Protocol
+
+class FormatFn(Protocol):
+    """Canonical signature for format functions. Must return str, never Text."""
+    def __call__(self, value: Any, *, for_csv: bool = False) -> str: ...
 
 @dataclass(frozen=True)
 class ColumnDef:
@@ -38,8 +42,8 @@ class ColumnDef:
     style_map: Mapping[Any, str] | None = None                  # normalized_value → Rich style
     style_fn: Callable[[Any, dict[str, Any]], str | None] | None = None  # escape hatch: (raw_value, row) → style
     default_style: str | None = None                            # fallback when style_map and style_fn return None
-    format_fn: Callable[..., str] | None = None                  # (value, *, for_csv=False) → display string
-    normalize_fn: Callable[[Any], Any] | None = None            # value → canonical for style lookup only
+    format_fn: FormatFn | None = None                             # (value, *, for_csv=False) → display string
+    normalize_fn: Callable[[Any], Any] | None = None            # value → canonical for style lookup only; must be pure, no side effects
     wide_only: bool = False                                     # only shown in --output wide (and csv)
 ```
 
@@ -132,7 +136,9 @@ def render_cell(raw_value, row, coldef, *, for_csv=False) -> str | Text:
     return Text(display)
 ```
 
-**Commitment:** Table and wide use `rich.text.Text(display, style=style)` — not markup strings. This avoids escaping issues with `[` in resource names.
+**Commitments:**
+- Table and wide use `rich.text.Text(display, style=style)` — not markup strings. This avoids escaping issues with `[` in resource names.
+- `render_cell()` is the **only** place that constructs `Text` objects. `format_fn` must return `str`, never `Text` or any Rich renderable. This guarantees CSV never receives Rich objects.
 
 **`format_value()`** remains as the legacy/default formatter for backward compat. `default_format()` is the new equivalent used inside `render_cell()`:
 
@@ -168,7 +174,7 @@ Missing value sentinel: `"-"` in table/wide, `""` in CSV.
 
 **`wide`** is not a new renderer — it's `format_table()` with `wide=True`, which skips filtering out `wide_only` columns.
 
-**`csv`** uses `csv.writer(sys.stdout)`, no Rich console. Calls `render_cell(..., for_csv=True)` for display values, uses same `ColumnDef.header` logic as table.
+**`csv`** uses `csv.writer(sys.stdout, lineterminator="\n")`, no Rich console. Explicit `lineterminator` avoids `\r\n` on Windows for consistent test output. Calls `render_cell(..., for_csv=True)` for display values, uses same `ColumnDef.header` logic as table. CSV includes all columns (`wide_only` columns are included — same column set as `wide`).
 
 ### CSV Rules for Query Results
 
