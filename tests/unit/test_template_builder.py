@@ -117,6 +117,11 @@ class TestProvisionVm:
         assert result.devices_created == 1
 
     def test_vm_with_cloudinit(self, mock_ctx):
+        # Set up CloudInitFileManager mock
+        mock_ci_file = MagicMock()
+        mock_ci_file.name = "/user-data"
+        mock_ci_file.key = 100
+
         config = {
             "name": "test-vm",
             "os_family": "linux",
@@ -127,12 +132,21 @@ class TestProvisionVm:
                 ],
             },
         }
-        provision_vm(mock_ctx.client, config)
 
-        call_kwargs = mock_ctx.client.vms.create.call_args[1]
-        assert call_kwargs["cloudinit_datasource"] == "NoCloud"
-        # cloud_init dict passed to SDK with leading / on file names
-        assert call_kwargs["cloud_init"] == {"/user-data": "#cloud-config\nhostname: test"}
+        from unittest.mock import patch
+
+        with patch("pyvergeos.resources.cloudinit_files.CloudInitFileManager") as mock_ci_cls:
+            mock_ci_mgr = mock_ci_cls.return_value
+            mock_ci_mgr.list_for_vm.return_value = [mock_ci_file]
+            provision_vm(mock_ctx.client, config)
+
+            call_kwargs = mock_ctx.client.vms.create.call_args[1]
+            assert call_kwargs["cloudinit_datasource"] == "NoCloud"
+            assert "cloud_init" not in call_kwargs
+            # Verify files were updated (not created) since they auto-exist
+            mock_ci_mgr.update.assert_called_once_with(
+                100, contents="#cloud-config\nhostname: test"
+            )
 
     def test_drive_failure_partial_provision(self, mock_ctx):
         vm = mock_ctx.client.vms.create.return_value
