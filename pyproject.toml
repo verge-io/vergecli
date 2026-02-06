@@ -39,6 +39,8 @@ dev = [
     "pytest-mock>=3.0",
     "mypy>=1.0",
     "ruff>=0.1",
+    "types-PyYAML>=6.0",
+    "types-jsonschema>=4.0",
 ]
 
 [project.scripts]
