@@ -92,14 +92,6 @@ def main(
             help="Output format (table, json).",
         ),
     ] = "table",
-    fields: Annotated[
-        str | None,
-        typer.Option(
-            "--fields",
-            "-f",
-            help="Fields to include in output (comma-separated, 'most', or 'all').",
-        ),
-    ] = None,
     query: Annotated[
         str | None,
         typer.Option(
@@ -168,7 +160,6 @@ def main(
     ctx.obj["output_format"] = effective_output
     ctx.obj["verbosity"] = verbose
     ctx.obj["quiet"] = quiet
-    ctx.obj["fields"] = fields
     ctx.obj["query"] = query
     ctx.obj["no_color"] = no_color
     ctx.obj["_client"] = None  # Lazy-loaded client
