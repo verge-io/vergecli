@@ -352,6 +352,34 @@ def vm_reset(
     output_success(f"Reset VM '{vm_obj.name}'", quiet=vctx.quiet)
 
 
+@app.command("validate")
+@handle_errors()
+def vm_validate(
+    ctx: typer.Context,
+    file: Annotated[
+        str,
+        typer.Option("--file", "-f", help="Path to .vrg.yaml template file"),
+    ],
+    set_overrides: Annotated[
+        list[str] | None,
+        typer.Option("--set", help="Override template values (key.path=value)"),
+    ] = None,
+) -> None:
+    """Validate a VM template file without creating anything."""
+    from verge_cli.template.loader import load_template
+    from verge_cli.template.schema import ValidationError, validate_template
+
+    try:
+        data = load_template(file, set_overrides=set_overrides or [])
+        validate_template(data)
+    except (ValueError, ValidationError) as e:
+        typer.echo(f"Validation failed: {e}", err=True)
+        raise typer.Exit(8) from None
+
+    quiet = ctx.obj.get("quiet", False) if ctx.obj else False
+    output_success(f"Template '{file}' is valid.", quiet=quiet)
+
+
 def _vm_to_dict(vm: Any) -> dict[str, Any]:
     """Convert a VM object to a dictionary for output."""
     return {
