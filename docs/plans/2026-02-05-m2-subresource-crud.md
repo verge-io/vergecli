@@ -1,6 +1,6 @@
-# Milestone 2: Sub-Resource CRUD Commands
+# Milestone 2: Sub-Resource CRUD Commands ✅
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+> **Status:** Complete — merged via PR #4 on 2026-02-06.
 
 **Goal:** Add `vrg vm drive`, `vrg vm nic`, and `vrg vm device` sub-commands as thin SDK wrappers.
 
