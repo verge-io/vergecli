@@ -6,6 +6,7 @@ from typing import Annotated, Any
 
 import typer
 
+from verge_cli.columns import ALIAS_COLUMNS
 from verge_cli.context import get_context
 from verge_cli.errors import ResourceNotFoundError, handle_errors
 from verge_cli.output import output_result, output_success
@@ -16,9 +17,6 @@ app = typer.Typer(
     help="Manage network IP aliases.",
     no_args_is_help=True,
 )
-
-# Default columns for alias list output
-ALIAS_LIST_COLUMNS = ["hostname", "ip", "description"]
 
 
 def _resolve_alias_id(network: Any, identifier: str) -> int:
@@ -72,8 +70,6 @@ def _alias_to_dict(alias: Any) -> dict[str, Any]:
 def alias_list(
     ctx: typer.Context,
     network: Annotated[str, typer.Argument(help="Network name or key")],
-    output: Annotated[str | None, typer.Option("--output", "-o", help="Output format")] = None,
-    query: Annotated[str | None, typer.Option("--query", help="Extract field")] = None,
 ) -> None:
     """List IP aliases for a network."""
     vctx = get_context(ctx)
@@ -86,9 +82,9 @@ def alias_list(
 
     output_result(
         data,
-        output_format=output or vctx.output_format,
-        query=query or vctx.query,
-        columns=ALIAS_LIST_COLUMNS,
+        output_format=vctx.output_format,
+        query=vctx.query,
+        columns=ALIAS_COLUMNS,
         quiet=vctx.quiet,
         no_color=vctx.no_color,
     )
@@ -100,8 +96,6 @@ def alias_get(
     ctx: typer.Context,
     network: Annotated[str, typer.Argument(help="Network name or key")],
     alias: Annotated[str, typer.Argument(help="Alias name, IP, or key")],
-    output: Annotated[str | None, typer.Option("--output", "-o", help="Output format")] = None,
-    query: Annotated[str | None, typer.Option("--query", help="Extract field")] = None,
 ) -> None:
     """Get details of an IP alias."""
     vctx = get_context(ctx)
@@ -114,8 +108,8 @@ def alias_get(
 
     output_result(
         _alias_to_dict(alias_obj),
-        output_format=output or vctx.output_format,
-        query=query or vctx.query,
+        output_format=vctx.output_format,
+        query=vctx.query,
         quiet=vctx.quiet,
         no_color=vctx.no_color,
     )

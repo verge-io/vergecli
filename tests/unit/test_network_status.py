@@ -43,7 +43,7 @@ def test_network_list_shows_status_flags(cli_runner, mock_client, mock_network_w
     output_lower = result.output.lower()
     assert "rest" in output_lower  # restart column (may be truncated as "rest…")
     assert "rules" in output_lower  # rules column
-    assert "apply" in output_lower  # dns_apply column (truncated as "apply")
+    assert "dns" in output_lower  # dns column header
 
 
 def test_network_get_shows_status_flags(cli_runner, mock_client, mock_network_with_flags):

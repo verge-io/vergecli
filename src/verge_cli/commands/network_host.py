@@ -9,6 +9,7 @@ if TYPE_CHECKING:
 
 import typer
 
+from verge_cli.columns import HOST_COLUMNS
 from verge_cli.context import get_context
 from verge_cli.errors import ResourceNotFoundError, handle_errors
 from verge_cli.output import output_result, output_success
@@ -19,9 +20,6 @@ app = typer.Typer(
     help="Manage network DNS/DHCP host overrides.",
     no_args_is_help=True,
 )
-
-# Default columns for host list output
-HOST_LIST_COLUMNS = ["host", "ip", "type"]
 
 
 def _resolve_host_id(network: Any, identifier: str) -> int:
@@ -74,8 +72,6 @@ def _host_to_dict(host: Any) -> dict[str, Any]:
 def host_list(
     ctx: typer.Context,
     network: Annotated[str, typer.Argument(help="Network name or key")],
-    output: Annotated[str | None, typer.Option("--output", "-o", help="Output format")] = None,
-    query: Annotated[str | None, typer.Option("--query", help="Extract field")] = None,
 ) -> None:
     """List DNS/DHCP host overrides for a network."""
     vctx = get_context(ctx)
@@ -88,9 +84,9 @@ def host_list(
 
     output_result(
         data,
-        output_format=output or vctx.output_format,
-        query=query or vctx.query,
-        columns=HOST_LIST_COLUMNS,
+        output_format=vctx.output_format,
+        query=vctx.query,
+        columns=HOST_COLUMNS,
         quiet=vctx.quiet,
         no_color=vctx.no_color,
     )
@@ -102,8 +98,6 @@ def host_get(
     ctx: typer.Context,
     network: Annotated[str, typer.Argument(help="Network name or key")],
     host: Annotated[str, typer.Argument(help="Host hostname, IP, or key")],
-    output: Annotated[str | None, typer.Option("--output", "-o", help="Output format")] = None,
-    query: Annotated[str | None, typer.Option("--query", help="Extract field")] = None,
 ) -> None:
     """Get details of a DNS/DHCP host override."""
     vctx = get_context(ctx)
@@ -116,8 +110,8 @@ def host_get(
 
     output_result(
         _host_to_dict(host_obj),
-        output_format=output or vctx.output_format,
-        query=query or vctx.query,
+        output_format=vctx.output_format,
+        query=vctx.query,
         quiet=vctx.quiet,
         no_color=vctx.no_color,
     )

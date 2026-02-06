@@ -6,6 +6,7 @@ from typing import Annotated, Any
 
 import typer
 
+from verge_cli.columns import RECORD_COLUMNS, VIEW_COLUMNS, ZONE_COLUMNS
 from verge_cli.context import get_context
 from verge_cli.errors import ResourceNotFoundError, handle_errors
 from verge_cli.output import output_result, output_success
@@ -43,15 +44,6 @@ view_app = typer.Typer(
 app.add_typer(zone_app, name="zone")
 app.add_typer(record_app, name="record")
 app.add_typer(view_app, name="view")
-
-# Default columns for zone list output
-ZONE_LIST_COLUMNS = ["id", "domain", "type", "view_name", "serial"]
-
-# Default columns for record list output
-RECORD_LIST_COLUMNS = ["id", "host", "type", "value", "ttl", "priority"]
-
-# Default columns for view list output
-VIEW_LIST_COLUMNS = ["id", "name", "recursion", "match_clients"]
 
 
 # =============================================================================
@@ -249,8 +241,6 @@ def zone_list(
     ctx: typer.Context,
     network: Annotated[str, typer.Argument(help="Network name or key")],
     view: Annotated[str, typer.Argument(help="View name or key")],
-    output: Annotated[str | None, typer.Option("--output", "-o", help="Output format")] = None,
-    query: Annotated[str | None, typer.Option("--query", help="Extract field")] = None,
 ) -> None:
     """List DNS zones for a view.
 
@@ -270,9 +260,9 @@ def zone_list(
 
     output_result(
         data,
-        output_format=output or vctx.output_format,
-        query=query or vctx.query,
-        columns=ZONE_LIST_COLUMNS,
+        output_format=vctx.output_format,
+        query=vctx.query,
+        columns=ZONE_COLUMNS,
         quiet=vctx.quiet,
         no_color=vctx.no_color,
     )
@@ -285,8 +275,6 @@ def zone_get(
     network: Annotated[str, typer.Argument(help="Network name or key")],
     view: Annotated[str, typer.Argument(help="View name or key")],
     zone: Annotated[str, typer.Argument(help="Zone domain or key")],
-    output: Annotated[str | None, typer.Option("--output", "-o", help="Output format")] = None,
-    query: Annotated[str | None, typer.Option("--query", help="Extract field")] = None,
 ) -> None:
     """Get details of a DNS zone."""
     vctx = get_context(ctx)
@@ -302,8 +290,8 @@ def zone_get(
 
     output_result(
         _zone_to_dict(zone_obj),
-        output_format=output or vctx.output_format,
-        query=query or vctx.query,
+        output_format=vctx.output_format,
+        query=vctx.query,
         quiet=vctx.quiet,
         no_color=vctx.no_color,
     )
@@ -454,8 +442,6 @@ def record_list(
     record_type: Annotated[
         str | None, typer.Option("--type", "-t", help="Filter by record type (A/AAAA/CNAME/MX/TXT)")
     ] = None,
-    output: Annotated[str | None, typer.Option("--output", "-o", help="Output format")] = None,
-    query: Annotated[str | None, typer.Option("--query", help="Extract field")] = None,
 ) -> None:
     """List DNS records for a zone.
 
@@ -483,9 +469,9 @@ def record_list(
 
     output_result(
         data,
-        output_format=output or vctx.output_format,
-        query=query or vctx.query,
-        columns=RECORD_LIST_COLUMNS,
+        output_format=vctx.output_format,
+        query=vctx.query,
+        columns=RECORD_COLUMNS,
         quiet=vctx.quiet,
         no_color=vctx.no_color,
     )
@@ -499,8 +485,6 @@ def record_get(
     view: Annotated[str, typer.Argument(help="View name or key")],
     zone: Annotated[str, typer.Argument(help="Zone domain or key")],
     record: Annotated[str, typer.Argument(help="Record ID")],
-    output: Annotated[str | None, typer.Option("--output", "-o", help="Output format")] = None,
-    query: Annotated[str | None, typer.Option("--query", help="Extract field")] = None,
 ) -> None:
     """Get details of a DNS record."""
     vctx = get_context(ctx)
@@ -519,8 +503,8 @@ def record_get(
 
     output_result(
         _record_to_dict(record_obj),
-        output_format=output or vctx.output_format,
-        query=query or vctx.query,
+        output_format=vctx.output_format,
+        query=vctx.query,
         quiet=vctx.quiet,
         no_color=vctx.no_color,
     )
@@ -702,8 +686,6 @@ def record_delete(
 def view_list(
     ctx: typer.Context,
     network: Annotated[str, typer.Argument(help="Network name or key")],
-    output: Annotated[str | None, typer.Option("--output", "-o", help="Output format")] = None,
-    query: Annotated[str | None, typer.Option("--query", help="Extract field")] = None,
 ) -> None:
     """List DNS views for a network.
 
@@ -720,9 +702,9 @@ def view_list(
 
     output_result(
         data,
-        output_format=output or vctx.output_format,
-        query=query or vctx.query,
-        columns=VIEW_LIST_COLUMNS,
+        output_format=vctx.output_format,
+        query=vctx.query,
+        columns=VIEW_COLUMNS,
         quiet=vctx.quiet,
         no_color=vctx.no_color,
     )
@@ -734,8 +716,6 @@ def view_get(
     ctx: typer.Context,
     network: Annotated[str, typer.Argument(help="Network name or key")],
     view: Annotated[str, typer.Argument(help="View name or key")],
-    output: Annotated[str | None, typer.Option("--output", "-o", help="Output format")] = None,
-    query: Annotated[str | None, typer.Option("--query", help="Extract field")] = None,
 ) -> None:
     """Get details of a DNS view."""
     vctx = get_context(ctx)
@@ -748,8 +728,8 @@ def view_get(
 
     output_result(
         _view_to_dict(view_obj),
-        output_format=output or vctx.output_format,
-        query=query or vctx.query,
+        output_format=vctx.output_format,
+        query=vctx.query,
         quiet=vctx.quiet,
         no_color=vctx.no_color,
     )

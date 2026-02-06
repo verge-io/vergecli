@@ -6,6 +6,7 @@ from typing import Annotated, Any
 
 import typer
 
+from verge_cli.columns import NIC_COLUMNS
 from verge_cli.context import get_context
 from verge_cli.errors import ResourceNotFoundError, handle_errors
 from verge_cli.output import output_result, output_success
@@ -16,8 +17,6 @@ app = typer.Typer(
     help="Manage VM network interfaces.",
     no_args_is_help=True,
 )
-
-NIC_LIST_COLUMNS = ["name", "interface", "network_name", "mac_address", "ip_address", "enabled"]
 
 
 def _get_vm(ctx: typer.Context, vm_identifier: str) -> tuple[Any, Any]:
@@ -72,7 +71,7 @@ def nic_list(
         data,
         output_format=vctx.output_format,
         query=vctx.query,
-        columns=NIC_LIST_COLUMNS,
+        columns=NIC_COLUMNS,
         quiet=vctx.quiet,
         no_color=vctx.no_color,
     )

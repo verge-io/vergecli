@@ -89,7 +89,9 @@ def test_diag_leases_json_output(cli_runner, mock_client, mock_network_for_diag,
     mock_client.networks.get.return_value = mock_network_for_diag
     mock_network_for_diag.diagnostics.return_value = [mock_lease]
 
-    result = cli_runner.invoke(app, ["network", "diag", "leases", "test-network", "-o", "json"])
+    result = cli_runner.invoke(
+        app, ["--output", "json", "network", "diag", "leases", "test-network"]
+    )
 
     assert result.exit_code == 0
     assert "10.0.0.100" in result.output
@@ -127,7 +129,9 @@ def test_diag_addresses_json_output(cli_runner, mock_client, mock_network_for_di
     mock_client.networks.get.return_value = mock_network_for_diag
     mock_network_for_diag.diagnostics.return_value = [mock_address]
 
-    result = cli_runner.invoke(app, ["network", "diag", "addresses", "test-network", "-o", "json"])
+    result = cli_runner.invoke(
+        app, ["--output", "json", "network", "diag", "addresses", "test-network"]
+    )
 
     assert result.exit_code == 0
     assert "10.0.0.1" in result.output
@@ -153,7 +157,9 @@ def test_diag_stats_json_output(cli_runner, mock_client, mock_network_for_diag, 
     mock_client.networks.get.return_value = mock_network_for_diag
     mock_network_for_diag.statistics.return_value = mock_stats
 
-    result = cli_runner.invoke(app, ["network", "diag", "stats", "test-network", "-o", "json"])
+    result = cli_runner.invoke(
+        app, ["--output", "json", "network", "diag", "stats", "test-network"]
+    )
 
     assert result.exit_code == 0
     assert "bytes_in" in result.output

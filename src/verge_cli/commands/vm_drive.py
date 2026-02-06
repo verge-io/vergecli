@@ -6,6 +6,7 @@ from typing import Annotated, Any
 
 import typer
 
+from verge_cli.columns import DRIVE_COLUMNS
 from verge_cli.context import get_context
 from verge_cli.errors import handle_errors
 from verge_cli.output import output_result, output_success
@@ -17,8 +18,6 @@ app = typer.Typer(
     help="Manage VM drives.",
     no_args_is_help=True,
 )
-
-DRIVE_LIST_COLUMNS = ["name", "media", "interface", "size_gb", "tier", "enabled"]
 
 
 def _get_vm(ctx: typer.Context, vm_identifier: str) -> tuple[Any, Any]:
@@ -76,7 +75,7 @@ def drive_list(
         data,
         output_format=vctx.output_format,
         query=vctx.query,
-        columns=DRIVE_LIST_COLUMNS,
+        columns=DRIVE_COLUMNS,
         quiet=vctx.quiet,
         no_color=vctx.no_color,
     )

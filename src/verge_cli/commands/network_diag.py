@@ -6,6 +6,7 @@ from typing import Annotated, Any
 
 import typer
 
+from verge_cli.columns import ADDRESS_COLUMNS, LEASE_COLUMNS
 from verge_cli.context import get_context
 from verge_cli.errors import handle_errors
 from verge_cli.output import output_result
@@ -16,23 +17,6 @@ app = typer.Typer(
     help="Network diagnostics and statistics.",
     no_args_is_help=True,
 )
-
-# Default columns for lease list output
-LEASE_LIST_COLUMNS = [
-    "mac",
-    "ip",
-    "hostname",
-    "expires",
-    "state",
-]
-
-# Default columns for address list output
-ADDRESS_LIST_COLUMNS = [
-    "ip",
-    "mac",
-    "interface",
-    "type",
-]
 
 
 def _item_to_dict(item: Any) -> dict[str, Any]:
@@ -111,8 +95,6 @@ def _stats_to_dict(stats: Any) -> dict[str, Any]:
 def diag_leases(
     ctx: typer.Context,
     network: Annotated[str, typer.Argument(help="Network name or key")],
-    output: Annotated[str | None, typer.Option("--output", "-o", help="Output format")] = None,
-    query: Annotated[str | None, typer.Option("--query", help="Extract field")] = None,
 ) -> None:
     """Show DHCP leases for a network.
 
@@ -138,9 +120,9 @@ def diag_leases(
 
     output_result(
         data,
-        output_format=output or vctx.output_format,
-        query=query or vctx.query,
-        columns=LEASE_LIST_COLUMNS,
+        output_format=vctx.output_format,
+        query=vctx.query,
+        columns=LEASE_COLUMNS,
         quiet=vctx.quiet,
         no_color=vctx.no_color,
     )
@@ -151,8 +133,6 @@ def diag_leases(
 def diag_addresses(
     ctx: typer.Context,
     network: Annotated[str, typer.Argument(help="Network name or key")],
-    output: Annotated[str | None, typer.Option("--output", "-o", help="Output format")] = None,
-    query: Annotated[str | None, typer.Option("--query", help="Extract field")] = None,
 ) -> None:
     """Show all network addresses.
 
@@ -178,9 +158,9 @@ def diag_addresses(
 
     output_result(
         data,
-        output_format=output or vctx.output_format,
-        query=query or vctx.query,
-        columns=ADDRESS_LIST_COLUMNS,
+        output_format=vctx.output_format,
+        query=vctx.query,
+        columns=ADDRESS_COLUMNS,
         quiet=vctx.quiet,
         no_color=vctx.no_color,
     )
@@ -191,8 +171,6 @@ def diag_addresses(
 def diag_stats(
     ctx: typer.Context,
     network: Annotated[str, typer.Argument(help="Network name or key")],
-    output: Annotated[str | None, typer.Option("--output", "-o", help="Output format")] = None,
-    query: Annotated[str | None, typer.Option("--query", help="Extract field")] = None,
 ) -> None:
     """Show network traffic statistics.
 
@@ -211,8 +189,8 @@ def diag_stats(
 
     output_result(
         data,
-        output_format=output or vctx.output_format,
-        query=query or vctx.query,
+        output_format=vctx.output_format,
+        query=vctx.query,
         quiet=vctx.quiet,
         no_color=vctx.no_color,
     )
