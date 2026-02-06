@@ -40,7 +40,7 @@ def resolve_name(
     matches = [r for r in resources if getattr(r, "name", None) == text]
 
     if len(matches) == 1:
-        return matches[0].key
+        return int(matches[0].key)
 
     if len(matches) > 1:
         keys = [str(m.key) for m in matches]
