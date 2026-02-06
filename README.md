@@ -40,6 +40,7 @@ vrg vm list
 ## Features
 
 - **VM Lifecycle** — create, start, stop, restart, reset, update, and delete virtual machines
+- **VM Sub-Resources** — manage drives, NICs, and TPM devices on VMs
 - **Network Management** — create and manage internal/external networks with DHCP
 - **Firewall Rules** — create, enable, disable, and delete network firewall rules
 - **DNS** — manage DNS views, zones, and records (A, CNAME, MX, TXT, etc.)
@@ -48,18 +49,22 @@ vrg vm list
 - **Network Diagnostics** — DHCP leases, address tables, and traffic statistics
 - **Configuration Profiles** — multiple environments with named profiles
 - **Multiple Auth Methods** — bearer token, API key, or username/password
-- **Flexible Output** — table or JSON format with `--query` field extraction
+- **VM Templates** — declarative YAML templates with variables, dry-run, and batch provisioning
+- **Flexible Output** — table, wide, JSON, or CSV format with `--query` field extraction
 
 ## Command Overview
 
 | Command | Subcommands |
 |---------|-------------|
-| `vrg vm` | `list`, `get`, `create`, `update`, `delete`, `start`, `stop`, `restart`, `reset` |
+| `vrg vm` | `list`, `get`, `create`, `update`, `delete`, `start`, `stop`, `restart`, `reset`, `validate` |
+| `vrg vm drive` | `list`, `get`, `create`, `update`, `delete`, `import` |
+| `vrg vm nic` | `list`, `get`, `create`, `update`, `delete` |
+| `vrg vm device` | `list`, `get`, `create`, `delete` |
 | `vrg network` | `list`, `get`, `create`, `update`, `delete`, `start`, `stop`, `restart`, `status`, `apply-rules`, `apply-dns` |
 | `vrg network rule` | `list`, `get`, `create`, `update`, `delete`, `enable`, `disable` |
+| `vrg network dns view` | `list`, `get`, `create`, `update`, `delete` |
 | `vrg network dns zone` | `list`, `get`, `create`, `update`, `delete` |
 | `vrg network dns record` | `list`, `get`, `create`, `update`, `delete` |
-| `vrg network dns view` | `list`, `get`, `create`, `update`, `delete` |
 | `vrg network host` | `list`, `get`, `create`, `update`, `delete` |
 | `vrg network alias` | `list`, `get`, `create`, `update`, `delete` |
 | `vrg network diag` | `leases`, `addresses`, `stats` |
@@ -115,7 +120,7 @@ All settings can be overridden with environment variables:
 | `VERGE_PROFILE` | Default profile to use |
 | `VERGE_VERIFY_SSL` | Verify SSL certificates (true/false) |
 | `VERGE_TIMEOUT` | Request timeout in seconds |
-| `VERGE_OUTPUT` | Default output format (table/json) |
+| `VERGE_OUTPUT` | Default output format (table/wide/json/csv) |
 
 ## Output Formats
 
@@ -125,10 +130,26 @@ All settings can be overridden with environment variables:
 vrg vm list
 ```
 
+### Wide
+
+Shows all columns including those hidden in the default table view:
+
+```bash
+vrg -o wide vm list
+```
+
 ### JSON
 
 ```bash
-vrg vm list -o json
+vrg -o json vm list
+```
+
+### CSV
+
+Machine-readable output for piping to other tools:
+
+```bash
+vrg -o csv vm list
 ```
 
 ### Field Extraction
@@ -137,11 +158,93 @@ Extract specific fields using dot notation:
 
 ```bash
 # Get just the status
-vrg vm get web-server --query status
+vrg --query status vm get web-server
 
 # Get nested field
-vrg vm get web-server --query config.ram
+vrg --query config.ram vm get web-server
 ```
+
+## VM Templates
+
+Create VMs from declarative `.vrg.yaml` files instead of long command lines.
+
+### Template Structure
+
+```yaml
+apiVersion: v4
+kind: VirtualMachine
+
+vm:
+  name: web-server-01
+  os_family: linux
+  cpu_cores: 4
+  ram: 8GB
+  machine_type: q35
+  uefi: true
+
+  drives:
+    - name: "OS Disk"
+      media: disk
+      interface: virtio-scsi
+      size: 50GB
+
+  nics:
+    - name: "Primary"
+      interface: virtio
+      network: External
+
+  devices:
+    - type: tpm
+      model: crb
+      version: "2.0"
+
+  cloudinit:
+    datasource: nocloud
+    files:
+      - name: user-data
+        content: |
+          #cloud-config
+          hostname: web-server-01
+          packages: [nginx]
+```
+
+### Usage
+
+```bash
+# Validate a template
+vrg vm validate -f web-server.vrg.yaml
+
+# Preview without creating
+vrg vm create -f web-server.vrg.yaml --dry-run
+
+# Create from template
+vrg vm create -f web-server.vrg.yaml
+
+# Override values at create time
+vrg vm create -f web-server.vrg.yaml --set vm.name=web-02 --set vm.ram=16GB
+```
+
+### Variables
+
+Templates support `${VAR}` substitution from environment variables or a `vars:` block. Use `${VAR:-default}` for optional variables with defaults.
+
+```yaml
+vars:
+  env: staging
+vm:
+  name: "${env}-web-01"
+  ram: "${VM_RAM:-4GB}"
+```
+
+### Batch Provisioning
+
+Use `kind: VirtualMachineSet` to create multiple VMs from shared defaults. Each VM in `vms:` inherits from `defaults:` and can override any field.
+
+```bash
+vrg vm create -f k8s-cluster.vrg.yaml --dry-run
+```
+
+See the [Template Guide](docs/templates.md) for the full field reference, cloud-init, variables, and more examples.
 
 ## Global Options
 
@@ -149,7 +252,7 @@ vrg vm get web-server --query config.ram
 |--------|-------|-------------|
 | `--profile` | `-p` | Configuration profile to use |
 | `--host` | `-H` | VergeOS host URL (override) |
-| `--output` | `-o` | Output format (table, json) |
+| `--output` | `-o` | Output format (table, wide, json, csv) |
 | `--query` | | Extract field using dot notation |
 | `--verbose` | `-v` | Increase verbosity (-v, -vv, -vvv) |
 | `--quiet` | `-q` | Suppress non-essential output |
@@ -198,6 +301,7 @@ uv build
 
 ## Documentation
 
+- [Template Guide](docs/templates.md) — Full template language reference
 - [Cookbook](docs/cookbook.md) — Task-oriented recipes for common workflows
 - [Changelog](CHANGELOG.md) — Version history
 - [Known Issues](docs/KNOWN_ISSUES.md) — Current limitations and workarounds
