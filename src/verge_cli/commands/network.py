@@ -6,6 +6,7 @@ from typing import Annotated, Any
 
 import typer
 
+from verge_cli.columns import NETWORK_COLUMNS
 from verge_cli.commands import (
     network_alias,
     network_diag,
@@ -30,19 +31,6 @@ app.add_typer(network_diag.app, name="diag")
 app.add_typer(network_dns.app, name="dns")
 app.add_typer(network_host.app, name="host")
 app.add_typer(network_rule.app, name="rule")
-
-# Default columns for network list output
-NETWORK_LIST_COLUMNS = [
-    "name",
-    "type",
-    "network",
-    "ipaddress",
-    "status",
-    "running",
-    "restart",
-    "rules",
-    "dns_apply",
-]
 
 
 @app.command("list")
@@ -91,7 +79,7 @@ def network_list(
         data,
         output_format=output or vctx.output_format,
         query=query or vctx.query,
-        columns=NETWORK_LIST_COLUMNS,
+        columns=NETWORK_COLUMNS,
         quiet=vctx.quiet,
         no_color=vctx.no_color,
     )
@@ -454,8 +442,4 @@ def _network_to_dict(net: Any) -> dict[str, Any]:
         "needs_restart": net.get("need_restart", False),
         "needs_rule_apply": net.get("need_fw_apply", False),
         "needs_dns_apply": net.get("need_dns_apply", False),
-        # Short aliases for list columns (Y or empty string)
-        "restart": "Y" if net.get("need_restart", False) else "",
-        "rules": "Y" if net.get("need_fw_apply", False) else "",
-        "dns_apply": "Y" if net.get("need_dns_apply", False) else "",
     }
