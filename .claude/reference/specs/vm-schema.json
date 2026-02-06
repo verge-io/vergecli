@@ -1,0 +1,263 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://verge.io/schemas/vgt/v4.json",
+  "title": "VergeOS VM Template",
+  "description": "Declarative VM definition for the VergeOS CLI",
+  "type": "object",
+  "required": ["apiVersion", "kind"],
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "enum": ["v4"],
+      "description": "Schema version"
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["VirtualMachine", "VirtualMachineSet"],
+      "description": "Template type: single VM or batch"
+    },
+    "vars": {
+      "type": "object",
+      "description": "Variable definitions for ${VAR} substitution",
+      "additionalProperties": { "type": "string" }
+    },
+    "vm": { "$ref": "#/definitions/vmSpec" },
+    "defaults": { "$ref": "#/definitions/vmSpec" },
+    "vms": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/vmSpec" },
+      "description": "List of VMs for VirtualMachineSet kind"
+    }
+  },
+  "oneOf": [
+    {
+      "properties": { "kind": { "const": "VirtualMachine" } },
+      "required": ["vm"]
+    },
+    {
+      "properties": { "kind": { "const": "VirtualMachineSet" } },
+      "required": ["vms"]
+    }
+  ],
+  "definitions": {
+    "vmSpec": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "VM name (must be unique)",
+          "pattern": "^[^\"]*$"
+        },
+        "description": { "type": "string" },
+        "enabled": { "type": "boolean", "default": true },
+        "os_family": {
+          "type": "string",
+          "enum": ["linux", "windows", "freebsd", "other"],
+          "description": "Guest OS type for virtualization optimization"
+        },
+        "os_description": { "type": "string" },
+        "cpu_cores": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1
+        },
+        "cpu_type": {
+          "type": "string",
+          "default": "auto",
+          "description": "CPU model presented to guest. 'auto' selects optimal for host."
+        },
+        "ram": {
+          "type": "string",
+          "pattern": "^\\d+(\\.\\d+)?\\s*(MB|GB|TB)$",
+          "default": "1GB",
+          "description": "Memory with unit (e.g., '512MB', '4GB', '16GB')"
+        },
+        "machine_type": {
+          "type": "string",
+          "enum": ["q35", "pc"],
+          "default": "q35"
+        },
+        "boot_order": {
+          "type": "string",
+          "enum": ["d", "cd", "cdn", "c", "dc", "n", "nd", "do"],
+          "default": "cd"
+        },
+        "allow_hotplug": { "type": "boolean", "default": true },
+        "uefi": { "type": "boolean", "default": false },
+        "secure_boot": { "type": "boolean", "default": false },
+        "console": {
+          "type": "string",
+          "enum": ["vnc", "spice"],
+          "default": "vnc"
+        },
+        "video": {
+          "type": "string",
+          "enum": ["std", "cirrus", "vmware", "qxl", "virtio", "none"],
+          "default": "std"
+        },
+        "guest_agent": { "type": "boolean", "default": false },
+        "rtc_base": {
+          "type": "string",
+          "enum": ["utc", "localtime"],
+          "default": "utc"
+        },
+        "cluster": {
+          "oneOf": [
+            { "type": "integer" },
+            { "type": "string" }
+          ],
+          "description": "Cluster ID or name"
+        },
+        "failover_cluster": {
+          "oneOf": [
+            { "type": "integer" },
+            { "type": "string" },
+            { "type": "null" }
+          ]
+        },
+        "preferred_node": {
+          "oneOf": [
+            { "type": "integer" },
+            { "type": "string" },
+            { "type": "null" }
+          ]
+        },
+        "ha_group": {
+          "type": "string",
+          "description": "HA group name. Prefix with '+' for affinity (same node)."
+        },
+        "snapshot_profile": {
+          "oneOf": [
+            { "type": "integer" },
+            { "type": "string" },
+            { "type": "null" }
+          ]
+        },
+        "power_on_after_create": { "type": "boolean", "default": false },
+        "advanced_options": {
+          "type": "string",
+          "description": "Multi-line string of advanced QEMU options, one per line"
+        },
+        "cloudinit": { "$ref": "#/definitions/cloudinitSpec" },
+        "drives": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/driveSpec" }
+        },
+        "nics": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/nicSpec" }
+        },
+        "devices": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/deviceSpec" }
+        }
+      }
+    },
+    "cloudinitSpec": {
+      "type": "object",
+      "properties": {
+        "datasource": {
+          "type": "string",
+          "enum": ["nocloud", "config_drive_v2"],
+          "description": "Cloud-init datasource type"
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "content"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "enum": ["user-data", "meta-data", "vendor-data", "network-data"]
+              },
+              "content": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "driveSpec": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "media": {
+          "type": "string",
+          "enum": ["disk", "cdrom", "import", "clone", "efidisk"],
+          "default": "disk"
+        },
+        "interface": {
+          "type": "string",
+          "enum": ["virtio-scsi", "virtio", "ide", "ahci", "lsi53c895a"],
+          "default": "virtio-scsi"
+        },
+        "size": {
+          "type": "string",
+          "pattern": "^\\d+(\\.\\d+)?\\s*(MB|GB|TB)$",
+          "description": "Disk size with unit (e.g., '50GB', '1TB')"
+        },
+        "preferred_tier": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5,
+          "default": 3
+        },
+        "media_source": {
+          "oneOf": [
+            { "type": "integer" },
+            { "type": "string" }
+          ],
+          "description": "Media file ID or name (for cdrom/import/clone)"
+        },
+        "enabled": { "type": "boolean", "default": true },
+        "order": { "type": "integer" },
+        "asset": { "type": "string" }
+      }
+    },
+    "nicSpec": {
+      "type": "object",
+      "required": ["network"],
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "interface": {
+          "type": "string",
+          "enum": ["virtio", "e1000", "rtl8139", "pcnet"],
+          "default": "virtio"
+        },
+        "enabled": { "type": "boolean", "default": true },
+        "network": {
+          "oneOf": [
+            { "type": "integer" },
+            { "type": "string" }
+          ],
+          "description": "Virtual network ID or name"
+        },
+        "mac": {
+          "type": "string",
+          "pattern": "^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$",
+          "description": "Optional MAC address (auto-generated if omitted)"
+        },
+        "asset": { "type": "string" }
+      }
+    },
+    "deviceSpec": {
+      "type": "object",
+      "required": ["resource_group"],
+      "properties": {
+        "name": { "type": "string", "description": "Human-readable label" },
+        "resource_group": {
+          "type": "string",
+          "description": "UUID from /api/v4/resource_groups"
+        },
+        "settings": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Device-specific settings"
+        }
+      }
+    }
+  }
+}

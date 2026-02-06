@@ -1,0 +1,97 @@
+apiVersion: v4
+kind: VirtualMachineSet
+
+# Shared defaults — applied to every VM unless overridden
+defaults:
+  os_family: linux
+  cpu_cores: 2
+  ram: 4GB
+  machine_type: q35
+  uefi: true
+  guest_agent: true
+  console: vnc
+  video: virtio
+  rtc_base: utc
+  cluster: 1
+
+  cloudinit:
+    datasource: nocloud
+    files:
+      - name: user-data
+        content: |
+          #cloud-config
+          users:
+            - name: deploy
+              groups: sudo
+              shell: /bin/bash
+              sudo: ALL=(ALL) NOPASSWD:ALL
+              ssh_authorized_keys:
+                - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI_YOUR_KEY_HERE
+          packages:
+            - qemu-guest-agent
+          runcmd:
+            - systemctl enable --now qemu-guest-agent
+
+  drives:
+    - name: "OS Disk"
+      media: disk
+      interface: virtio-scsi
+      size: 30GB
+      preferred_tier: 3
+
+  nics:
+    - name: "Primary"
+      interface: virtio
+      network: internal-lan
+
+# Individual VMs — override defaults as needed
+vms:
+  - name: k8s-control-01
+    description: "Kubernetes control plane node 1"
+    cpu_cores: 4
+    ram: 8GB
+    ha_group: "k8s-control"
+    drives:
+      - name: "OS Disk"
+        media: disk
+        interface: virtio-scsi
+        size: 50GB
+        preferred_tier: 2
+      - name: "etcd Data"
+        media: disk
+        interface: virtio-scsi
+        size: 20GB
+        preferred_tier: 1
+
+  - name: k8s-control-02
+    description: "Kubernetes control plane node 2"
+    cpu_cores: 4
+    ram: 8GB
+    ha_group: "k8s-control"
+    drives:
+      - name: "OS Disk"
+        media: disk
+        interface: virtio-scsi
+        size: 50GB
+        preferred_tier: 2
+      - name: "etcd Data"
+        media: disk
+        interface: virtio-scsi
+        size: 20GB
+        preferred_tier: 1
+
+  - name: k8s-worker-01
+    description: "Kubernetes worker node 1"
+    cpu_cores: 8
+    ram: 32GB
+    ha_group: "k8s-workers"
+
+  - name: k8s-worker-02
+    description: "Kubernetes worker node 2"
+    cpu_cores: 8
+    ram: 32GB
+    ha_group: "k8s-workers"
+
+  - name: monitoring-01
+    description: "Prometheus + Grafana stack"
+    # Inherits all defaults — 2 cores, 4GB, 30GB disk

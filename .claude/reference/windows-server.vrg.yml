@@ -1,0 +1,54 @@
+apiVersion: v4
+kind: VirtualMachine
+
+vm:
+  name: dc-01
+  description: "Primary Domain Controller"
+  enabled: true
+  os_family: windows
+  os_description: "Windows Server 2025 Standard"
+
+  # Compute
+  cpu_cores: 4
+  ram: 16GB
+  machine_type: q35
+  boot_order: cd
+  uefi: true
+  secure_boot: true
+
+  # Display
+  console: vnc
+  video: std
+  guest_agent: true
+  rtc_base: localtime    # Windows expects localtime
+
+  # Scheduling
+  cluster: 1
+  ha_group: "domain-controllers"
+
+  # SMBIOS for Windows licensing
+  advanced_options: |
+    smbios.type1.manufacturer=Dell Inc.
+    smbios.type1.product=PowerEdge R740
+
+  drives:
+    - name: "OS Disk"
+      media: disk
+      interface: virtio-scsi
+      size: 100GB
+      preferred_tier: 2
+
+    - name: "Windows ISO"
+      media: cdrom
+      interface: ahci
+      media_source: windows-2025-eval   # CLI resolves name → ID
+
+    - name: "VirtIO Drivers"
+      media: cdrom
+      interface: ahci
+      media_source: virtio-win
+
+  nics:
+    - name: "Corporate LAN"
+      interface: virtio
+      network: internal-lan
