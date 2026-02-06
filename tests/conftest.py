@@ -108,6 +108,29 @@ def mock_network() -> MagicMock:
 
 
 @pytest.fixture
+def mock_dns_view() -> MagicMock:
+    """Create a mock DNS View object."""
+    view = MagicMock()
+    view.key = 10
+    view.name = "internal"
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data = {
+            "$key": 10,
+            "name": "internal",
+            "recursion": True,
+            "match_clients": "10.0.0.0/8;192.168.0.0/16;",
+            "match_destinations": None,
+            "max_cache_size": 33554432,
+            "vnet": 1,
+        }
+        return data.get(key, default)
+
+    view.get = mock_get
+    return view
+
+
+@pytest.fixture
 def temp_config_dir(tmp_path: Path) -> Path:
     """Create a temporary config directory."""
     config_dir = tmp_path / ".vrg"
