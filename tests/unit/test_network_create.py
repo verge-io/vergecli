@@ -1,6 +1,5 @@
 """Tests for network create command."""
 
-
 from verge_cli.cli import app
 
 
