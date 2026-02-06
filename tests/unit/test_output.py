@@ -18,6 +18,7 @@ from verge_cli.columns import (
 )
 from verge_cli.output import (
     extract_field,
+    format_csv,
     format_json,
     format_table,
     format_value,
@@ -371,3 +372,118 @@ class TestFormatTableWithColumnDefs:
         out = capsys.readouterr().out
         assert "Name" in out
         assert "vm1" in out
+
+
+class TestFormatCsv:
+    def test_list_of_dicts(self, capsys) -> None:
+        data = [
+            {"name": "vm1", "status": "running"},
+            {"name": "vm2", "status": "stopped"},
+        ]
+        cols = [
+            ColumnDef("name"),
+            ColumnDef("status", style_map=STATUS_STYLES, normalize_fn=normalize_lower),
+        ]
+        format_csv(data, columns=cols)
+        out = capsys.readouterr().out
+        lines = out.strip().split("\n")
+        assert lines[0] == "Name,Status"
+        assert lines[1] == "vm1,running"
+        assert lines[2] == "vm2,stopped"
+
+    def test_includes_wide_only_columns(self, capsys) -> None:
+        data = [{"name": "vm1", "desc": "Web server"}]
+        cols = [
+            ColumnDef("name"),
+            ColumnDef("desc", header="Description", wide_only=True),
+        ]
+        format_csv(data, columns=cols)
+        out = capsys.readouterr().out
+        lines = out.strip().split("\n")
+        assert lines[0] == "Name,Description"
+        assert lines[1] == "vm1,Web server"
+
+    def test_bool_flag_csv_output(self, capsys) -> None:
+        data = [{"name": "net1", "needs_restart": True}]
+        cols = [
+            ColumnDef("name"),
+            ColumnDef(
+                "needs_restart", header="Restart", style_map=FLAG_STYLES, format_fn=format_bool_yn
+            ),
+        ]
+        format_csv(data, columns=cols)
+        out = capsys.readouterr().out
+        lines = out.strip().split("\n")
+        assert lines[1] == "net1,true"
+
+    def test_none_value_is_empty(self, capsys) -> None:
+        data = [{"name": "vm1", "desc": None}]
+        cols = [ColumnDef("name"), ColumnDef("desc")]
+        format_csv(data, columns=cols)
+        out = capsys.readouterr().out
+        lines = out.strip().split("\n")
+        assert lines[1] == "vm1,"
+
+    def test_empty_list(self, capsys) -> None:
+        cols = [ColumnDef("name")]
+        format_csv([], columns=cols)
+        out = capsys.readouterr().out
+        # Should just have the header
+        lines = out.strip().split("\n")
+        assert lines[0] == "Name"
+        assert len(lines) == 1
+
+    def test_csv_quoting(self, capsys) -> None:
+        data = [{"name": "vm with, comma", "status": "running"}]
+        cols = [ColumnDef("name"), ColumnDef("status")]
+        format_csv(data, columns=cols)
+        out = capsys.readouterr().out
+        lines = out.strip().split("\n")
+        assert '"vm with, comma"' in lines[1]
+
+
+class TestOutputResultFormats:
+    def test_csv_format(self, capsys) -> None:
+        data = [{"name": "vm1", "status": "running"}]
+        cols = [ColumnDef("name"), ColumnDef("status")]
+        output_result(data, output_format="csv", columns=cols)
+        out = capsys.readouterr().out
+        assert "Name,Status" in out
+        assert "vm1,running" in out
+
+    def test_wide_format(self, capsys) -> None:
+        data = [{"name": "vm1", "desc": "Web server"}]
+        cols = [
+            ColumnDef("name"),
+            ColumnDef("desc", header="Description", wide_only=True),
+        ]
+        output_result(data, output_format="wide", columns=cols, no_color=True)
+        out = capsys.readouterr().out
+        assert "Description" in out
+        assert "Web server" in out
+
+    def test_csv_query_list_scalar(self, capsys) -> None:
+        data = [{"name": "vm1"}, {"name": "vm2"}]
+        output_result(data, output_format="csv", query="name")
+        out = capsys.readouterr().out
+        lines = out.strip().split("\n")
+        assert lines[0] == "value"
+        assert lines[1] == "vm1"
+        assert lines[2] == "vm2"
+
+    def test_csv_query_dict(self, capsys) -> None:
+        data = {"name": "vm1", "status": "running"}
+        output_result(data, output_format="csv", query=None)
+        out = capsys.readouterr().out
+        lines = out.strip().split("\n")
+        assert "name" in lines[0]
+        assert "status" in lines[0]
+        assert "vm1" in lines[1]
+
+    def test_csv_query_scalar(self, capsys) -> None:
+        data = [{"name": "vm1"}]
+        output_result(data, output_format="csv", query="0.name")
+        out = capsys.readouterr().out
+        lines = out.strip().split("\n")
+        assert lines[0] == "value"
+        assert lines[1] == "vm1"
