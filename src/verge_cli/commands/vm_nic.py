@@ -7,7 +7,7 @@ from typing import Annotated, Any
 import typer
 
 from verge_cli.context import get_context
-from verge_cli.errors import handle_errors
+from verge_cli.errors import ResourceNotFoundError, handle_errors
 from verge_cli.output import output_result, output_success
 from verge_cli.utils import confirm_action, resolve_resource_id
 
@@ -116,14 +116,19 @@ def nic_create(
     vctx, vm_obj = _get_vm(ctx, vm)
 
     # Pass network as-is — SDK resolves names internally
-    nic_obj = vm_obj.nics.create(
-        network=network,
-        name=name,
-        interface=interface,
-        mac_address=mac,
-        ip_address=ip,
-        description=description,
-    )
+    try:
+        nic_obj = vm_obj.nics.create(
+            network=network,
+            name=name,
+            interface=interface,
+            mac_address=mac,
+            ip_address=ip,
+            description=description,
+        )
+    except Exception as e:
+        if "not found" in str(e).lower():
+            raise ResourceNotFoundError(str(e)) from e
+        raise
 
     output_success(f"Created NIC '{nic_obj.name}' (key: {nic_obj.key})", quiet=vctx.quiet)
     output_result(
