@@ -104,7 +104,7 @@ def vm_get(
 @handle_errors()
 def vm_create(
     ctx: typer.Context,
-    name: Annotated[str, typer.Option("--name", "-n", help="VM name")],
+    name: Annotated[str | None, typer.Option("--name", "-n", help="VM name")] = None,
     ram: Annotated[int, typer.Option("--ram", "-r", help="RAM in MB")] = 1024,
     cpu: Annotated[int, typer.Option("--cpu", "-c", help="Number of CPU cores")] = 1,
     description: Annotated[str, typer.Option("--description", "-d", help="VM description")] = "",
@@ -112,10 +112,34 @@ def vm_create(
         str,
         typer.Option("--os", help="OS family (linux, windows, freebsd, other)"),
     ] = "linux",
+    file: Annotated[
+        str | None, typer.Option("--file", "-f", help="Template file (.vrg.yaml)")
+    ] = None,
+    set_overrides: Annotated[
+        list[str] | None, typer.Option("--set", help="Override template values")
+    ] = None,
+    dry_run: Annotated[bool, typer.Option("--dry-run", help="Show plan without creating")] = False,
 ) -> None:
-    """Create a new virtual machine."""
-    vctx = get_context(ctx)
+    """Create a new virtual machine (inline or from template)."""
+    if file:
+        _create_from_template(ctx, file, set_overrides or [], dry_run)
+    else:
+        if not name:
+            typer.echo("Error: --name is required for inline creation.", err=True)
+            raise typer.Exit(2)
+        _create_inline(ctx, name, ram, cpu, description, os_family)
 
+
+def _create_inline(
+    ctx: typer.Context,
+    name: str,
+    ram: int,
+    cpu: int,
+    description: str,
+    os_family: str,
+) -> None:
+    """Original inline VM creation."""
+    vctx = get_context(ctx)
     vm_obj = vctx.client.vms.create(
         name=name,
         ram=ram,
@@ -133,6 +157,73 @@ def vm_create(
         quiet=vctx.quiet,
         no_color=vctx.no_color,
     )
+
+
+def _create_from_template(
+    ctx: typer.Context,
+    file_path: str,
+    set_overrides: list[str],
+    dry_run: bool,
+) -> None:
+    """Template-based VM creation."""
+    from verge_cli.template.builder import ProvisionError, build_dry_run, provision_vm
+    from verge_cli.template.loader import load_template
+    from verge_cli.template.schema import (
+        ValidationError,
+        convert_units,
+        merge_vm_set_defaults,
+        validate_template,
+    )
+
+    # Load and validate
+    try:
+        data = load_template(file_path, set_overrides=set_overrides)
+        validate_template(data)
+    except (ValueError, ValidationError) as e:
+        typer.echo(f"Template error: {e}", err=True)
+        raise typer.Exit(8) from None
+
+    # Collect VM configs
+    if data["kind"] == "VirtualMachineSet":
+        defaults = data.get("defaults", {})
+        vm_configs = merge_vm_set_defaults(defaults, data["vms"])
+    else:
+        vm_configs = [data["vm"]]
+
+    # Convert units for all configs
+    for vm_config in vm_configs:
+        convert_units(vm_config)
+
+    # Dry run
+    if dry_run:
+        typer.echo("Dry run — no resources will be created.\n")
+        for vm_config in vm_configs:
+            typer.echo(build_dry_run(vm_config))
+            typer.echo("")
+        return
+
+    # Provision
+    vctx = get_context(ctx)
+    results = []
+    had_errors = False
+
+    for vm_config in vm_configs:
+        try:
+            result = provision_vm(vctx.client, vm_config)
+            results.append(result)
+            output_success(
+                f"Created VM '{result.vm_name}' (key: {result.vm_key}) — "
+                f"{result.drives_created} drives, {result.nics_created} NICs, "
+                f"{result.devices_created} devices",
+                quiet=vctx.quiet,
+            )
+        except ProvisionError as e:
+            results.append(e.result)
+            had_errors = True
+            typer.echo(f"Warning: {e}", err=True)
+
+    if had_errors:
+        raise typer.Exit(1)
 
 
 @app.command("update")
