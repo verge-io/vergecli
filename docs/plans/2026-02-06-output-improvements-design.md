@@ -38,7 +38,7 @@ class ColumnDef:
     style_map: Mapping[Any, str] | None = None                  # normalized_value → Rich style
     style_fn: Callable[[Any, dict[str, Any]], str | None] | None = None  # escape hatch: (raw_value, row) → style
     default_style: str | None = None                            # fallback when style_map and style_fn return None
-    format_fn: Callable[[Any], str] | None = None               # value → display string
+    format_fn: Callable[..., str] | None = None                  # (value, *, for_csv=False) → display string
     normalize_fn: Callable[[Any], Any] | None = None            # value → canonical for style lookup only
     wide_only: bool = False                                     # only shown in --output wide (and csv)
 ```
@@ -85,14 +85,18 @@ def normalize_lower(value: Any) -> Any:
     """Normalize string values to lowercase for style lookups."""
     return str(value).strip().lower() if isinstance(value, str) else value
 
-def format_bool_yn(value: Any) -> str:
-    """Format bool as Y/- for flag columns (table/wide only)."""
+def format_bool_yn(value: Any, *, for_csv: bool = False) -> str:
+    """Format bool as Y/- for flag columns."""
     if isinstance(value, bool):
+        if for_csv:
+            return "true" if value else "false"
         return "Y" if value else "-"
-    return str(value) if value is not None else "-"
+    if value is None:
+        return "" if for_csv else "-"
+    return str(value)
 ```
 
-**Note:** `format_fn` is only called for table/wide output. CSV always uses `default_format(..., for_csv=True)`, which renders bools as `"true"/"false"` and None as `""`. This keeps `format_fn` simple (`Callable[[Any], str]`) and ensures CSV output is clean machine-readable data regardless of table display choices.
+**`format_fn` contract:** All format functions follow the signature `(value: Any, *, for_csv: bool = False) -> str`. They are called for every output format (table, wide, CSV). The `for_csv` flag lets them choose machine-friendly representations (e.g., `"true"/"false"` instead of `"Y"/"-"`). This ensures CSV exports get consistent formatting for timestamps, enums, bytes, etc. while table output stays human-optimized.
 
 ### Render Pipeline
 
@@ -114,14 +118,11 @@ def render_cell(raw_value, row, coldef, *, for_csv=False) -> str | Text:
         style = coldef.default_style
 
     # 3. Format display value
-    #    For CSV: always use default_format (clean machine output, no Y/- flags)
-    #    For table/wide: use format_fn if provided, else default_format
-    if for_csv:
-        display = default_format(raw_value, for_csv=True)
-    elif coldef.format_fn is not None:
-        display = coldef.format_fn(raw_value)
+    #    format_fn is called for all formats with for_csv context
+    if coldef.format_fn is not None:
+        display = coldef.format_fn(raw_value, for_csv=for_csv)
     else:
-        display = default_format(raw_value)
+        display = default_format(raw_value, for_csv=for_csv)
 
     # 4. Return
     if for_csv:
@@ -140,7 +141,9 @@ def default_format(value: Any, *, for_csv: bool = False) -> str:
     if value is None:
         return "" if for_csv else "-"
     if isinstance(value, bool):
-        return str(value) if for_csv else ("yes" if value else "no")
+        if for_csv:
+            return "true" if value else "false"
+        return "yes" if value else "no"
     if isinstance(value, datetime):
         return value.strftime("%Y-%m-%d %H:%M:%S")
     if isinstance(value, (list, dict)):
@@ -149,7 +152,7 @@ def default_format(value: Any, *, for_csv: bool = False) -> str:
 ```
 
 **Intentional behavior changes from current output:**
-- Bools in table/wide display as `yes`/`no` instead of `True`/`False` — more scannable for human-facing output. Scripts should use `--output json` or `csv` (which uses `True`/`False`).
+- Bools in table/wide display as `yes`/`no` instead of `True`/`False` — more scannable for human-facing output. Scripts should use `--output json` or `csv` (which uses `true`/`false`).
 - Missing values display as `-` (table/wide) or empty string (CSV).
 
 Missing value sentinel: `"-"` in table/wide, `""` in CSV.
@@ -183,13 +186,17 @@ Missing value sentinel: `"-"` in table/wide, `""` in CSV.
 Defined once in `cli.py` root callback:
 
 ```python
+from typing import Literal
+
+OutputFormat = Literal["table", "wide", "json", "csv"]
+
 output: Annotated[
-    str,
+    OutputFormat,
     typer.Option("--output", "-o", help="Output format: table, wide, json, csv"),
-] = "table"  # Use Literal["table","wide","json","csv"] for validation + help text
+] = "table"
 ```
 
-Uses `Literal` for compile-time validation and auto-generated help text. Stored in `ctx.obj` / `VergeContext.output_format`. Per-command `--output` options are removed.
+`Literal` provides compile-time validation and auto-generated help text. Stored in `ctx.obj` / `VergeContext.output_format`. Per-command `--output` options are removed.
 
 Commands that aren't tabular (configure, version) ignore the format or respect `json` where sensible.
 
