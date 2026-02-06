@@ -3,9 +3,22 @@
 from __future__ import annotations
 
 from verge_cli.columns import (
+    ADDRESS_COLUMNS,
+    ALIAS_COLUMNS,
     BOOL_STYLES,
+    DEVICE_COLUMNS,
+    DRIVE_COLUMNS,
     FLAG_STYLES,
+    HOST_COLUMNS,
+    LEASE_COLUMNS,
+    NETWORK_COLUMNS,
+    NIC_COLUMNS,
+    RECORD_COLUMNS,
+    RULE_COLUMNS,
     STATUS_STYLES,
+    VIEW_COLUMNS,
+    VM_COLUMNS,
+    ZONE_COLUMNS,
     ColumnDef,
     format_bool_yn,
     normalize_lower,
@@ -91,3 +104,46 @@ class TestColumnDef:
             raise AssertionError("Should raise FrozenInstanceError")
         except AttributeError:
             pass
+
+
+class TestColumnDefinitions:
+    def test_vm_columns_has_name_and_status(self) -> None:
+        keys = [c.key for c in VM_COLUMNS]
+        assert "name" in keys
+        assert "status" in keys
+        assert "needs_restart" in keys
+
+    def test_vm_columns_status_has_style(self) -> None:
+        status_col = next(c for c in VM_COLUMNS if c.key == "status")
+        assert status_col.style_map is not None
+        assert status_col.normalize_fn is not None
+
+    def test_network_columns_has_flags(self) -> None:
+        keys = [c.key for c in NETWORK_COLUMNS]
+        assert "needs_restart" in keys
+        assert "needs_rule_apply" in keys
+        assert "needs_dns_apply" in keys
+
+    def test_all_column_lists_are_non_empty(self) -> None:
+        for name, cols in [
+            ("VM", VM_COLUMNS),
+            ("NETWORK", NETWORK_COLUMNS),
+            ("RULE", RULE_COLUMNS),
+            ("ZONE", ZONE_COLUMNS),
+            ("RECORD", RECORD_COLUMNS),
+            ("VIEW", VIEW_COLUMNS),
+            ("HOST", HOST_COLUMNS),
+            ("ALIAS", ALIAS_COLUMNS),
+            ("LEASE", LEASE_COLUMNS),
+            ("ADDRESS", ADDRESS_COLUMNS),
+            ("DRIVE", DRIVE_COLUMNS),
+            ("NIC", NIC_COLUMNS),
+            ("DEVICE", DEVICE_COLUMNS),
+        ]:
+            assert len(cols) > 0, f"{name}_COLUMNS is empty"
+
+    def test_wide_only_columns_exist(self) -> None:
+        vm_wide = [c for c in VM_COLUMNS if c.wide_only]
+        net_wide = [c for c in NETWORK_COLUMNS if c.wide_only]
+        assert len(vm_wide) > 0
+        assert len(net_wide) > 0
