@@ -102,13 +102,20 @@ Global options (`--profile`, `--host`, `--output`, etc.) are parsed in `cli.py`'
 
 ```python
 # In a command:
-from verge_cli.cli import get_context
+from verge_cli.context import get_context
+from verge_cli.output import output_result
 
 @app.command()
 def list(ctx: typer.Context):
     vctx = get_context(ctx)  # Gets authenticated client
     vms = vctx.client.vms.list()
-    output_result(vctx, vms)
+    output_result(
+        vms,
+        output_format=vctx.output_format,
+        query=vctx.query,
+        quiet=vctx.quiet,
+        no_color=vctx.no_color,
+    )
 ```
 
 ### Name Resolution
@@ -189,7 +196,7 @@ Create `src/verge_cli/commands/<resource>.py`:
 ```python
 """<Resource> management commands."""
 import typer
-from verge_cli.cli import get_context
+from verge_cli.context import get_context
 from verge_cli.output import output_result
 from verge_cli.utils import resolve_resource_id
 
@@ -200,7 +207,13 @@ def list_resources(ctx: typer.Context):
     """List all <resources>."""
     vctx = get_context(ctx)
     items = vctx.client.<resources>.list()
-    output_result(vctx, items)
+    output_result(
+        items,
+        output_format=vctx.output_format,
+        query=vctx.query,
+        quiet=vctx.quiet,
+        no_color=vctx.no_color,
+    )
 
 @app.command()
 def get(ctx: typer.Context, identifier: str):
@@ -208,7 +221,13 @@ def get(ctx: typer.Context, identifier: str):
     vctx = get_context(ctx)
     key = resolve_resource_id(vctx.client.<resources>, identifier)
     item = vctx.client.<resources>.get(key)
-    output_result(vctx, item)
+    output_result(
+        item,
+        output_format=vctx.output_format,
+        query=vctx.query,
+        quiet=vctx.quiet,
+        no_color=vctx.no_color,
+    )
 ```
 
 ### Step 2: Register in cli.py
