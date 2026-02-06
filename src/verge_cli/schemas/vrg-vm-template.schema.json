@@ -1,0 +1,213 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://verge.io/schemas/vrg/v4.json",
+  "title": "VergeOS VM Template",
+  "description": "Declarative VM definition for the VergeOS CLI (.vrg.yaml)",
+  "type": "object",
+  "required": ["apiVersion", "kind"],
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "enum": ["v4"]
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["VirtualMachine", "VirtualMachineSet"]
+    },
+    "vars": {
+      "type": "object",
+      "description": "Variable definitions for ${VAR} substitution",
+      "additionalProperties": { "type": "string" }
+    },
+    "vm": { "$ref": "#/definitions/vmSpec" },
+    "defaults": { "$ref": "#/definitions/vmSpec" },
+    "vms": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/vmSpec" }
+    }
+  },
+  "oneOf": [
+    {
+      "properties": { "kind": { "const": "VirtualMachine" } },
+      "required": ["vm"]
+    },
+    {
+      "properties": { "kind": { "const": "VirtualMachineSet" } },
+      "required": ["vms"]
+    }
+  ],
+  "definitions": {
+    "sizeValue": {
+      "description": "Human-friendly size (e.g., '4GB') or integer",
+      "oneOf": [
+        { "type": "integer", "minimum": 1 },
+        { "type": "string", "pattern": "^\\d+(\\.\\d+)?\\s*(MB|GB|TB)$" }
+      ]
+    },
+    "nameOrId": {
+      "description": "Resource name (string) or numeric ID",
+      "oneOf": [
+        { "type": "integer" },
+        { "type": "string" }
+      ]
+    },
+    "vmSpec": {
+      "type": "object",
+      "required": ["name", "os_family"],
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "enabled": { "type": "boolean", "default": true },
+        "os_family": {
+          "type": "string",
+          "enum": ["linux", "windows", "freebsd", "other"]
+        },
+        "os_description": { "type": "string" },
+        "cpu_cores": { "type": "integer", "minimum": 1, "default": 1 },
+        "cpu_type": { "type": "string", "default": "auto" },
+        "ram": { "$ref": "#/definitions/sizeValue" },
+        "machine_type": {
+          "type": "string",
+          "enum": ["q35", "pc"],
+          "default": "q35"
+        },
+        "boot_order": {
+          "type": "string",
+          "enum": ["d", "cd", "cdn", "c", "dc", "n", "nd", "do"],
+          "default": "cd"
+        },
+        "allow_hotplug": { "type": "boolean", "default": true },
+        "uefi": { "type": "boolean", "default": false },
+        "secure_boot": { "type": "boolean", "default": false },
+        "console": {
+          "type": "string",
+          "enum": ["vnc", "spice"],
+          "default": "vnc"
+        },
+        "video": {
+          "type": "string",
+          "enum": ["std", "cirrus", "vmware", "qxl", "virtio", "none"],
+          "default": "std"
+        },
+        "guest_agent": { "type": "boolean", "default": false },
+        "rtc_base": {
+          "type": "string",
+          "enum": ["utc", "localtime"],
+          "default": "utc"
+        },
+        "cluster": { "$ref": "#/definitions/nameOrId" },
+        "failover_cluster": { "$ref": "#/definitions/nameOrId" },
+        "preferred_node": { "$ref": "#/definitions/nameOrId" },
+        "ha_group": { "type": "string" },
+        "snapshot_profile": { "$ref": "#/definitions/nameOrId" },
+        "power_on_after_create": { "type": "boolean", "default": false },
+        "advanced_options": { "type": "string" },
+        "cloudinit": { "$ref": "#/definitions/cloudinitSpec" },
+        "drives": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/driveSpec" }
+        },
+        "nics": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/nicSpec" }
+        },
+        "devices": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/deviceSpec" }
+        }
+      }
+    },
+    "cloudinitSpec": {
+      "type": "object",
+      "properties": {
+        "datasource": {
+          "type": "string",
+          "enum": ["nocloud", "config_drive_v2"]
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "content"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "enum": ["user-data", "meta-data", "vendor-data", "network-data"]
+              },
+              "content": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "driveSpec": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "media": {
+          "type": "string",
+          "enum": ["disk", "cdrom", "import", "clone", "efidisk"],
+          "default": "disk"
+        },
+        "interface": {
+          "type": "string",
+          "enum": ["virtio-scsi", "virtio", "ide", "ahci", "lsi53c895a", "nvme"],
+          "default": "virtio-scsi"
+        },
+        "size": { "$ref": "#/definitions/sizeValue" },
+        "preferred_tier": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5,
+          "default": 3
+        },
+        "media_source": { "$ref": "#/definitions/nameOrId" },
+        "enabled": { "type": "boolean", "default": true },
+        "order": { "type": "integer" },
+        "asset": { "type": "string" }
+      }
+    },
+    "nicSpec": {
+      "type": "object",
+      "required": ["network"],
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "interface": {
+          "type": "string",
+          "enum": ["virtio", "e1000", "e1000e", "rtl8139", "pcnet", "igb", "vmxnet3"],
+          "default": "virtio"
+        },
+        "enabled": { "type": "boolean", "default": true },
+        "network": { "$ref": "#/definitions/nameOrId" },
+        "mac": {
+          "type": "string",
+          "pattern": "^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$"
+        },
+        "asset": { "type": "string" }
+      }
+    },
+    "deviceSpec": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "name": { "type": "string" },
+        "type": {
+          "type": "string",
+          "enum": ["tpm"]
+        },
+        "model": {
+          "type": "string",
+          "enum": ["tis", "crb"],
+          "default": "crb"
+        },
+        "version": {
+          "type": "string",
+          "enum": ["1.2", "2.0"],
+          "default": "2.0"
+        }
+      }
+    }
+  }
+}
