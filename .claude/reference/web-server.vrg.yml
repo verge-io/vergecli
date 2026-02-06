@@ -1,0 +1,67 @@
+apiVersion: v4
+kind: VirtualMachine
+
+vm:
+  name: web-server-01
+  description: "Production Nginx web server"
+  enabled: true
+  os_family: linux
+  os_description: "Ubuntu 24.04 LTS"
+
+  # Compute
+  cpu_cores: 4
+  ram: 8GB
+  machine_type: q35
+  boot_order: cd
+  uefi: true
+
+  # Display
+  console: vnc
+  video: virtio
+  guest_agent: true
+  rtc_base: utc
+
+  # Scheduling
+  cluster: 1
+  ha_group: "web-servers"
+
+  # Cloud-Init
+  cloudinit:
+    datasource: nocloud
+    files:
+      - name: user-data
+        content: |
+          #cloud-config
+          hostname: web-server-01
+          manage_etc_hosts: true
+          users:
+            - name: deploy
+              groups: sudo
+              shell: /bin/bash
+              sudo: ALL=(ALL) NOPASSWD:ALL
+              ssh_authorized_keys:
+                - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI_YOUR_KEY_HERE
+          packages:
+            - nginx
+            - certbot
+            - python3-certbot-nginx
+            - qemu-guest-agent
+          runcmd:
+            - systemctl enable --now nginx
+            - systemctl enable --now qemu-guest-agent
+      - name: meta-data
+        content: |
+          instance-id: web-server-01
+          local-hostname: web-server-01
+
+  drives:
+    - name: "OS Disk"
+      media: disk
+      interface: virtio-scsi
+      size: 50GB
+      preferred_tier: 3
+
+  nics:
+    - name: "External Network"
+      interface: virtio
+      network: 3
