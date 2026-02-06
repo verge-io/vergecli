@@ -10,6 +10,9 @@ from typing import Any
 from rich.box import SIMPLE
 from rich.console import Console
 from rich.table import Table
+from rich.text import Text
+
+from verge_cli.columns import ColumnDef, default_format
 
 
 def is_tty() -> bool:
@@ -130,6 +133,53 @@ def format_value(value: Any) -> str:
     if isinstance(value, (list, dict)):
         return json.dumps(value, default=json_serializer)
     return str(value)
+
+
+def render_cell(
+    raw_value: Any,
+    row: dict[str, Any],
+    coldef: ColumnDef,
+    *,
+    for_csv: bool = False,
+) -> str | Text:
+    """Render a single table cell using column definition.
+
+    This is the core render pipeline. format_fn must return str, never Text.
+    render_cell is the only place that constructs Text objects.
+
+    Args:
+        raw_value: The raw value from the data dict.
+        row: The full row dict (for style_fn context).
+        coldef: Column definition with style/format hints.
+        for_csv: If True, return plain str with no styling.
+
+    Returns:
+        Text object for table/wide, plain str for CSV.
+    """
+    # 1. Normalize for style lookup
+    normalized = coldef.normalize_fn(raw_value) if coldef.normalize_fn else raw_value
+
+    # 2. Resolve style (deterministic order, explicit None checks)
+    style: str | None = None
+    if coldef.style_map is not None:
+        style = coldef.style_map.get(normalized)
+    if style is None and coldef.style_fn is not None:
+        style = coldef.style_fn(raw_value, row)
+    if style is None:
+        style = coldef.default_style
+
+    # 3. Format display value
+    if coldef.format_fn is not None:
+        display = coldef.format_fn(raw_value, for_csv=for_csv)
+    else:
+        display = default_format(raw_value, for_csv=for_csv)
+
+    # 4. Return
+    if for_csv:
+        return display
+    if style:
+        return Text(display, style=style)
+    return Text(display)
 
 
 def extract_field(data: Any, query: str) -> Any:
