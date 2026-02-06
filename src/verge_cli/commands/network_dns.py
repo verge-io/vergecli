@@ -59,12 +59,12 @@ VIEW_LIST_COLUMNS = ["id", "name", "recursion", "match_clients"]
 # =============================================================================
 
 
-def _resolve_zone_id(network: Any, identifier: str) -> int:
-    """Resolve a zone name or ID to a key.
+def _resolve_zone_id(view: Any, identifier: str) -> int:
+    """Resolve a zone domain or ID to a key.
 
     Args:
-        network: Network object with dns_zones collection.
-        identifier: Zone name or numeric key.
+        view: View object with zones collection.
+        identifier: Zone domain or numeric key.
 
     Returns:
         The zone key.
@@ -77,7 +77,7 @@ def _resolve_zone_id(network: Any, identifier: str) -> int:
         return int(identifier)
 
     # Try to find by domain name
-    zones = network.dns_zones.list()
+    zones = view.zones.list()
     for zone in zones:
         domain = zone.get("domain") or getattr(zone, "domain", "")
         key = zone.get("$key") or getattr(zone, "key", None)
@@ -100,8 +100,11 @@ def _zone_to_dict(zone: Any) -> dict[str, Any]:
         "id": zone.get("$key") or getattr(zone, "key", None),
         "domain": zone.get("domain", ""),
         "type": zone.get("type", "master"),
-        "view_name": zone.get("view_name", ""),
+        "view_name": zone.get("view_name") or getattr(zone, "view_name", None),
         "serial": zone.get("serial_number", 0),
+        "nameserver": zone.get("nameserver", ""),
+        "email": zone.get("email", ""),
+        "default_ttl": zone.get("default_ttl", ""),
     }
 
 
@@ -242,12 +245,13 @@ def _view_to_dict(view: Any) -> dict[str, Any]:
 def zone_list(
     ctx: typer.Context,
     network: Annotated[str, typer.Argument(help="Network name or key")],
+    view: Annotated[str, typer.Argument(help="View name or key")],
     output: Annotated[str | None, typer.Option("--output", "-o", help="Output format")] = None,
     query: Annotated[str | None, typer.Option("--query", help="Extract field")] = None,
 ) -> None:
-    """List DNS zones for a network.
+    """List DNS zones for a view.
 
-    Shows all BIND DNS zones configured on the network.
+    Shows all BIND DNS zones configured in the view.
     Changes require apply-dns to take effect.
     """
     vctx = get_context(ctx)
@@ -255,7 +259,10 @@ def zone_list(
     net_key = resolve_resource_id(vctx.client.networks, network, "network")
     net_obj = vctx.client.networks.get(net_key)
 
-    zones = net_obj.dns_zones.list()
+    view_key = _resolve_view_id(net_obj, view)
+    view_obj = net_obj.dns_views.get(view_key)
+
+    zones = view_obj.zones.list()
     data = [_zone_to_dict(zone) for zone in zones]
 
     output_result(
@@ -273,7 +280,8 @@ def zone_list(
 def zone_get(
     ctx: typer.Context,
     network: Annotated[str, typer.Argument(help="Network name or key")],
-    zone: Annotated[str, typer.Argument(help="Zone name or key")],
+    view: Annotated[str, typer.Argument(help="View name or key")],
+    zone: Annotated[str, typer.Argument(help="Zone domain or key")],
     output: Annotated[str | None, typer.Option("--output", "-o", help="Output format")] = None,
     query: Annotated[str | None, typer.Option("--query", help="Extract field")] = None,
 ) -> None:
@@ -283,8 +291,11 @@ def zone_get(
     net_key = resolve_resource_id(vctx.client.networks, network, "network")
     net_obj = vctx.client.networks.get(net_key)
 
-    zone_key = _resolve_zone_id(net_obj, zone)
-    zone_obj = net_obj.dns_zones.get(zone_key)
+    view_key = _resolve_view_id(net_obj, view)
+    view_obj = net_obj.dns_views.get(view_key)
+
+    zone_key = _resolve_zone_id(view_obj, zone)
+    zone_obj = view_obj.zones.get(zone_key)
 
     output_result(
         _zone_to_dict(zone_obj),
@@ -300,6 +311,7 @@ def zone_get(
 def zone_create(
     ctx: typer.Context,
     network: Annotated[str, typer.Argument(help="Network name or key")],
+    view: Annotated[str, typer.Argument(help="View name or key")],
     domain: Annotated[str, typer.Option("--domain", "-d", help="Zone domain name")],
     zone_type: Annotated[
         str, typer.Option("--type", "-t", help="Zone type (master/slave)")
@@ -307,7 +319,7 @@ def zone_create(
 ) -> None:
     """Create a new DNS zone.
 
-    Creates a BIND DNS zone on the network. Zone commands work on
+    Creates a BIND DNS zone in the view. Zone commands work on
     networks with BIND enabled. Changes require apply-dns to take effect.
     """
     vctx = get_context(ctx)
@@ -315,12 +327,15 @@ def zone_create(
     net_key = resolve_resource_id(vctx.client.networks, network, "network")
     net_obj = vctx.client.networks.get(net_key)
 
+    view_key = _resolve_view_id(net_obj, view)
+    view_obj = net_obj.dns_views.get(view_key)
+
     create_kwargs: dict[str, Any] = {
         "domain": domain,
         "type": zone_type,
     }
 
-    zone_obj = net_obj.dns_zones.create(**create_kwargs)
+    zone_obj = view_obj.zones.create(**create_kwargs)
 
     zone_domain = zone_obj.get("domain") or getattr(zone_obj, "domain", "")
     zone_key_val = zone_obj.get("$key") or zone_obj.key
@@ -340,6 +355,7 @@ def zone_create(
 def zone_update(
     ctx: typer.Context,
     network: Annotated[str, typer.Argument(help="Network name or key")],
+    view: Annotated[str, typer.Argument(help="View name or key")],
     zone: Annotated[str, typer.Argument(help="Zone domain or key")],
     domain: Annotated[str | None, typer.Option("--domain", "-d", help="New domain name")] = None,
     zone_type: Annotated[
@@ -355,7 +371,10 @@ def zone_update(
     net_key = resolve_resource_id(vctx.client.networks, network, "network")
     net_obj = vctx.client.networks.get(net_key)
 
-    zone_key = _resolve_zone_id(net_obj, zone)
+    view_key = _resolve_view_id(net_obj, view)
+    view_obj = net_obj.dns_views.get(view_key)
+
+    zone_key = _resolve_zone_id(view_obj, zone)
 
     # Build update kwargs (only non-None values)
     updates: dict[str, Any] = {}
@@ -368,7 +387,7 @@ def zone_update(
         typer.echo("No updates specified.", err=True)
         raise typer.Exit(2)
 
-    zone_obj = net_obj.dns_zones.update(zone_key, **updates)
+    zone_obj = view_obj.zones.update(zone_key, **updates)
 
     zone_domain = zone_obj.get("domain") or getattr(zone_obj, "domain", "")
     output_success(f"Updated DNS zone '{zone_domain}'", quiet=vctx.quiet)
@@ -387,7 +406,8 @@ def zone_update(
 def zone_delete(
     ctx: typer.Context,
     network: Annotated[str, typer.Argument(help="Network name or key")],
-    zone: Annotated[str, typer.Argument(help="Zone name or key")],
+    view: Annotated[str, typer.Argument(help="View name or key")],
+    zone: Annotated[str, typer.Argument(help="Zone domain or key")],
     yes: Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation")] = False,
 ) -> None:
     """Delete a DNS zone.
@@ -400,8 +420,11 @@ def zone_delete(
     net_key = resolve_resource_id(vctx.client.networks, network, "network")
     net_obj = vctx.client.networks.get(net_key)
 
-    zone_key = _resolve_zone_id(net_obj, zone)
-    zone_obj = net_obj.dns_zones.get(zone_key)
+    view_key = _resolve_view_id(net_obj, view)
+    view_obj = net_obj.dns_views.get(view_key)
+
+    zone_key = _resolve_zone_id(view_obj, zone)
+    zone_obj = view_obj.zones.get(zone_key)
 
     zone_domain = zone_obj.get("domain") or str(zone_key)
 
@@ -409,7 +432,7 @@ def zone_delete(
         typer.echo("Cancelled.")
         raise typer.Exit(0)
 
-    net_obj.dns_zones.delete(zone_key)
+    view_obj.zones.delete(zone_key)
     output_success(f"Deleted DNS zone '{zone_domain}'", quiet=vctx.quiet)
 
 
