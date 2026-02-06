@@ -1,9 +1,9 @@
 # Verge CLI
 
-Command-line interface for VergeOS.
+Command-line interface for [VergeOS](https://www.verge.io) — manage virtual machines, networks, DNS, firewall rules, and more from your terminal.
 
 [![PyPI version](https://img.shields.io/pypi/v/verge-cli)](https://pypi.org/project/verge-cli/)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Installation
@@ -18,21 +18,55 @@ Or with [uv](https://github.com/astral-sh/uv):
 uv tool install verge-cli
 ```
 
+Verify the installation:
+
+```bash
+vrg --version
+```
+
 ## Quick Start
 
 ```bash
-# Configure credentials interactively
+# 1. Configure credentials
 vrg configure setup
 
-# List VMs
-vrg vm list
-
-# Get system info
+# 2. Verify connection
 vrg system info
 
-# Start a VM and wait for it to be running
-vrg vm start web-server --wait
+# 3. List your VMs
+vrg vm list
 ```
+
+## Features
+
+- **VM Lifecycle** — create, start, stop, restart, reset, update, and delete virtual machines
+- **Network Management** — create and manage internal/external networks with DHCP
+- **Firewall Rules** — create, enable, disable, and delete network firewall rules
+- **DNS** — manage DNS views, zones, and records (A, CNAME, MX, TXT, etc.)
+- **DHCP Host Overrides** — assign static IPs via hostname-based overrides
+- **IP Aliases** — add secondary IP addresses to networks
+- **Network Diagnostics** — ping, traceroute, DNS lookup from within networks
+- **Configuration Profiles** — multiple environments with named profiles
+- **Multiple Auth Methods** — bearer token, API key, or username/password
+- **Flexible Output** — table or JSON format with `--query` field extraction
+
+## Command Overview
+
+| Command | Subcommands |
+|---------|-------------|
+| `vrg vm` | `list`, `get`, `create`, `update`, `delete`, `start`, `stop`, `restart`, `reset`, `status` |
+| `vrg network` | `list`, `get`, `create`, `update`, `delete`, `start`, `stop`, `restart`, `status`, `apply-rules`, `apply-dns` |
+| `vrg network rule` | `list`, `get`, `create`, `update`, `delete`, `enable`, `disable` |
+| `vrg network dns zone` | `list`, `get`, `create`, `update`, `delete` |
+| `vrg network dns record` | `list`, `get`, `create`, `update`, `delete` |
+| `vrg network dns view` | `list`, `get`, `create`, `update`, `delete` |
+| `vrg network host` | `list`, `get`, `create`, `update`, `delete` |
+| `vrg network alias` | `list`, `get`, `create`, `update`, `delete` |
+| `vrg network diag` | `ping`, `traceroute`, `dns`, `resolve` |
+| `vrg system` | `info`, `version` |
+| `vrg configure` | `setup`, `show`, `list`, `remove` |
+
+Run `vrg <command> --help` for detailed usage of any command.
 
 ## Configuration
 
@@ -59,6 +93,14 @@ password = "secret123"
 verify_ssl = false
 ```
 
+### Authentication Methods
+
+The CLI supports three authentication methods (in priority order):
+
+1. **Bearer Token** — `--token` or `VERGE_TOKEN`
+2. **API Key** — `--api-key` or `VERGE_API_KEY`
+3. **Basic Auth** — `--username`/`--password` or `VERGE_USERNAME`/`VERGE_PASSWORD`
+
 ### Environment Variables
 
 All settings can be overridden with environment variables:
@@ -74,83 +116,6 @@ All settings can be overridden with environment variables:
 | `VERGE_VERIFY_SSL` | Verify SSL certificates (true/false) |
 | `VERGE_TIMEOUT` | Request timeout in seconds |
 | `VERGE_OUTPUT` | Default output format (table/json) |
-
-### Authentication Methods
-
-The CLI supports three authentication methods (in priority order):
-
-1. **Bearer Token** - `--token` or `VERGE_TOKEN`
-2. **API Key** - `--api-key` or `VERGE_API_KEY`
-3. **Basic Auth** - `--username`/`--password` or `VERGE_USERNAME`/`VERGE_PASSWORD`
-
-## Commands
-
-### VM Management
-
-```bash
-# List all VMs
-vrg vm list
-
-# List running VMs only
-vrg vm list --status running
-
-# Get VM details
-vrg vm get web-server
-
-# Create a VM
-vrg vm create --name my-vm --ram 2048 --cpu 2
-
-# Update a VM
-vrg vm update my-vm --ram 4096
-
-# Start/stop/restart VMs
-vrg vm start my-vm --wait
-vrg vm stop my-vm --wait
-vrg vm restart my-vm
-
-# Delete a VM (with confirmation)
-vrg vm delete my-vm
-
-# Force delete a running VM
-vrg vm delete my-vm --force --yes
-```
-
-### Network Management
-
-```bash
-# List networks
-vrg network list
-
-# Create a network with DHCP
-vrg network create --name dev-net --cidr 10.0.0.0/24 --ip 10.0.0.1 --dhcp
-
-# Start/stop networks
-vrg network start dev-net
-vrg network stop dev-net
-```
-
-### System Information
-
-```bash
-# Get system info and statistics
-vrg system info
-
-# Get VergeOS version
-vrg system version
-```
-
-### Configuration Management
-
-```bash
-# Interactive configuration setup
-vrg configure setup
-
-# Show current configuration
-vrg configure show
-
-# List all profiles
-vrg configure list
-```
 
 ## Output Formats
 
@@ -231,6 +196,12 @@ uv run mypy src/verge_cli
 uv build
 ```
 
+## Documentation
+
+- [Cookbook](docs/cookbook.md) — Task-oriented recipes for common workflows
+- [Changelog](CHANGELOG.md) — Version history
+- [Known Issues](docs/KNOWN_ISSUES.md) — Current limitations and workarounds
+
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+MIT License — see [LICENSE](LICENSE) for details.
