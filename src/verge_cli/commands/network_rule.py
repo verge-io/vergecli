@@ -276,6 +276,9 @@ def rule_update(
     stats: Annotated[
         bool | None, typer.Option("--stats/--no-stats", help="Enable/disable statistics")
     ] = None,
+    description: Annotated[
+        str | None, typer.Option("--description", help="Rule description")
+    ] = None,
 ) -> None:
     """Update a firewall rule."""
     vctx = get_context(ctx)
@@ -315,6 +318,8 @@ def rule_update(
         updates["log"] = log
     if stats is not None:
         updates["statistics"] = stats
+    if description is not None:
+        updates["description"] = description
 
     if not updates:
         typer.echo("No updates specified.", err=True)
