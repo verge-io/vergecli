@@ -1,6 +1,5 @@
 """Tests for network create command."""
 
-from unittest.mock import MagicMock
 
 from verge_cli.cli import app
 
