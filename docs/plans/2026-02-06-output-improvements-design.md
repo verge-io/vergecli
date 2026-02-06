@@ -142,6 +142,10 @@ def default_format(value: Any, *, for_csv: bool = False) -> str:
     return str(value)
 ```
 
+**Intentional behavior changes from current output:**
+- Bools in table/wide display as `yes`/`no` instead of `True`/`False` — more scannable for human-facing output. Scripts should use `--output json` or `csv` (which uses `True`/`False`).
+- Missing values display as `-` (table/wide) or empty string (CSV).
+
 Missing value sentinel: `"-"` in table/wide, `""` in CSV.
 
 ### Output Formats
@@ -174,30 +178,18 @@ Defined once in `cli.py` root callback:
 output: Annotated[
     str,
     typer.Option("--output", "-o", help="Output format: table, wide, json, csv"),
-] = "table"
+] = "table"  # Use Literal["table","wide","json","csv"] for validation + help text
 ```
 
-Validated at the app level. Stored in `ctx.obj` / `VergeContext.output_format`. Per-command `--output` options are removed.
+Uses `Literal` for compile-time validation and auto-generated help text. Stored in `ctx.obj` / `VergeContext.output_format`. Per-command `--output` options are removed.
 
 Commands that aren't tabular (configure, version) ignore the format or respect `json` where sensible.
 
 ### Theme Hook (Future-Proofing)
 
-Structure `columns.py` so style maps are retrieved via function:
+Style maps are module-level constants. Column definitions reference them directly.
 
-```python
-def get_status_styles() -> Mapping[Any, str]:
-    """Return status style map. Future: respect VERGE_THEME env var."""
-    return STATUS_STYLES
-
-def get_flag_styles() -> Mapping[Any, str]:
-    return FLAG_STYLES
-
-def get_bool_styles() -> Mapping[Any, str]:
-    return BOOL_STYLES
-```
-
-Column definitions reference these functions. Out of scope to implement `VERGE_THEME` now, but the structure makes it painless later.
+To support `VERGE_THEME` later, wrap lookups in a function at that time — the structure (constants + ColumnDef referencing them) makes this a small refactor. Not implemented now.
 
 ### Example Column Definitions
 
@@ -205,12 +197,12 @@ Column definitions reference these functions. Out of scope to implement `VERGE_T
 ```python
 VM_COLUMNS = [
     ColumnDef("name"),
-    ColumnDef("status", style_map=get_status_styles(), normalize_fn=normalize_lower),
+    ColumnDef("status", style_map=STATUS_STYLES, normalize_fn=normalize_lower),
     ColumnDef("cpu_cores", header="CPU"),
     ColumnDef("ram", header="RAM (MB)"),
     ColumnDef("cluster_name", header="Cluster"),
     ColumnDef("node_name", header="Node"),
-    ColumnDef("needs_restart", header="Restart", style_map=get_flag_styles(), format_fn=format_bool_yn),
+    ColumnDef("needs_restart", header="Restart", style_map=FLAG_STYLES, format_fn=format_bool_yn),
     # wide-only
     ColumnDef("description", wide_only=True),
     ColumnDef("os_family", header="OS", wide_only=True),
@@ -225,11 +217,11 @@ NETWORK_COLUMNS = [
     ColumnDef("type"),
     ColumnDef("network", header="CIDR"),
     ColumnDef("ipaddress", header="IP Address"),
-    ColumnDef("status", style_map=get_status_styles(), normalize_fn=normalize_lower),
-    ColumnDef("running", style_map=get_bool_styles(), format_fn=format_bool_yn),
-    ColumnDef("needs_restart", header="Restart", style_map=get_flag_styles(), format_fn=format_bool_yn),
-    ColumnDef("needs_rule_apply", header="Rules", style_map=get_flag_styles(), format_fn=format_bool_yn),
-    ColumnDef("needs_dns_apply", header="DNS", style_map=get_flag_styles(), format_fn=format_bool_yn),
+    ColumnDef("status", style_map=STATUS_STYLES, normalize_fn=normalize_lower),
+    ColumnDef("running", style_map=BOOL_STYLES, format_fn=format_bool_yn),
+    ColumnDef("needs_restart", header="Restart", style_map=FLAG_STYLES, format_fn=format_bool_yn),
+    ColumnDef("needs_rule_apply", header="Rules", style_map=FLAG_STYLES, format_fn=format_bool_yn),
+    ColumnDef("needs_dns_apply", header="DNS", style_map=FLAG_STYLES, format_fn=format_bool_yn),
     # wide-only
     ColumnDef("description", wide_only=True),
     ColumnDef("gateway", wide_only=True),
@@ -258,7 +250,7 @@ After: just the raw bool:
 
 | File | Change |
 |------|--------|
-| `columns.py` (NEW) | ColumnDef, style maps via getter functions, shared helpers, all resource column defs |
+| `columns.py` (NEW) | ColumnDef, style map constants, shared helpers, all resource column defs |
 | `output.py` | `render_cell()`, `default_format()`, updated `format_table()` for ColumnDef + Text, new `format_csv()`, updated `output_result()` |
 | `cli.py` | Global `--output` as validated string, remove per-command output options |
 | `context.py` | Ensure `output_format` stores validated string |
