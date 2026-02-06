@@ -59,7 +59,7 @@ def network_list(
     ] = None,
     filter: Annotated[
         str | None,
-        typer.Option("--filter", help="OData filter expression"),
+        typer.Option("--filter", help="OData filter expression (e.g., \"name eq 'foo'\")"),
     ] = None,
     output: Annotated[
         str | None,
@@ -79,7 +79,7 @@ def network_list(
         type_filter = f"type eq '{network_type}'"
         odata_filter = f"({odata_filter}) and {type_filter}" if odata_filter else type_filter
     if status:
-        status_filter = f"machine#status#status eq '{status}'"
+        status_filter = f"status eq '{status}'"
         odata_filter = f"({odata_filter}) and {status_filter}" if odata_filter else status_filter
 
     networks = vctx.client.networks.list(filter=odata_filter)
