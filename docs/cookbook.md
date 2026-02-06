@@ -53,51 +53,52 @@ Displays the active profile and its settings (credentials are masked).
 
 ---
 
-## Recipe 2: Managing Virtual Machines
+## Recipe 2: Creating a VM with Drive, NIC, and TPM
 
-**Goal:** Create, configure, and manage the lifecycle of a virtual machine.
+**Goal:** Create a VM, attach a disk drive, connect it to the External network, and add a TPM 2.0 device.
 
 ### Steps
 
-1. Create a VM with 2 GB RAM and 2 vCPUs:
+1. Create a VM with 4 GB RAM and 2 vCPUs:
 
 ```bash
-vrg vm create --name web-server --ram 2048 --cpu 2
+vrg vm create --name web-server --ram 4096 --cpu 2
 ```
 
-2. Inspect the VM to confirm its configuration:
+2. Add a 50 GB disk drive:
 
 ```bash
-vrg vm get web-server
+vrg vm drive create web-server --size 50GB --name os-disk
 ```
 
-3. Power on the VM and wait for it to reach running state:
+3. Attach a NIC to the External network:
+
+```bash
+vrg vm nic create web-server --network External
+```
+
+4. Add a TPM 2.0 device:
+
+```bash
+vrg vm device create web-server --model crb --version 2
+```
+
+5. Start the VM:
 
 ```bash
 vrg vm start web-server --wait
 ```
 
-4. List all running VMs to confirm it is up:
+### Verify
 
 ```bash
-vrg vm list --status running
-```
-
-5. Scale up memory while the VM is running (if supported) or after stopping it:
-
-```bash
-vrg vm update web-server --ram 4096
-```
-
-6. Gracefully stop the VM:
-
-```bash
-vrg vm stop web-server --wait
+vrg vm get web-server
+vrg vm drive list web-server
+vrg vm nic list web-server
+vrg vm device list web-server
 ```
 
 ### Cleanup
-
-Delete the VM when it is no longer needed. The `--force` flag powers it off first, and `--yes` skips the confirmation prompt:
 
 ```bash
 vrg vm delete web-server --force --yes
@@ -208,3 +209,178 @@ vrg network dns record list dev-net 1 1
 ```
 
 You should see the `www` A record and `mail` CNAME record in the output.
+
+---
+
+## Recipe 5: Creating VMs from a Template
+
+**Goal:** Define a VM as a `.vrg.yaml` file and provision it with a single command.
+
+### Template File
+
+Save this as `web-server.vrg.yaml`:
+
+```yaml
+apiVersion: v4
+kind: VirtualMachine
+
+vm:
+  name: web-server-01
+  os_family: linux
+  cpu_cores: 4
+  ram: 8GB
+  machine_type: q35
+  uefi: true
+  guest_agent: true
+
+  cloudinit:
+    datasource: nocloud
+    files:
+      - name: user-data
+        content: |
+          #cloud-config
+          hostname: web-server-01
+          packages:
+            - nginx
+            - qemu-guest-agent
+          runcmd:
+            - systemctl enable --now nginx
+
+  drives:
+    - name: "OS Disk"
+      media: disk
+      interface: virtio-scsi
+      size: 50GB
+
+  nics:
+    - name: "Primary"
+      interface: virtio
+      network: External
+
+  devices:
+    - type: tpm
+      model: crb
+      version: "2.0"
+```
+
+### Steps
+
+1. Validate the template before creating:
+
+```bash
+vrg vm validate -f web-server.vrg.yaml
+```
+
+2. Preview what will be created with `--dry-run`:
+
+```bash
+vrg vm create -f web-server.vrg.yaml --dry-run
+```
+
+3. Create the VM:
+
+```bash
+vrg vm create -f web-server.vrg.yaml
+```
+
+4. Override values at create time with `--set`:
+
+```bash
+vrg vm create -f web-server.vrg.yaml \
+  --set vm.name=web-server-02 --set vm.ram=16GB
+```
+
+### Batch Provisioning
+
+Use `VirtualMachineSet` to create multiple VMs from shared defaults:
+
+```yaml
+apiVersion: v4
+kind: VirtualMachineSet
+
+defaults:
+  os_family: linux
+  cpu_cores: 2
+  ram: 4GB
+  drives:
+    - name: "OS Disk"
+      media: disk
+      interface: virtio-scsi
+      size: 30GB
+  nics:
+    - name: "Primary"
+      interface: virtio
+      network: Internal
+
+vms:
+  - name: app-01
+    cpu_cores: 4
+    ram: 8GB
+  - name: app-02
+    cpu_cores: 4
+    ram: 8GB
+  - name: monitoring-01
+    # Inherits all defaults
+```
+
+### Variables
+
+Templates support `${VAR}` substitution from environment variables or a `vars:` block:
+
+```yaml
+apiVersion: v4
+kind: VirtualMachine
+vars:
+  env: staging
+vm:
+  name: "${env}-web-01"
+  ram: "${VM_RAM:-4GB}"
+```
+
+```bash
+VM_RAM=16GB vrg vm create -f template.vrg.yaml
+```
+
+---
+
+## Recipe 6: Using Output Formats
+
+**Goal:** Get data in different formats for scripting, analysis, or wider views.
+
+### Table (default)
+
+```bash
+vrg vm list
+```
+
+### Wide
+
+Show all columns, including those hidden in the default table view:
+
+```bash
+vrg -o wide vm list
+```
+
+### JSON
+
+Pipe to `jq` for further processing:
+
+```bash
+vrg -o json vm list | jq '.[].name'
+```
+
+### CSV
+
+Export to a file for spreadsheet analysis:
+
+```bash
+vrg -o csv vm list > vms.csv
+```
+
+### Field Extraction
+
+Pull a single field with `--query`:
+
+```bash
+vrg --query status vm get web-server
+```
