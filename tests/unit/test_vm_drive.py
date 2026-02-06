@@ -1,7 +1,5 @@
 """Tests for VM drive sub-resource commands."""
 
-from unittest.mock import MagicMock
-
 from verge_cli.cli import app
 
 

@@ -51,7 +51,7 @@ def _resolve_drive(vm_obj: Any, identifier: str) -> int:
     drives = vm_obj.drives.list()
     matches = [d for d in drives if d.name == identifier]
     if len(matches) == 1:
-        return matches[0].key
+        return int(matches[0].key)
     if len(matches) > 1:
         typer.echo(f"Error: Multiple drives match '{identifier}'. Use a numeric key.", err=True)
         raise typer.Exit(7)
