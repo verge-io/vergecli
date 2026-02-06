@@ -111,3 +111,156 @@ def default_format(value: Any, *, for_csv: bool = False) -> str:
     if isinstance(value, (list, dict)):
         return json.dumps(value, default=json_serializer)
     return str(value)
+
+
+# ---------------------------------------------------------------------------
+# Resource column definitions
+# ---------------------------------------------------------------------------
+
+VM_COLUMNS = [
+    ColumnDef("name"),
+    ColumnDef("status", style_map=STATUS_STYLES, normalize_fn=normalize_lower),
+    ColumnDef("cpu_cores", header="CPU"),
+    ColumnDef("ram", header="RAM (MB)"),
+    ColumnDef("cluster_name", header="Cluster"),
+    ColumnDef("node_name", header="Node"),
+    ColumnDef(
+        "needs_restart",
+        header="Restart",
+        style_map=FLAG_STYLES,
+        format_fn=format_bool_yn,
+    ),
+    # wide-only
+    ColumnDef("description", wide_only=True),
+    ColumnDef("os_family", header="OS", wide_only=True),
+    ColumnDef("key", wide_only=True),
+]
+
+NETWORK_COLUMNS = [
+    ColumnDef("name"),
+    ColumnDef("type"),
+    ColumnDef("network", header="CIDR"),
+    ColumnDef("ipaddress", header="IP Address"),
+    ColumnDef("status", style_map=STATUS_STYLES, normalize_fn=normalize_lower),
+    ColumnDef("running", style_map=BOOL_STYLES, format_fn=format_bool_yn),
+    ColumnDef(
+        "needs_restart",
+        header="Restart",
+        style_map=FLAG_STYLES,
+        format_fn=format_bool_yn,
+    ),
+    ColumnDef(
+        "needs_rule_apply",
+        header="Rules",
+        style_map=FLAG_STYLES,
+        format_fn=format_bool_yn,
+    ),
+    ColumnDef(
+        "needs_dns_apply",
+        header="DNS",
+        style_map=FLAG_STYLES,
+        format_fn=format_bool_yn,
+    ),
+    # wide-only
+    ColumnDef("description", wide_only=True),
+    ColumnDef("gateway", wide_only=True),
+    ColumnDef("mtu", wide_only=True),
+    ColumnDef("key", wide_only=True),
+]
+
+RULE_COLUMNS = [
+    ColumnDef("name"),
+    ColumnDef("direction"),
+    ColumnDef("action"),
+    ColumnDef("protocol"),
+    ColumnDef("source_ip", header="Source"),
+    ColumnDef("dest_ports", header="Dest Ports"),
+    ColumnDef("enabled", style_map=BOOL_STYLES, format_fn=format_bool_yn),
+    ColumnDef("order"),
+    # wide-only
+    ColumnDef("description", wide_only=True),
+    ColumnDef("dest_ip", header="Dest IP", wide_only=True),
+    ColumnDef("key", wide_only=True),
+]
+
+ZONE_COLUMNS = [
+    ColumnDef("id"),
+    ColumnDef("domain"),
+    ColumnDef("type"),
+    ColumnDef("view_name", header="View"),
+    ColumnDef("serial"),
+]
+
+RECORD_COLUMNS = [
+    ColumnDef("id"),
+    ColumnDef("host"),
+    ColumnDef("type"),
+    ColumnDef("value"),
+    ColumnDef("ttl", header="TTL"),
+    ColumnDef("priority"),
+]
+
+VIEW_COLUMNS = [
+    ColumnDef("id"),
+    ColumnDef("name"),
+    ColumnDef("recursion", style_map=BOOL_STYLES, format_fn=format_bool_yn),
+    ColumnDef("match_clients", header="Match Clients"),
+]
+
+HOST_COLUMNS = [
+    ColumnDef("host"),
+    ColumnDef("ip", header="IP"),
+    ColumnDef("type"),
+]
+
+ALIAS_COLUMNS = [
+    ColumnDef("hostname"),
+    ColumnDef("ip", header="IP"),
+    ColumnDef("description"),
+]
+
+LEASE_COLUMNS = [
+    ColumnDef("mac", header="MAC"),
+    ColumnDef("ip", header="IP"),
+    ColumnDef("hostname"),
+    ColumnDef("expires"),
+    ColumnDef("state"),
+]
+
+ADDRESS_COLUMNS = [
+    ColumnDef("ip", header="IP"),
+    ColumnDef("mac", header="MAC"),
+    ColumnDef("interface"),
+    ColumnDef("type"),
+]
+
+DRIVE_COLUMNS = [
+    ColumnDef("name"),
+    ColumnDef("media"),
+    ColumnDef("interface"),
+    ColumnDef("size_gb", header="Size (GB)"),
+    ColumnDef("tier"),
+    ColumnDef("enabled", style_map=BOOL_STYLES, format_fn=format_bool_yn),
+    # wide-only
+    ColumnDef("key", wide_only=True),
+]
+
+NIC_COLUMNS = [
+    ColumnDef("name"),
+    ColumnDef("interface"),
+    ColumnDef("network_name", header="Network"),
+    ColumnDef("mac_address", header="MAC"),
+    ColumnDef("ip_address", header="IP"),
+    ColumnDef("enabled", style_map=BOOL_STYLES, format_fn=format_bool_yn),
+    # wide-only
+    ColumnDef("key", wide_only=True),
+]
+
+DEVICE_COLUMNS = [
+    ColumnDef("name"),
+    ColumnDef("device_type", header="Type"),
+    ColumnDef("enabled", style_map=BOOL_STYLES, format_fn=format_bool_yn),
+    ColumnDef("optional", style_map=BOOL_STYLES, format_fn=format_bool_yn),
+    # wide-only
+    ColumnDef("key", wide_only=True),
+]
