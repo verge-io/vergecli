@@ -6,6 +6,7 @@ from typing import Annotated, Any
 
 import typer
 
+from verge_cli.columns import VM_COLUMNS
 from verge_cli.commands import vm_device, vm_drive, vm_nic
 from verge_cli.context import get_context
 from verge_cli.errors import handle_errors
@@ -21,9 +22,6 @@ app = typer.Typer(
 app.add_typer(vm_device.app, name="device")
 app.add_typer(vm_drive.app, name="drive")
 app.add_typer(vm_nic.app, name="nic")
-
-# Default columns for VM list output
-VM_LIST_COLUMNS = ["name", "status", "cpu_cores", "ram", "cluster_name", "node_name", "restart"]
 
 
 @app.command("list")
@@ -65,7 +63,7 @@ def vm_list(
         data,
         output_format=output or vctx.output_format,
         query=query or vctx.query,
-        columns=VM_LIST_COLUMNS,
+        columns=VM_COLUMNS,
         quiet=vctx.quiet,
         no_color=vctx.no_color,
     )
@@ -488,6 +486,4 @@ def _vm_to_dict(vm: Any) -> dict[str, Any]:
         "modified": vm.get("modified"),
         # Status flag for pending changes
         "needs_restart": vm.get("need_restart", False),
-        # Short alias for list column (Y or empty string)
-        "restart": "Y" if vm.get("need_restart", False) else "",
     }

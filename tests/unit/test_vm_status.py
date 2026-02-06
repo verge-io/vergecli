@@ -93,7 +93,7 @@ def test_vm_list_no_y_when_restart_not_needed(
     # Note: "Y" might appear elsewhere, so we check JSON output for certainty
     result_json = cli_runner.invoke(app, ["vm", "list", "-o", "json"])
     assert result_json.exit_code == 0
-    assert '"restart": ""' in result_json.output
+    assert '"needs_restart": false' in result_json.output
 
 
 def test_vm_get_shows_needs_restart_true(cli_runner, mock_client, mock_vm_with_needs_restart):
