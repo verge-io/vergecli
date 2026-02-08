@@ -198,3 +198,149 @@ def test_tenant_update_multiple_fields(cli_runner, mock_client, mock_tenant):
     assert call_args[1]["name"] == "acme-new"
     assert call_args[1]["url"] == "new.verge.local"
     assert call_args[1]["expose_cloud_snapshots"] is False
+
+
+def test_tenant_delete(cli_runner, mock_client, mock_tenant):
+    """vrg tenant delete should delete a tenant."""
+    mock_tenant.is_running = False
+    mock_client.tenants.list.return_value = [mock_tenant]
+    mock_client.tenants.get.return_value = mock_tenant
+
+    result = cli_runner.invoke(app, ["tenant", "delete", "acme-corp", "--yes"])
+
+    assert result.exit_code == 0
+    mock_client.tenants.delete.assert_called_once_with(5)
+
+
+def test_tenant_delete_cancelled(cli_runner, mock_client, mock_tenant):
+    """vrg tenant delete without --yes should prompt and cancel."""
+    mock_tenant.is_running = False
+    mock_client.tenants.list.return_value = [mock_tenant]
+    mock_client.tenants.get.return_value = mock_tenant
+
+    result = cli_runner.invoke(app, ["tenant", "delete", "acme-corp"], input="n\n")
+
+    assert result.exit_code == 0
+    mock_client.tenants.delete.assert_not_called()
+
+
+def test_tenant_delete_force_running(cli_runner, mock_client, mock_tenant):
+    """vrg tenant delete --force should delete running tenant."""
+    mock_tenant.is_running = True
+    mock_client.tenants.list.return_value = [mock_tenant]
+    mock_client.tenants.get.return_value = mock_tenant
+
+    result = cli_runner.invoke(app, ["tenant", "delete", "acme-corp", "--yes", "--force"])
+
+    assert result.exit_code == 0
+    mock_client.tenants.delete.assert_called_once_with(5)
+
+
+def test_tenant_delete_running_no_force(cli_runner, mock_client, mock_tenant):
+    """vrg tenant delete of running tenant without --force should fail."""
+    mock_tenant.is_running = True
+    mock_client.tenants.list.return_value = [mock_tenant]
+    mock_client.tenants.get.return_value = mock_tenant
+
+    result = cli_runner.invoke(app, ["tenant", "delete", "acme-corp", "--yes"])
+
+    assert result.exit_code == 7
+    mock_client.tenants.delete.assert_not_called()
+
+
+def test_tenant_start(cli_runner, mock_client, mock_tenant):
+    """vrg tenant start should power on a tenant."""
+    mock_tenant.is_running = False
+    mock_client.tenants.list.return_value = [mock_tenant]
+    mock_client.tenants.get.return_value = mock_tenant
+
+    result = cli_runner.invoke(app, ["tenant", "start", "acme-corp"])
+
+    assert result.exit_code == 0
+    mock_client.tenants.power_on.assert_called_once_with(5)
+
+
+def test_tenant_start_already_running(cli_runner, mock_client, mock_tenant):
+    """vrg tenant start on running tenant should show message."""
+    mock_tenant.is_running = True
+    mock_client.tenants.list.return_value = [mock_tenant]
+    mock_client.tenants.get.return_value = mock_tenant
+
+    result = cli_runner.invoke(app, ["tenant", "start", "acme-corp"])
+
+    assert result.exit_code == 0
+    assert "already running" in result.output
+    mock_client.tenants.power_on.assert_not_called()
+
+
+def test_tenant_stop(cli_runner, mock_client, mock_tenant):
+    """vrg tenant stop should power off a tenant."""
+    mock_tenant.is_running = True
+    mock_client.tenants.list.return_value = [mock_tenant]
+    mock_client.tenants.get.return_value = mock_tenant
+
+    result = cli_runner.invoke(app, ["tenant", "stop", "acme-corp"])
+
+    assert result.exit_code == 0
+    mock_client.tenants.power_off.assert_called_once_with(5)
+
+
+def test_tenant_stop_not_running(cli_runner, mock_client, mock_tenant):
+    """vrg tenant stop on stopped tenant should show message."""
+    mock_tenant.is_running = False
+    mock_client.tenants.list.return_value = [mock_tenant]
+    mock_client.tenants.get.return_value = mock_tenant
+
+    result = cli_runner.invoke(app, ["tenant", "stop", "acme-corp"])
+
+    assert result.exit_code == 0
+    assert "not running" in result.output
+    mock_client.tenants.power_off.assert_not_called()
+
+
+def test_tenant_restart(cli_runner, mock_client, mock_tenant):
+    """vrg tenant restart should restart a running tenant."""
+    mock_tenant.is_running = True
+    mock_client.tenants.list.return_value = [mock_tenant]
+    mock_client.tenants.get.return_value = mock_tenant
+
+    result = cli_runner.invoke(app, ["tenant", "restart", "acme-corp"])
+
+    assert result.exit_code == 0
+    mock_client.tenants.restart.assert_called_once_with(5)
+
+
+def test_tenant_restart_not_running(cli_runner, mock_client, mock_tenant):
+    """vrg tenant restart on stopped tenant should fail."""
+    mock_tenant.is_running = False
+    mock_client.tenants.list.return_value = [mock_tenant]
+    mock_client.tenants.get.return_value = mock_tenant
+
+    result = cli_runner.invoke(app, ["tenant", "restart", "acme-corp"])
+
+    assert result.exit_code == 1
+    mock_client.tenants.restart.assert_not_called()
+
+
+def test_tenant_reset(cli_runner, mock_client, mock_tenant):
+    """vrg tenant reset should hard reset a running tenant."""
+    mock_tenant.is_running = True
+    mock_client.tenants.list.return_value = [mock_tenant]
+    mock_client.tenants.get.return_value = mock_tenant
+
+    result = cli_runner.invoke(app, ["tenant", "reset", "acme-corp"])
+
+    assert result.exit_code == 0
+    mock_client.tenants.reset.assert_called_once_with(5)
+
+
+def test_tenant_reset_not_running(cli_runner, mock_client, mock_tenant):
+    """vrg tenant reset on stopped tenant should fail."""
+    mock_tenant.is_running = False
+    mock_client.tenants.list.return_value = [mock_tenant]
+    mock_client.tenants.get.return_value = mock_tenant
+
+    result = cli_runner.invoke(app, ["tenant", "reset", "acme-corp"])
+
+    assert result.exit_code == 1
+    mock_client.tenants.reset.assert_not_called()
