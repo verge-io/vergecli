@@ -9,8 +9,8 @@ import typer
 from verge_cli.columns import CLUSTER_COLUMNS
 from verge_cli.context import get_context
 from verge_cli.errors import handle_errors
-from verge_cli.output import output_result
-from verge_cli.utils import resolve_resource_id
+from verge_cli.output import output_result, output_success
+from verge_cli.utils import confirm_action, resolve_resource_id
 
 app = typer.Typer(
     name="cluster",
@@ -79,3 +79,120 @@ def cluster_get(
         quiet=vctx.quiet,
         no_color=vctx.no_color,
     )
+
+
+@app.command("create")
+@handle_errors()
+def cluster_create(
+    ctx: typer.Context,
+    name: Annotated[str, typer.Option("--name", "-n", help="Cluster name")],
+    description: Annotated[
+        str, typer.Option("--description", "-d", help="Cluster description")
+    ] = "",
+    enabled: Annotated[
+        bool | None,
+        typer.Option("--enabled/--no-enabled", help="Enable the cluster"),
+    ] = None,
+    compute: Annotated[
+        bool | None,
+        typer.Option("--compute/--no-compute", help="Mark as compute cluster"),
+    ] = None,
+) -> None:
+    """Create a new cluster."""
+    vctx = get_context(ctx)
+
+    kwargs: dict[str, Any] = {
+        "name": name,
+        "description": description,
+    }
+    if enabled is not None:
+        kwargs["enabled"] = enabled
+    if compute is not None:
+        kwargs["compute"] = compute
+
+    cluster_obj = vctx.client.clusters.create(**kwargs)
+
+    output_success(
+        f"Created cluster '{cluster_obj.name}' (key: {cluster_obj.key})",
+        quiet=vctx.quiet,
+    )
+
+    output_result(
+        _cluster_to_dict(cluster_obj),
+        output_format=vctx.output_format,
+        query=vctx.query,
+        quiet=vctx.quiet,
+        no_color=vctx.no_color,
+    )
+
+
+@app.command("update")
+@handle_errors()
+def cluster_update(
+    ctx: typer.Context,
+    cluster: Annotated[str, typer.Argument(help="Cluster name or key")],
+    name: Annotated[str | None, typer.Option("--name", "-n", help="New cluster name")] = None,
+    description: Annotated[
+        str | None,
+        typer.Option("--description", "-d", help="Cluster description"),
+    ] = None,
+    enabled: Annotated[
+        bool | None,
+        typer.Option("--enabled/--no-enabled", help="Enable/disable the cluster"),
+    ] = None,
+    compute: Annotated[
+        bool | None,
+        typer.Option("--compute/--no-compute", help="Mark as compute cluster"),
+    ] = None,
+) -> None:
+    """Update a cluster."""
+    vctx = get_context(ctx)
+
+    key = resolve_resource_id(vctx.client.clusters, cluster, "Cluster")
+
+    updates: dict[str, Any] = {}
+    if name is not None:
+        updates["name"] = name
+    if description is not None:
+        updates["description"] = description
+    if enabled is not None:
+        updates["enabled"] = enabled
+    if compute is not None:
+        updates["compute"] = compute
+
+    if not updates:
+        typer.echo("No updates specified.", err=True)
+        raise typer.Exit(2)
+
+    cluster_obj = vctx.client.clusters.update(key, **updates)
+
+    output_success(f"Updated cluster '{cluster_obj.name}'", quiet=vctx.quiet)
+
+    output_result(
+        _cluster_to_dict(cluster_obj),
+        output_format=vctx.output_format,
+        query=vctx.query,
+        quiet=vctx.quiet,
+        no_color=vctx.no_color,
+    )
+
+
+@app.command("delete")
+@handle_errors()
+def cluster_delete(
+    ctx: typer.Context,
+    cluster: Annotated[str, typer.Argument(help="Cluster name or key")],
+    yes: Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation")] = False,
+) -> None:
+    """Delete a cluster."""
+    vctx = get_context(ctx)
+
+    key = resolve_resource_id(vctx.client.clusters, cluster, "Cluster")
+    cluster_obj = vctx.client.clusters.get(key)
+
+    if not confirm_action(f"Delete cluster '{cluster_obj.name}'?", yes=yes):
+        typer.echo("Cancelled.")
+        raise typer.Exit(0)
+
+    vctx.client.clusters.delete(key)
+    output_success(f"Deleted cluster '{cluster_obj.name}'", quiet=vctx.quiet)
