@@ -186,12 +186,12 @@ def _file_type_to_dict(type_key: str, type_desc: str) -> dict[str, str]:
 
 ## Task Checklist
 
-- [ ] Create `src/verge_cli/commands/file.py` with all 7 commands
-- [ ] Register `file` typer in `src/verge_cli/cli.py`
-- [ ] Create `tests/unit/test_file.py` with mock fixture and all 14 tests
-- [ ] Run lint: `uv run ruff check src/verge_cli/commands/file.py tests/unit/test_file.py`
-- [ ] Run type check: `uv run mypy src/verge_cli/commands/file.py`
-- [ ] Run tests: `uv run pytest tests/unit/test_file.py -v`
+- [x] Create `src/verge_cli/commands/file.py` with all 7 commands
+- [x] Register `file` typer in `src/verge_cli/cli.py`
+- [x] Create `tests/unit/test_file.py` with mock fixture and all 14 tests
+- [x] Run lint: `uv run ruff check src/verge_cli/commands/file.py tests/unit/test_file.py`
+- [x] Run type check: `uv run mypy src/verge_cli/commands/file.py`
+- [x] Run tests: `uv run pytest tests/unit/test_file.py -v`
 
 ## Notes
 
