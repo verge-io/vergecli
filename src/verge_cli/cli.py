@@ -15,6 +15,7 @@ from verge_cli.commands import (
     nas,
     network,
     node,
+    recipe,
     site,
     snapshot,
     storage,
@@ -37,6 +38,7 @@ app.add_typer(configure.app, name="configure")
 app.add_typer(nas.app, name="nas")
 app.add_typer(network.app, name="network")
 app.add_typer(node.app, name="node")
+app.add_typer(recipe.app, name="recipe")
 app.add_typer(site.app, name="site")
 app.add_typer(snapshot.app, name="snapshot")
 app.add_typer(storage.app, name="storage")

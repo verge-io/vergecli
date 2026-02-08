@@ -1,0 +1,280 @@
+"""Recipe question management commands."""
+
+from __future__ import annotations
+
+from typing import Annotated, Any
+
+import typer
+
+from verge_cli.columns import ColumnDef, format_bool_yn
+from verge_cli.context import get_context
+from verge_cli.errors import handle_errors
+from verge_cli.output import output_result, output_success
+from verge_cli.utils import confirm_action, resolve_nas_resource, resolve_resource_id
+
+app = typer.Typer(
+    name="question",
+    help="Manage recipe questions.",
+    no_args_is_help=True,
+)
+
+RECIPE_QUESTION_COLUMNS: list[ColumnDef] = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("name"),
+    ColumnDef("display", header="Label"),
+    ColumnDef("type"),
+    ColumnDef("required", format_fn=format_bool_yn),
+    ColumnDef("default", wide_only=True),
+    ColumnDef("hint", wide_only=True),
+]
+
+
+def _question_to_dict(question: Any) -> dict[str, Any]:
+    """Convert a RecipeQuestion SDK object to a dict for output."""
+    return {
+        "$key": int(question.key),
+        "name": question.name,
+        "display": question.get("display", ""),
+        "type": question.get("type"),
+        "required": question.get("required"),
+        "default": question.get("default", ""),
+        "hint": question.get("hint", ""),
+    }
+
+
+def _parse_list_options(options_str: str) -> dict[str, str]:
+    """Parse comma-separated key=value pairs into a dict.
+
+    Example: ``"small=Small,medium=Medium,large=Large"``
+    """
+    result: dict[str, str] = {}
+    for item in options_str.split(","):
+        item = item.strip()
+        if not item:
+            continue
+        if "=" not in item:
+            raise typer.BadParameter(
+                f"Invalid --list-options format: '{item}'. Expected key=value."
+            )
+        key, value = item.split("=", 1)
+        result[key.strip()] = value.strip()
+    return result
+
+
+def _resolve_recipe(vctx: Any, identifier: str) -> str:
+    """Resolve a recipe identifier to a hex key."""
+    return resolve_nas_resource(
+        vctx.client.vm_recipes,
+        identifier,
+        resource_type="recipe",
+    )
+
+
+@app.command("list")
+@handle_errors()
+def list_cmd(
+    ctx: typer.Context,
+    recipe: Annotated[str, typer.Argument(help="Recipe name or key.")],
+    section: Annotated[
+        str | None,
+        typer.Option("--section", help="Filter by section name or key."),
+    ] = None,
+) -> None:
+    """List questions for a recipe."""
+    vctx = get_context(ctx)
+    recipe_key = _resolve_recipe(vctx, recipe)
+    recipe_ref = f"vm_recipes/{recipe_key}"
+    kwargs: dict[str, Any] = {"recipe_ref": recipe_ref}
+    if section is not None:
+        section_key = resolve_resource_id(vctx.client.recipe_sections, section, "recipe section")
+        kwargs["section"] = section_key
+    questions = vctx.client.recipe_questions.list(**kwargs)
+    data = [_question_to_dict(q) for q in questions]
+    output_result(
+        data,
+        output_format=vctx.output_format,
+        query=vctx.query,
+        columns=RECIPE_QUESTION_COLUMNS,
+        quiet=vctx.quiet,
+        no_color=vctx.no_color,
+    )
+
+
+@app.command("get")
+@handle_errors()
+def get_cmd(
+    ctx: typer.Context,
+    recipe: Annotated[str, typer.Argument(help="Recipe name or key.")],
+    question: Annotated[str, typer.Argument(help="Question name or key.")],
+) -> None:
+    """Get a recipe question by name or key."""
+    vctx = get_context(ctx)
+    _resolve_recipe(vctx, recipe)  # Validate recipe exists
+    question_key = resolve_resource_id(vctx.client.recipe_questions, question, "recipe question")
+    item = vctx.client.recipe_questions.get(key=question_key)
+    output_result(
+        _question_to_dict(item),
+        output_format=vctx.output_format,
+        query=vctx.query,
+        columns=RECIPE_QUESTION_COLUMNS,
+        quiet=vctx.quiet,
+        no_color=vctx.no_color,
+    )
+
+
+@app.command("create")
+@handle_errors()
+def create_cmd(
+    ctx: typer.Context,
+    recipe: Annotated[str, typer.Argument(help="Recipe name or key.")],
+    name: Annotated[str, typer.Option("--name", "-n", help="Variable name for the question.")],
+    section: Annotated[str, typer.Option("--section", help="Section name or key.")],
+    type: Annotated[
+        str, typer.Option("--type", help="Question type (string, bool, num, password, list, etc.).")
+    ],
+    display: Annotated[str | None, typer.Option("--display", help="UI label.")] = None,
+    hint: Annotated[str | None, typer.Option("--hint", help="Placeholder text.")] = None,
+    help_text: Annotated[str | None, typer.Option("--help-text", help="Tooltip text.")] = None,
+    note: Annotated[str | None, typer.Option("--note", help="Below-field text.")] = None,
+    default: Annotated[str | None, typer.Option("--default", help="Default value.")] = None,
+    required: Annotated[
+        bool, typer.Option("--required/--no-required", help="Whether the question is required.")
+    ] = False,
+    readonly: Annotated[
+        bool, typer.Option("--readonly/--no-readonly", help="Whether the question is read-only.")
+    ] = False,
+    min_value: Annotated[
+        int | None, typer.Option("--min", help="Minimum for numeric types.")
+    ] = None,
+    max_value: Annotated[
+        int | None, typer.Option("--max", help="Maximum for numeric types.")
+    ] = None,
+    regex: Annotated[str | None, typer.Option("--regex", help="Validation pattern.")] = None,
+    list_options: Annotated[
+        str | None,
+        typer.Option("--list-options", help="Comma-separated key=value pairs for list type."),
+    ] = None,
+) -> None:
+    """Create a new recipe question."""
+    vctx = get_context(ctx)
+    recipe_key = _resolve_recipe(vctx, recipe)
+    recipe_ref = f"vm_recipes/{recipe_key}"
+    section_key = resolve_resource_id(vctx.client.recipe_sections, section, "recipe section")
+    kwargs: dict[str, Any] = {}
+    if display is not None:
+        kwargs["display"] = display
+    if hint is not None:
+        kwargs["hint"] = hint
+    if help_text is not None:
+        kwargs["help_text"] = help_text
+    if note is not None:
+        kwargs["note"] = note
+    if default is not None:
+        kwargs["default"] = default
+    kwargs["required"] = required
+    kwargs["readonly"] = readonly
+    if min_value is not None:
+        kwargs["min_value"] = min_value
+    if max_value is not None:
+        kwargs["max_value"] = max_value
+    if regex is not None:
+        kwargs["regex"] = regex
+    if list_options is not None:
+        kwargs["list_options"] = _parse_list_options(list_options)
+    result = vctx.client.recipe_questions.create(
+        name=name,
+        recipe_ref=recipe_ref,
+        section=section_key,
+        question_type=type,
+        **kwargs,
+    )
+    output_result(
+        _question_to_dict(result),
+        output_format=vctx.output_format,
+        query=vctx.query,
+        columns=RECIPE_QUESTION_COLUMNS,
+        quiet=vctx.quiet,
+        no_color=vctx.no_color,
+    )
+    output_success(f"Question '{name}' created.")
+
+
+@app.command("update")
+@handle_errors()
+def update_cmd(
+    ctx: typer.Context,
+    recipe: Annotated[str, typer.Argument(help="Recipe name or key.")],
+    question: Annotated[str, typer.Argument(help="Question name or key.")],
+    display: Annotated[str | None, typer.Option("--display", help="New UI label.")] = None,
+    hint: Annotated[str | None, typer.Option("--hint", help="New placeholder text.")] = None,
+    help_text: Annotated[str | None, typer.Option("--help-text", help="New tooltip text.")] = None,
+    note: Annotated[str | None, typer.Option("--note", help="New below-field text.")] = None,
+    default: Annotated[str | None, typer.Option("--default", help="New default value.")] = None,
+    required: Annotated[
+        bool | None,
+        typer.Option("--required/--no-required", help="Set required state."),
+    ] = None,
+    readonly: Annotated[
+        bool | None,
+        typer.Option("--readonly/--no-readonly", help="Set read-only state."),
+    ] = None,
+    min_value: Annotated[int | None, typer.Option("--min", help="New minimum.")] = None,
+    max_value: Annotated[int | None, typer.Option("--max", help="New maximum.")] = None,
+    order: Annotated[int | None, typer.Option("--order", help="Display order.")] = None,
+) -> None:
+    """Update a recipe question."""
+    vctx = get_context(ctx)
+    _resolve_recipe(vctx, recipe)  # Validate recipe exists
+    question_key = resolve_resource_id(vctx.client.recipe_questions, question, "recipe question")
+    kwargs: dict[str, Any] = {}
+    if display is not None:
+        kwargs["display"] = display
+    if hint is not None:
+        kwargs["hint"] = hint
+    if help_text is not None:
+        kwargs["help_text"] = help_text
+    if note is not None:
+        kwargs["note"] = note
+    if default is not None:
+        kwargs["default"] = default
+    if required is not None:
+        kwargs["required"] = required
+    if readonly is not None:
+        kwargs["readonly"] = readonly
+    if min_value is not None:
+        kwargs["min_value"] = min_value
+    if max_value is not None:
+        kwargs["max_value"] = max_value
+    if order is not None:
+        kwargs["orderid"] = order
+    result = vctx.client.recipe_questions.update(question_key, **kwargs)
+    output_result(
+        _question_to_dict(result),
+        output_format=vctx.output_format,
+        query=vctx.query,
+        columns=RECIPE_QUESTION_COLUMNS,
+        quiet=vctx.quiet,
+        no_color=vctx.no_color,
+    )
+    output_success(f"Question '{question}' updated.")
+
+
+@app.command("delete")
+@handle_errors()
+def delete_cmd(
+    ctx: typer.Context,
+    recipe: Annotated[str, typer.Argument(help="Recipe name or key.")],
+    question: Annotated[str, typer.Argument(help="Question name or key.")],
+    yes: Annotated[
+        bool,
+        typer.Option("--yes", "-y", help="Skip confirmation."),
+    ] = False,
+) -> None:
+    """Delete a recipe question."""
+    vctx = get_context(ctx)
+    _resolve_recipe(vctx, recipe)  # Validate recipe exists
+    question_key = resolve_resource_id(vctx.client.recipe_questions, question, "recipe question")
+    if not confirm_action(f"Delete question '{question}'?", yes=yes):
+        raise typer.Abort()
+    vctx.client.recipe_questions.delete(question_key)
+    output_success(f"Question '{question}' deleted.")
