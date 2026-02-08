@@ -58,7 +58,7 @@ def _rule_to_dict(rule: Any) -> dict[str, Any]:
         Dictionary representation of the rule.
     """
     return {
-        "key": rule.key,
+        "$key": rule.key,
         "name": rule.get("name", ""),
         "description": rule.get("description", ""),
         "direction": rule.get("direction", "incoming"),

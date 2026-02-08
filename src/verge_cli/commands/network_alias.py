@@ -57,7 +57,7 @@ def _alias_to_dict(alias: Any) -> dict[str, Any]:
         Dictionary representation of the alias.
     """
     return {
-        "key": alias.key,
+        "$key": alias.key,
         "ip": alias.get("ip", ""),
         "hostname": alias.get("hostname", ""),
         "description": alias.get("description", ""),

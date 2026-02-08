@@ -26,7 +26,7 @@ def _tier_to_dict(tier: Any) -> dict[str, Any]:
     since the raw .get() only returns raw API fields like 'capacity' (bytes).
     """
     return {
-        "key": tier.key,
+        "$key": tier.key,
         "tier": tier.tier,
         "description": tier.description,
         "capacity_gb": tier.capacity_gb,

@@ -30,7 +30,7 @@ def _get_vm(ctx: typer.Context, vm_identifier: str) -> tuple[Any, Any]:
 def _device_to_dict(device: Any) -> dict[str, Any]:
     """Convert a Device object to a dict for output."""
     return {
-        "key": device.key,
+        "$key": device.key,
         "name": device.name,
         "device_type": device.device_type,
         "enabled": device.is_enabled,

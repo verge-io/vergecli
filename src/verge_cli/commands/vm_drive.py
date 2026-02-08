@@ -31,7 +31,7 @@ def _get_vm(ctx: typer.Context, vm_identifier: str) -> tuple[Any, Any]:
 def _drive_to_dict(drive: Any) -> dict[str, Any]:
     """Convert a Drive object to a dict for output."""
     return {
-        "key": drive.key,
+        "$key": drive.key,
         "name": drive.name,
         "description": drive.get("description", ""),
         "media": drive.get("media", ""),

@@ -456,7 +456,7 @@ def vm_validate(
 def _vm_to_dict(vm: Any) -> dict[str, Any]:
     """Convert a VM object to a dictionary for output."""
     return {
-        "key": vm.key,
+        "$key": vm.key,
         "name": vm.name,
         "description": vm.get("description", ""),
         "status": vm.status,
