@@ -275,15 +275,15 @@ def _snapshot_to_dict(snap: Any) -> dict[str, Any]:
 
 ## Task Checklist
 
-- [ ] Add `resolve_nas_resource()` to `utils.py`
-- [ ] Create `src/verge_cli/commands/nas_volume.py` with all commands
-- [ ] Create `src/verge_cli/commands/nas_volume_snapshot.py` with all commands
-- [ ] Register sub-typers in `nas.py`
-- [ ] Add fixtures to `conftest.py`
-- [ ] Create `tests/unit/test_nas_volume.py` with all tests
-- [ ] Create `tests/unit/test_nas_volume_snapshot.py` with all tests
-- [ ] Run `uv run ruff check` and `uv run mypy src/verge_cli`
-- [ ] Run `uv run pytest tests/unit/test_nas_volume.py tests/unit/test_nas_volume_snapshot.py -v`
+- [x] Add `resolve_nas_resource()` to `utils.py`
+- [x] Create `src/verge_cli/commands/nas_volume.py` with all commands
+- [x] Create `src/verge_cli/commands/nas_volume_snapshot.py` with all commands
+- [x] Register sub-typers in `nas.py`
+- [x] Add fixtures to `conftest.py`
+- [x] Create `tests/unit/test_nas_volume.py` with all tests
+- [x] Create `tests/unit/test_nas_volume_snapshot.py` with all tests
+- [x] Run `uv run ruff check` and `uv run mypy src/verge_cli`
+- [x] Run `uv run pytest tests/unit/test_nas_volume.py tests/unit/test_nas_volume_snapshot.py -v`
 
 ## Notes
 

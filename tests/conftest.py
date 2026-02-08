@@ -393,6 +393,58 @@ def mock_nas_service() -> MagicMock:
 
 
 @pytest.fixture
+def mock_nas_volume() -> MagicMock:
+    """Create a mock NAS volume object."""
+    vol = MagicMock()
+    vol.key = "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
+    vol.name = "data-vol"
+    vol.max_size_gb = 50.0
+    vol.used_gb = 12.5
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data = {
+            "$key": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
+            "name": "data-vol",
+            "enabled": True,
+            "maxsize": 53687091200,
+            "fs_type": "ext4",
+            "preferred_tier": "1",
+            "description": "Data volume",
+            "read_only": False,
+            "owner_user": "root",
+            "owner_group": "root",
+            "automount_snapshots": False,
+            "service": 1,
+        }
+        return data.get(key, default)
+
+    vol.get = mock_get
+    return vol
+
+
+@pytest.fixture
+def mock_nas_volume_snapshot() -> MagicMock:
+    """Create a mock NAS volume snapshot object."""
+    snap = MagicMock()
+    snap.key = 42
+    snap.name = "snap-001"
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data = {
+            "$key": 42,
+            "name": "snap-001",
+            "created": 1707350400,
+            "expires": 1707609600,
+            "description": "Test snapshot",
+            "volume": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
+        }
+        return data.get(key, default)
+
+    snap.get = mock_get
+    return snap
+
+
+@pytest.fixture
 def temp_config_dir(tmp_path: Path) -> Path:
     """Create a temporary config directory."""
     config_dir = tmp_path / ".vrg"
