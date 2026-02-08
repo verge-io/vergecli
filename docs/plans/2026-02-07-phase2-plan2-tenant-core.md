@@ -2817,7 +2817,7 @@ def test_tenant_send_file(cli_runner, mock_client, mock_tenant):
 ## Task Checklist
 
 - [x] Task 1: Update TENANT_COLUMNS + add mock_tenant fixture
-- [ ] Task 2: tenant.py — scaffolding + list + get
+- [x] Task 2: tenant.py — scaffolding + list + get
 - [ ] Task 3: tenant.py — create + update
 - [ ] Task 4: tenant.py — delete + power operations
 - [ ] Task 5: tenant.py — clone + isolate
