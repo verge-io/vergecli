@@ -1,0 +1,122 @@
+"""NAS volume file browser commands."""
+
+from __future__ import annotations
+
+from typing import Annotated, Any
+
+import typer
+
+from verge_cli.columns import ColumnDef, format_epoch
+from verge_cli.context import get_context
+from verge_cli.errors import handle_errors
+from verge_cli.output import output_result
+from verge_cli.utils import resolve_nas_resource
+
+app = typer.Typer(
+    name="files",
+    help="Browse NAS volume files and directories.",
+    no_args_is_help=True,
+)
+
+NAS_FILE_COLUMNS: list[ColumnDef] = [
+    ColumnDef("name"),
+    ColumnDef("type", style_map={"directory": "blue bold", "file": ""}),
+    ColumnDef("size_display", header="Size"),
+    ColumnDef("modified", header="Modified", format_fn=format_epoch),
+]
+
+
+def _format_size(size_bytes: int | float) -> str:
+    """Format bytes to human-readable size."""
+    b = float(size_bytes)
+    for unit in ("B", "KB", "MB", "GB", "TB"):
+        if b < 1024:
+            return f"{int(b)} {unit}" if unit == "B" else f"{b:.1f} {unit}"
+        b /= 1024
+    return f"{b:.1f} PB"
+
+
+def _file_to_dict(f: Any) -> dict[str, Any]:
+    """Convert NASVolumeFile (dict-based) to output dict."""
+    if isinstance(f, dict):
+        size = f.get("size", 0) or 0
+        return {
+            "name": f.get("name"),
+            "type": f.get("type"),
+            "size": size,
+            "size_display": f.get("size_display", _format_size(size)),
+            "modified": f.get("date"),
+        }
+    size = getattr(f, "size", 0) or 0
+    return {
+        "name": f.name,
+        "type": getattr(f, "type", None),
+        "size": size,
+        "size_display": getattr(f, "size_display", _format_size(size)),
+        "modified": getattr(f, "date", None),
+    }
+
+
+@app.command("list")
+@handle_errors()
+def list_cmd(
+    ctx: typer.Context,
+    volume: Annotated[str, typer.Argument(help="NAS volume name or hex key")],
+    path: Annotated[
+        str,
+        typer.Option("--path", "-p", help="Directory path to list"),
+    ] = "/",
+    extensions: Annotated[
+        str | None,
+        typer.Option(
+            "--extensions", help="Comma-separated file extensions to filter (e.g., txt,log,csv)"
+        ),
+    ] = None,
+    sort: Annotated[
+        str | None,
+        typer.Option("--sort", help="Sort field (e.g., name, size, date)"),
+    ] = None,
+) -> None:
+    """List files and directories in a NAS volume."""
+    vctx = get_context(ctx)
+    vol_key = resolve_nas_resource(vctx.client.nas_volumes, volume, "NAS volume")
+    file_mgr = vctx.client.nas_volumes.files(vol_key)
+
+    kwargs: dict[str, Any] = {"path": path}
+    if extensions is not None:
+        kwargs["extensions"] = extensions
+    if sort is not None:
+        kwargs["sort"] = sort
+
+    files = file_mgr.list(**kwargs)
+    data = [_file_to_dict(f) for f in files]
+    output_result(
+        data,
+        output_format=vctx.output_format,
+        query=vctx.query,
+        columns=NAS_FILE_COLUMNS,
+        quiet=vctx.quiet,
+        no_color=vctx.no_color,
+    )
+
+
+@app.command("get")
+@handle_errors()
+def get_cmd(
+    ctx: typer.Context,
+    volume: Annotated[str, typer.Argument(help="NAS volume name or hex key")],
+    path: Annotated[str, typer.Argument(help="File or directory path")],
+) -> None:
+    """Get details of a specific file or directory."""
+    vctx = get_context(ctx)
+    vol_key = resolve_nas_resource(vctx.client.nas_volumes, volume, "NAS volume")
+    file_mgr = vctx.client.nas_volumes.files(vol_key)
+
+    item = file_mgr.get(path=path)
+    output_result(
+        _file_to_dict(item),
+        output_format=vctx.output_format,
+        query=vctx.query,
+        quiet=vctx.quiet,
+        no_color=vctx.no_color,
+    )

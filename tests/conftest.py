@@ -563,6 +563,30 @@ def mock_nas_sync() -> MagicMock:
 
 
 @pytest.fixture
+def mock_nas_file() -> dict[str, Any]:
+    """Create a mock NAS file entry (dict-based)."""
+    return {
+        "name": "report.txt",
+        "type": "file",
+        "size": 1024,
+        "date": 1700000000,
+        "n_name": "report.txt",
+    }
+
+
+@pytest.fixture
+def mock_nas_dir() -> dict[str, Any]:
+    """Create a mock NAS directory entry (dict-based)."""
+    return {
+        "name": "documents",
+        "type": "directory",
+        "size": 0,
+        "date": 1700000000,
+        "n_name": "documents",
+    }
+
+
+@pytest.fixture
 def temp_config_dir(tmp_path: Path) -> Path:
     """Create a temporary config directory."""
     config_dir = tmp_path / ".vrg"
