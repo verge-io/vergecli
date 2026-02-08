@@ -438,3 +438,79 @@ def tenant_isolate(
     else:
         vctx.client.tenants.disable_isolation(key)
         output_success("Isolation disabled", quiet=vctx.quiet)
+
+
+# ---------------------------------------------------------------------------
+# Crash-cart sub-Typer
+# ---------------------------------------------------------------------------
+
+crash_cart_app = typer.Typer(
+    name="crash-cart",
+    help="Manage tenant crash carts.",
+    no_args_is_help=True,
+)
+app.add_typer(crash_cart_app, name="crash-cart")
+
+
+@crash_cart_app.command("create")
+@handle_errors()
+def crash_cart_create(
+    ctx: typer.Context,
+    tenant: Annotated[str, typer.Argument(help="Tenant name or key")],
+    name: Annotated[str | None, typer.Option("--name", "-n", help="Crash cart name")] = None,
+) -> None:
+    """Create a crash cart for a tenant."""
+    vctx = get_context(ctx)
+    key = resolve_resource_id(vctx.client.tenants, tenant, "Tenant")
+
+    if name is not None:
+        vctx.client.tenants.create_crash_cart(key, name=name)
+    else:
+        vctx.client.tenants.create_crash_cart(key)
+
+    output_success(f"Created crash cart for tenant (key: {key})", quiet=vctx.quiet)
+
+
+@crash_cart_app.command("delete")
+@handle_errors()
+def crash_cart_delete(
+    ctx: typer.Context,
+    tenant: Annotated[str, typer.Argument(help="Tenant name or key")],
+    name: Annotated[str | None, typer.Option("--name", "-n", help="Crash cart name")] = None,
+    yes: Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation")] = False,
+) -> None:
+    """Delete a crash cart from a tenant."""
+    vctx = get_context(ctx)
+    key = resolve_resource_id(vctx.client.tenants, tenant, "Tenant")
+
+    if not confirm_action("Delete crash cart?", yes=yes):
+        typer.echo("Cancelled.")
+        raise typer.Exit(0)
+
+    if name is not None:
+        vctx.client.tenants.delete_crash_cart(key, name=name)
+    else:
+        vctx.client.tenants.delete_crash_cart(key)
+
+    output_success(f"Deleted crash cart for tenant (key: {key})", quiet=vctx.quiet)
+
+
+# ---------------------------------------------------------------------------
+# Send-file command
+# ---------------------------------------------------------------------------
+
+
+@app.command("send-file")
+@handle_errors()
+def tenant_send_file(
+    ctx: typer.Context,
+    tenant: Annotated[str, typer.Argument(help="Tenant name or key")],
+    file_key: Annotated[str, typer.Argument(help="File key (numeric ID)")],
+) -> None:
+    """Send a file to a tenant."""
+    vctx = get_context(ctx)
+    key = resolve_resource_id(vctx.client.tenants, tenant, "Tenant")
+
+    vctx.client.tenants.send_file(key, file_key=int(file_key))
+
+    output_success(f"Sent file {file_key} to tenant (key: {key})", quiet=vctx.quiet)
