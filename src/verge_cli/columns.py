@@ -481,3 +481,27 @@ TENANT_LOG_COLUMNS = [
     ColumnDef("type", header="Type"),
     ColumnDef("message", header="Message"),
 ]
+
+CLOUD_SNAPSHOT_COLUMNS = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("name"),
+    ColumnDef("status", style_map=STATUS_STYLES, normalize_fn=normalize_lower),
+    ColumnDef("created", format_fn=format_epoch),
+    ColumnDef("expires", format_fn=format_epoch_or_never),
+    # wide-only
+    ColumnDef("immutable", format_fn=format_bool_yn, style_map=BOOL_STYLES, wide_only=True),
+    ColumnDef("private", format_fn=format_bool_yn, style_map=BOOL_STYLES, wide_only=True),
+    ColumnDef("description", wide_only=True),
+]
+
+CLOUD_SNAPSHOT_VM_COLUMNS = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("name"),
+    ColumnDef("status", style_map=STATUS_STYLES, normalize_fn=normalize_lower),
+]
+
+CLOUD_SNAPSHOT_TENANT_COLUMNS = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("name"),
+    ColumnDef("status", style_map=STATUS_STYLES, normalize_fn=normalize_lower),
+]
