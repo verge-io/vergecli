@@ -410,6 +410,7 @@ def vm_restart(
 def vm_reset(
     ctx: typer.Context,
     vm: Annotated[str, typer.Argument(help="VM name or key")],
+    yes: Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation")] = False,
 ) -> None:
     """Hard reset a virtual machine (like pressing the reset button)."""
     vctx = get_context(ctx)
@@ -420,6 +421,12 @@ def vm_reset(
     if not vm_obj.is_running:
         typer.echo(f"VM '{vm_obj.name}' is not running.")
         raise typer.Exit(1)
+
+    if not confirm_action(
+        f"Reset VM '{vm_obj.name}'? This will forcefully restart the VM.", yes=yes
+    ):
+        typer.echo("Cancelled.")
+        raise typer.Exit(0)
 
     vm_obj.reset()
     output_success(f"Reset VM '{vm_obj.name}'", quiet=vctx.quiet)
