@@ -48,5 +48,6 @@ Thumbs.db
 .claude/logs/
 
 # Local config with secrets
-.claude/TESTENV.md
+.claude
 .worktrees/
+.mcp.json
