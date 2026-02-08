@@ -28,6 +28,7 @@ class TestCliBasic:
         assert "vm" in result.stdout
         assert "network" in result.stdout
         assert "system" in result.stdout
+        assert "tenant" in result.stdout
 
     def test_no_args_shows_help(self, cli_runner: CliRunner) -> None:
         """Test that running without args shows help."""
@@ -121,3 +122,26 @@ class TestSystemCommands:
         assert result.exit_code == 0
         assert "info" in result.stdout
         assert "version" in result.stdout
+
+
+class TestTenantCommands:
+    """Tests for tenant commands."""
+
+    def test_tenant_help(self, cli_runner: CliRunner) -> None:
+        """Test tenant --help."""
+        result = cli_runner.invoke(app, ["tenant", "--help"])
+
+        assert result.exit_code == 0
+        assert "list" in result.stdout
+        assert "get" in result.stdout
+        assert "create" in result.stdout
+        assert "update" in result.stdout
+        assert "delete" in result.stdout
+        assert "start" in result.stdout
+        assert "stop" in result.stdout
+        assert "restart" in result.stdout
+        assert "reset" in result.stdout
+        assert "clone" in result.stdout
+        assert "isolate" in result.stdout
+        assert "crash-cart" in result.stdout
+        assert "send-file" in result.stdout
