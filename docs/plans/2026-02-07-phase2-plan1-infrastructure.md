@@ -2625,7 +2625,7 @@ app.add_typer(vm.app, name="vm")
 ## Task Checklist
 
 - [x] Task 1: Add conftest fixtures + column definitions
-- [ ] Task 2: cluster.py — list + get commands (TDD)
+- [x] Task 2: cluster.py — list + get commands (TDD)
 - [ ] Task 3: cluster.py — create, update, delete (TDD)
 - [ ] Task 4: cluster.py — vsan-status command (TDD)
 - [ ] Task 5: node.py — list + get commands (TDD)
