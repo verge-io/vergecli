@@ -14,6 +14,7 @@ from verge_cli.commands import (
     configure,
     network,
     node,
+    site,
     snapshot,
     storage,
     system,
@@ -34,6 +35,7 @@ app.add_typer(completion.app, name="completion")
 app.add_typer(configure.app, name="configure")
 app.add_typer(network.app, name="network")
 app.add_typer(node.app, name="node")
+app.add_typer(site.app, name="site")
 app.add_typer(snapshot.app, name="snapshot")
 app.add_typer(storage.app, name="storage")
 app.add_typer(system.app, name="system")

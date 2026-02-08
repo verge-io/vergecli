@@ -172,12 +172,12 @@ def _site_to_dict(site: Any) -> dict[str, Any]:
 
 ## Task Checklist
 
-- [ ] Add `SITE_COLUMNS` to `columns.py`
-- [ ] Create `site.py` with all commands
-- [ ] Register top-level typer in `cli.py`
-- [ ] Create `test_site.py` with all tests
-- [ ] Run `uv run ruff check` and `uv run mypy src/verge_cli`
-- [ ] Run `uv run pytest tests/unit/test_site.py -v`
+- [x] Add `SITE_COLUMNS` to `columns.py`
+- [x] Create `site.py` with all commands
+- [x] Register top-level typer in `cli.py`
+- [x] Create `test_site.py` with all tests
+- [x] Run `uv run ruff check` and `uv run mypy src/verge_cli`
+- [x] Run `uv run pytest tests/unit/test_site.py -v`
 
 ## SDK Reference
 

@@ -512,6 +512,21 @@ SNAPSHOT_PROFILE_COLUMNS = [
     ColumnDef("description", wide_only=True),
 ]
 
+SITE_COLUMNS = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("name"),
+    ColumnDef("url", header="URL"),
+    ColumnDef("status", style_map=STATUS_STYLES, normalize_fn=normalize_lower),
+    ColumnDef("enabled", format_fn=format_bool_yn, style_map=BOOL_STYLES),
+    ColumnDef("authentication_status", header="Auth Status"),
+    # wide-only
+    ColumnDef("config_cloud_snapshots", header="Cloud Snapshots", wide_only=True),
+    ColumnDef("description", wide_only=True),
+    ColumnDef("domain", wide_only=True),
+    ColumnDef("city", wide_only=True),
+    ColumnDef("country", wide_only=True),
+]
+
 SNAPSHOT_PROFILE_PERIOD_COLUMNS = [
     ColumnDef("$key", header="Key"),
     ColumnDef("name"),
