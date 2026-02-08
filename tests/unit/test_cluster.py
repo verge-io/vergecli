@@ -1,5 +1,7 @@
 """Tests for cluster commands."""
 
+from unittest.mock import MagicMock
+
 from verge_cli.cli import app
 
 
@@ -145,3 +147,100 @@ def test_cluster_delete_without_yes(cli_runner, mock_client, mock_cluster):
 
     assert result.exit_code == 0
     mock_client.clusters.delete.assert_not_called()
+
+
+# --- vsan-status tests ---
+
+
+def _make_mock_vsan_status(
+    cluster_name: str = "Cluster1",
+    health_status: str = "Healthy",
+    total_nodes: int = 4,
+    online_nodes: int = 4,
+    used_ram_gb: float = 115.2,
+    online_ram_gb: float = 256.0,
+    ram_used_percent: float = 45.0,
+    total_cores: int = 64,
+    online_cores: int = 64,
+    used_cores: int = 20,
+    core_used_percent: float = 31.3,
+    running_machines: int = 20,
+    tiers: list | None = None,
+) -> MagicMock:
+    """Create a mock VSANStatus object."""
+    status = MagicMock()
+    status.key = 1
+    status.cluster_name = cluster_name
+    status.health_status = health_status
+    status.total_nodes = total_nodes
+    status.online_nodes = online_nodes
+    status.used_ram_gb = used_ram_gb
+    status.online_ram_gb = online_ram_gb
+    status.ram_used_percent = ram_used_percent
+    status.total_cores = total_cores
+    status.online_cores = online_cores
+    status.used_cores = used_cores
+    status.core_used_percent = core_used_percent
+    status.running_machines = running_machines
+    status.tiers = tiers or []
+    return status
+
+
+def test_cluster_vsan_status(cli_runner, mock_client):
+    """vrg cluster vsan-status should show vSAN health."""
+    mock_status = _make_mock_vsan_status()
+    mock_client.clusters.vsan_status.return_value = [mock_status]
+
+    result = cli_runner.invoke(app, ["cluster", "vsan-status"])
+
+    assert result.exit_code == 0
+    assert "Healthy" in result.output
+    assert "Cluster1" in result.output
+    mock_client.clusters.vsan_status.assert_called_once()
+
+
+def test_cluster_vsan_status_with_name(cli_runner, mock_client):
+    """vrg cluster vsan-status --name should pass cluster name."""
+    mock_status = _make_mock_vsan_status()
+    mock_client.clusters.vsan_status.return_value = [mock_status]
+
+    result = cli_runner.invoke(app, ["cluster", "vsan-status", "--name", "Cluster1"])
+
+    assert result.exit_code == 0
+    call_kwargs = mock_client.clusters.vsan_status.call_args[1]
+    assert call_kwargs["cluster_name"] == "Cluster1"
+
+
+def test_cluster_vsan_status_with_tiers(cli_runner, mock_client):
+    """vrg cluster vsan-status --include-tiers should pass flag."""
+    mock_status = _make_mock_vsan_status(
+        tiers=[{"tier": 1, "status": "online", "used_percent": 60.0}],
+    )
+    mock_client.clusters.vsan_status.return_value = [mock_status]
+
+    result = cli_runner.invoke(app, ["cluster", "vsan-status", "--include-tiers"])
+
+    assert result.exit_code == 0
+    call_kwargs = mock_client.clusters.vsan_status.call_args[1]
+    assert call_kwargs["include_tiers"] is True
+
+
+def test_cluster_vsan_status_json(cli_runner, mock_client):
+    """vrg cluster vsan-status with JSON output."""
+    mock_status = _make_mock_vsan_status()
+    mock_client.clusters.vsan_status.return_value = [mock_status]
+
+    result = cli_runner.invoke(app, ["--output", "json", "cluster", "vsan-status"])
+
+    assert result.exit_code == 0
+    assert '"health_status": "Healthy"' in result.output
+
+
+def test_cluster_vsan_status_empty(cli_runner, mock_client):
+    """vrg cluster vsan-status should handle empty results."""
+    mock_client.clusters.vsan_status.return_value = []
+
+    result = cli_runner.invoke(app, ["cluster", "vsan-status"])
+
+    assert result.exit_code == 0
+    assert "No results" in result.output

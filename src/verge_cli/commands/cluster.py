@@ -6,7 +6,7 @@ from typing import Annotated, Any
 
 import typer
 
-from verge_cli.columns import CLUSTER_COLUMNS
+from verge_cli.columns import CLUSTER_COLUMNS, VSAN_STATUS_COLUMNS
 from verge_cli.context import get_context
 from verge_cli.errors import handle_errors
 from verge_cli.output import output_result, output_success
@@ -196,3 +196,57 @@ def cluster_delete(
 
     vctx.client.clusters.delete(key)
     output_success(f"Deleted cluster '{cluster_obj.name}'", quiet=vctx.quiet)
+
+
+def _vsan_status_to_dict(status: Any) -> dict[str, Any]:
+    """Convert a VSANStatus object to a dict for output."""
+    return {
+        "cluster_name": status.cluster_name,
+        "health_status": status.health_status,
+        "total_nodes": status.total_nodes,
+        "online_nodes": status.online_nodes,
+        "used_ram_gb": status.used_ram_gb,
+        "online_ram_gb": status.online_ram_gb,
+        "ram_used_percent": status.ram_used_percent,
+        "total_cores": status.total_cores,
+        "online_cores": status.online_cores,
+        "used_cores": status.used_cores,
+        "core_used_percent": status.core_used_percent,
+        "running_machines": status.running_machines,
+        "tiers": status.tiers,
+    }
+
+
+@app.command("vsan-status")
+@handle_errors()
+def cluster_vsan_status(
+    ctx: typer.Context,
+    name: Annotated[
+        str | None,
+        typer.Option("--name", "-n", help="Cluster name to query"),
+    ] = None,
+    include_tiers: Annotated[
+        bool,
+        typer.Option("--include-tiers", help="Include per-tier status"),
+    ] = False,
+) -> None:
+    """Show vSAN status for clusters."""
+    vctx = get_context(ctx)
+
+    kwargs: dict[str, Any] = {}
+    if name is not None:
+        kwargs["cluster_name"] = name
+    if include_tiers:
+        kwargs["include_tiers"] = True
+
+    statuses = vctx.client.clusters.vsan_status(**kwargs)
+    data = [_vsan_status_to_dict(s) for s in statuses]
+
+    output_result(
+        data,
+        output_format=vctx.output_format,
+        query=vctx.query,
+        columns=VSAN_STATUS_COLUMNS,
+        quiet=vctx.quiet,
+        no_color=vctx.no_color,
+    )

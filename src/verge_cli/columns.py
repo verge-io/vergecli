@@ -367,3 +367,28 @@ STORAGE_COLUMNS = [
     ColumnDef("write_ops", header="Write IOPS", wide_only=True),
     ColumnDef("key", wide_only=True),
 ]
+
+VSAN_STATUS_COLUMNS = [
+    ColumnDef("cluster_name", header="Cluster"),
+    ColumnDef(
+        "health_status",
+        header="Health",
+        style_map={
+            "Healthy": "green",
+            "Degraded": "yellow",
+            "Critical": "red bold",
+            "Offline": "red",
+        },
+    ),
+    ColumnDef("total_nodes", header="Nodes"),
+    ColumnDef("online_nodes", header="Online"),
+    ColumnDef("used_ram_gb", header="RAM Used GB"),
+    ColumnDef("online_ram_gb", header="RAM Total GB"),
+    ColumnDef("ram_used_percent", header="RAM %", style_fn=_percent_style),
+    # wide-only
+    ColumnDef("total_cores", header="Cores", wide_only=True),
+    ColumnDef("online_cores", header="Online Cores", wide_only=True),
+    ColumnDef("used_cores", header="Used Cores", wide_only=True),
+    ColumnDef("core_used_percent", header="Core %", wide_only=True, style_fn=_percent_style),
+    ColumnDef("running_machines", header="Running VMs", wide_only=True),
+]
