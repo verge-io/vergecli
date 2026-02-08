@@ -5,6 +5,7 @@
 **Scope:** `vrg nas service` commands for NAS service lifecycle and settings management
 **Depends on:** None (must be implemented first in Phase 4)
 **Blocks:** 4b (Volumes), 4c (Shares), 4d (Users), 4e (Syncs), 4f (Files)
+**Task Checklist:** Bottom of file — `tail -20` to check status
 
 ---
 
@@ -241,15 +242,15 @@ def _nfs_settings_to_dict(settings: Any) -> dict[str, Any]:
 | 17 | `test_set_nfs_settings` | Update squash, data-access, allowed-hosts |
 | 18 | `test_service_not_found` | Name resolution error (exit 6) |
 
-## Implementation Steps
+## Task Checklist
 
-1. Create `src/verge_cli/commands/nas.py` parent app
-2. Create `src/verge_cli/commands/nas_service.py` with all commands
-3. Register `nas` typer in `cli.py`
-4. Add `mock_nas_service` fixture to `conftest.py`
-5. Create `tests/unit/test_nas_service.py` with all tests
-6. Run `uv run ruff check` and `uv run mypy src/verge_cli`
-7. Run `uv run pytest tests/unit/test_nas_service.py -v`
+- [ ] Create `src/verge_cli/commands/nas.py` parent app
+- [ ] Create `src/verge_cli/commands/nas_service.py` with all commands
+- [ ] Register `nas` typer in `cli.py`
+- [ ] Add `mock_nas_service` fixture to `conftest.py`
+- [ ] Create `tests/unit/test_nas_service.py` with all tests
+- [ ] Run `uv run ruff check` and `uv run mypy src/verge_cli`
+- [ ] Run `uv run pytest tests/unit/test_nas_service.py -v`
 
 ## Notes
 

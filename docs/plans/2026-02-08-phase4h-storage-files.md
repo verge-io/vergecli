@@ -5,6 +5,7 @@
 **Scope:** `vrg file` commands for media catalog file management (ISO, disk images, OVA/OVF)
 **Depends on:** None (independent — not part of NAS subsystem)
 **Blocks:** None
+**Task Checklist:** Bottom of file — `tail -20` to check status
 
 ---
 
@@ -183,14 +184,14 @@ def _file_type_to_dict(type_key: str, type_desc: str) -> dict[str, str]:
 | 13 | `test_file_update` | Update metadata (name, description, tier) |
 | 14 | `test_file_types` | List supported file types, verify all 16 types in output |
 
-## Implementation Steps
+## Task Checklist
 
-1. Create `src/verge_cli/commands/file.py` with all 7 commands
-2. Register `file` typer in `src/verge_cli/cli.py`
-3. Create `tests/unit/test_file.py` with mock fixture and all 14 tests
-4. Run lint: `uv run ruff check src/verge_cli/commands/file.py tests/unit/test_file.py`
-5. Run type check: `uv run mypy src/verge_cli/commands/file.py`
-6. Run tests: `uv run pytest tests/unit/test_file.py -v`
+- [ ] Create `src/verge_cli/commands/file.py` with all 7 commands
+- [ ] Register `file` typer in `src/verge_cli/cli.py`
+- [ ] Create `tests/unit/test_file.py` with mock fixture and all 14 tests
+- [ ] Run lint: `uv run ruff check src/verge_cli/commands/file.py tests/unit/test_file.py`
+- [ ] Run type check: `uv run mypy src/verge_cli/commands/file.py`
+- [ ] Run tests: `uv run pytest tests/unit/test_file.py -v`
 
 ## Notes
 

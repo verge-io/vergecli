@@ -4,6 +4,7 @@
 **Status:** Draft
 **Scope:** `vrg site sync` sub-commands for managing site synchronization (outgoing and incoming)
 **Dependency:** Phase 3d (Sites) must be complete
+**Task Checklist:** Bottom of file — `tail -20` to check status
 
 ---
 
@@ -226,21 +227,20 @@ def _sync_to_dict(sync: Any) -> dict[str, Any]:
 | 6 | `test_incoming_enable` | Enable sync by name |
 | 7 | `test_incoming_disable` | Disable sync by name |
 
-## Implementation Steps
+## Task Checklist
 
 **Prerequisites:** Phase 3d (Sites) must be complete with `site.py` available.
 
-1. Add `SITE_SYNC_OUTGOING_COLUMNS` and `SITE_SYNC_INCOMING_COLUMNS` to `columns.py`
-2. Create `site_sync_outgoing.py` with all commands
-3. Create `site_sync_incoming.py` with all commands
-4. Create `site_sync.py` (registers outgoing/incoming sub-typers)
-5. Register `sync` sub-typer in `site.py`
-6. Create `test_site_sync_outgoing.py` with all tests
-7. Create `test_site_sync_incoming.py` with all tests
-8. Run `uv run ruff check` and `uv run mypy src/verge_cli`
-9. Run `uv run pytest tests/unit/test_site_sync_outgoing.py -v`
-10. Run `uv run pytest tests/unit/test_site_sync_incoming.py -v`
-11. Update PRD phase 3 checklist to mark Site Syncs done
+- [ ] Add `SITE_SYNC_OUTGOING_COLUMNS` and `SITE_SYNC_INCOMING_COLUMNS` to `columns.py`
+- [ ] Create `site_sync_outgoing.py` with all commands
+- [ ] Create `site_sync_incoming.py` with all commands
+- [ ] Create `site_sync.py` (registers outgoing/incoming sub-typers)
+- [ ] Register `sync` sub-typer in `site.py`
+- [ ] Create `test_site_sync_outgoing.py` with all tests
+- [ ] Create `test_site_sync_incoming.py` with all tests
+- [ ] Run `uv run ruff check` and `uv run mypy src/verge_cli`
+- [ ] Run `uv run pytest tests/unit/test_site_sync_outgoing.py -v`
+- [ ] Run `uv run pytest tests/unit/test_site_sync_incoming.py -v`
 
 ## SDK Reference
 

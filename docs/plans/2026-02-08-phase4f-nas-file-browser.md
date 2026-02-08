@@ -4,6 +4,7 @@
 **Status:** Draft
 **Scope:** `vrg nas files` commands for browsing NAS volume contents
 **Depends on:** Phase 4b (NAS Volumes)
+**Task Checklist:** Bottom of file — `tail -20` to check status
 
 ---
 
@@ -113,14 +114,14 @@ def _format_size(size_bytes: int) -> str:
 | 7 | `test_files_volume_not_found` | Volume resolution error (exit 6) |
 | 8 | `test_format_size` | Size formatting helper (B, KB, MB, GB, TB) |
 
-## Implementation Steps
+## Task Checklist
 
-1. Create `src/verge_cli/commands/nas_files.py` with all commands
-2. Register sub-typer in `nas.py`
-3. Add fixtures to `conftest.py`
-4. Create `tests/unit/test_nas_files.py` with all tests
-5. Run `uv run ruff check` and `uv run mypy src/verge_cli`
-6. Run `uv run pytest tests/unit/test_nas_files.py -v`
+- [ ] Create `src/verge_cli/commands/nas_files.py` with all commands
+- [ ] Register sub-typer in `nas.py`
+- [ ] Add fixtures to `conftest.py`
+- [ ] Create `tests/unit/test_nas_files.py` with all tests
+- [ ] Run `uv run ruff check` and `uv run mypy src/verge_cli`
+- [ ] Run `uv run pytest tests/unit/test_nas_files.py -v`
 
 ## Notes
 

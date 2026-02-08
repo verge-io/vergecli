@@ -3,6 +3,7 @@
 **Date:** 2026-02-08
 **Status:** Draft
 **Scope:** `vrg site` commands for multi-site management
+**Task Checklist:** Bottom of file — `tail -20` to check status
 
 ---
 
@@ -169,15 +170,14 @@ def _site_to_dict(site: Any) -> dict[str, Any]:
 | 13 | `test_site_reauth` | Re-authenticate with new credentials |
 | 14 | `test_site_refresh` | Refresh site connection |
 
-## Implementation Steps
+## Task Checklist
 
-1. Add `SITE_COLUMNS` to `columns.py`
-2. Create `site.py` with all commands
-3. Register top-level typer in `cli.py`
-4. Create `test_site.py` with all tests
-5. Run `uv run ruff check` and `uv run mypy src/verge_cli`
-6. Run `uv run pytest tests/unit/test_site.py -v`
-7. Update PRD phase 3 checklist to mark sites done
+- [ ] Add `SITE_COLUMNS` to `columns.py`
+- [ ] Create `site.py` with all commands
+- [ ] Register top-level typer in `cli.py`
+- [ ] Create `test_site.py` with all tests
+- [ ] Run `uv run ruff check` and `uv run mypy src/verge_cli`
+- [ ] Run `uv run pytest tests/unit/test_site.py -v`
 
 ## SDK Reference
 

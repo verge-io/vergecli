@@ -4,6 +4,7 @@
 **Status:** Draft
 **Scope:** `vrg nas sync` commands for volume synchronization job management
 **Depends on:** Phase 4b (NAS Volumes)
+**Task Checklist:** Bottom of file — `tail -20` to check status
 
 ---
 
@@ -164,14 +165,14 @@ def _sync_to_dict(sync: Any) -> dict[str, Any]:
 | 13 | `test_sync_stop` | Stop running sync |
 | 14 | `test_sync_not_found` | Name resolution error (exit 6) |
 
-## Implementation Steps
+## Task Checklist
 
-1. Create `src/verge_cli/commands/nas_sync.py` with all commands
-2. Register sub-typer in `nas.py`
-3. Add `mock_nas_sync` fixture to `conftest.py`
-4. Create `tests/unit/test_nas_sync.py` with all tests
-5. Run `uv run ruff check` and `uv run mypy src/verge_cli`
-6. Run `uv run pytest tests/unit/test_nas_sync.py -v`
+- [ ] Create `src/verge_cli/commands/nas_sync.py` with all commands
+- [ ] Register sub-typer in `nas.py`
+- [ ] Add `mock_nas_sync` fixture to `conftest.py`
+- [ ] Create `tests/unit/test_nas_sync.py` with all tests
+- [ ] Run `uv run ruff check` and `uv run mypy src/verge_cli`
+- [ ] Run `uv run pytest tests/unit/test_nas_sync.py -v`
 
 ## Notes
 

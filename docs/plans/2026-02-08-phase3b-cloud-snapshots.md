@@ -3,6 +3,7 @@
 **Date:** 2026-02-08
 **Status:** Draft
 **Scope:** `vrg snapshot` top-level commands for cloud snapshot management
+**Task Checklist:** Bottom of file — `tail -20` to check status
 
 ---
 
@@ -166,15 +167,14 @@ def _tenant_to_dict(tenant: Any) -> dict[str, Any]:
 | 13 | `test_snapshot_not_found` | Name resolution error (exit 6) |
 | 14 | `test_snapshot_create_retention_and_never_expire_error` | --retention + --never-expire mutual exclusion |
 
-## Implementation Steps
+## Task Checklist
 
-1. Add `CLOUD_SNAPSHOT_COLUMNS`, `CLOUD_SNAPSHOT_VM_COLUMNS`, `CLOUD_SNAPSHOT_TENANT_COLUMNS` to `columns.py`
-2. Create `snapshot.py` with all commands
-3. Register top-level typer in `cli.py`
-4. Create `test_snapshot.py` with all tests
-5. Run `uv run ruff check` and `uv run mypy src/verge_cli`
-6. Run `uv run pytest tests/unit/test_snapshot.py -v`
-7. Update PRD phase 3 checklist to mark cloud snapshots done
+- [ ] Add `CLOUD_SNAPSHOT_COLUMNS`, `CLOUD_SNAPSHOT_VM_COLUMNS`, `CLOUD_SNAPSHOT_TENANT_COLUMNS` to `columns.py`
+- [ ] Create `snapshot.py` with all commands
+- [ ] Register top-level typer in `cli.py`
+- [ ] Create `test_snapshot.py` with all tests
+- [ ] Run `uv run ruff check` and `uv run mypy src/verge_cli`
+- [ ] Run `uv run pytest tests/unit/test_snapshot.py -v`
 
 ## Notes
 
