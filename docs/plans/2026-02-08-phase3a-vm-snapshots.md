@@ -130,9 +130,9 @@ def _snapshot_to_dict(snap: Any) -> dict[str, Any]:
 
 ## Task Checklist
 
-- [ ] Add `VM_SNAPSHOT_COLUMNS` to `columns.py`
-- [ ] Create `vm_snapshot.py` with all commands
-- [ ] Register sub-typer in `vm.py`
-- [ ] Create `test_vm_snapshot.py` with all tests
-- [ ] Run `uv run ruff check` and `uv run mypy src/verge_cli`
-- [ ] Run `uv run pytest tests/unit/test_vm_snapshot.py -v`
+- [x] Add `VM_SNAPSHOT_COLUMNS` to `columns.py`
+- [x] Create `vm_snapshot.py` with all commands
+- [x] Register sub-typer in `vm.py`
+- [x] Create `test_vm_snapshot.py` with all tests
+- [x] Run `uv run ruff check` and `uv run mypy src/verge_cli`
+- [x] Run `uv run pytest tests/unit/test_vm_snapshot.py -v`
