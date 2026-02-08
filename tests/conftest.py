@@ -512,6 +512,31 @@ def mock_nfs_share() -> MagicMock:
 
 
 @pytest.fixture
+def mock_nas_user() -> MagicMock:
+    """Create a mock NAS user object."""
+    user = MagicMock()
+    user.key = "aabbccdd11223344556677889900aabbccdd1122"
+    user.name = "nasadmin"
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "$key": "aabbccdd11223344556677889900aabbccdd1122",
+            "name": "nasadmin",
+            "displayname": "NAS Admin",
+            "enabled": True,
+            "service_name": "nas01",
+            "status": "online",
+            "home_share_name": "AdminDocs",
+            "home_drive": "H",
+            "description": "NAS administrator account",
+        }
+        return data.get(key, default)
+
+    user.get = mock_get
+    return user
+
+
+@pytest.fixture
 def temp_config_dir(tmp_path: Path) -> Path:
     """Create a temporary config directory."""
     config_dir = tmp_path / ".vrg"
