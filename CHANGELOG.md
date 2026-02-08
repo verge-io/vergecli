@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Breaking:** JSON output key field renamed from `"key"` to `"$key"` across all resources. CSV header displays as `"Key"`.
+- `"Key"` column is now visible by default in table output (previously wide-only).
+- `vrg vm reset` and `vrg tenant reset` now require `--yes` to skip confirmation prompt.
+
+### Fixed
+- Added `"maintenance"` status style (renders yellow) for node maintenance state.
+- Consolidated duplicate percent-threshold style helpers into single `style_percent_threshold` function.
+- Removed duplicate `mock_tenant` test fixtures; consolidated to shared conftest fixture.
+- Guarded optional `hostname` kwarg in `ext_ip_create` to avoid passing `None` to SDK.
+
 ## [0.1.0] - 2026-02-04
 
 ### Added
