@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import time
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Protocol
@@ -13,6 +14,8 @@ from verge_cli.errors import MultipleMatchesError, ResourceNotFoundError, Timeou
 
 if TYPE_CHECKING:
     from pyvergeos import VergeClient
+
+_HEX_KEY_PATTERN = re.compile(r"^[0-9a-f]{40}$")
 
 
 class ResourceManager(Protocol):
@@ -79,6 +82,59 @@ def resolve_resource_id(
     # No name match found - if identifier is numeric, treat as key
     if identifier.isdigit():
         return int(identifier)
+
+    raise ResourceNotFoundError(f"{resource_type} '{identifier}' not found")
+
+
+def resolve_nas_resource(
+    manager: Any,
+    identifier: str,
+    resource_type: str = "resource",
+) -> str:
+    """Resolve a name or hex key to a NAS resource key.
+
+    NAS resources (volumes, shares, users, syncs) use 40-character
+    hex string keys instead of integer keys.
+
+    Args:
+        manager: pyvergeos NAS resource manager.
+        identifier: Either a 40-char hex key or a resource name.
+        resource_type: Type name for error messages.
+
+    Returns:
+        Resource key (str, 40-char hex).
+
+    Raises:
+        ResourceNotFoundError: No resource matches.
+        MultipleMatchesError: Multiple resources match name.
+    """
+    # If it looks like a hex key, use it directly
+    if _HEX_KEY_PATTERN.match(identifier):
+        return identifier
+
+    # Search by name
+    try:
+        resources = manager.list()
+    except Exception as e:
+        raise ResourceNotFoundError(f"Failed to list {resource_type}s: {e}") from e
+
+    matches = []
+    for resource in resources:
+        if isinstance(resource, dict):
+            name = resource.get("name", "")
+            key = resource.get("$key", resource.get("key"))
+        else:
+            name = getattr(resource, "name", "")
+            key = getattr(resource, "key", getattr(resource, "$key", None))
+
+        if name == identifier:
+            matches.append({"name": name, "$key": key})
+
+    if len(matches) == 1:
+        return str(matches[0]["$key"])
+
+    if len(matches) > 1:
+        raise MultipleMatchesError(resource_type, identifier, matches)
 
     raise ResourceNotFoundError(f"{resource_type} '{identifier}' not found")
 
