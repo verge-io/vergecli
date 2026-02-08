@@ -234,6 +234,12 @@ def mock_cluster() -> MagicMock:
     cluster = MagicMock()
     cluster.key = 1
     cluster.name = "Cluster1"
+    # SDK computed properties (not available via .get())
+    cluster.status = "online"
+    cluster.total_ram_gb = 256
+    cluster.ram_used_percent = 45.2
+    cluster.is_compute = True
+    cluster.is_storage = True
 
     def mock_get(key: str, default: Any = None) -> Any:
         data = {
