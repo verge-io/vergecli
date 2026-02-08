@@ -565,6 +565,41 @@ SITE_SYNC_OUTGOING_COLUMNS = [
     ColumnDef("description", wide_only=True),
 ]
 
+NAS_SERVICE_COLUMNS = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("name"),
+    ColumnDef(
+        "vm_running",
+        header="Running",
+        format_fn=format_bool_yn,
+        style_map={"Yes": "green", "No": "red"},
+    ),
+    ColumnDef("volume_count", header="Volumes"),
+    ColumnDef("vm_cores", header="Cores", wide_only=True),
+    ColumnDef("vm_ram", header="RAM (MB)", wide_only=True),
+    ColumnDef("max_imports", header="Max Imports", wide_only=True),
+    ColumnDef("max_syncs", header="Max Syncs", wide_only=True),
+]
+
+CIFS_SETTINGS_COLUMNS = [
+    ColumnDef("workgroup"),
+    ColumnDef("server_type", header="Server Type"),
+    ColumnDef("server_min_protocol", header="Min Protocol"),
+    ColumnDef("map_to_guest", header="Guest Mapping"),
+    ColumnDef("extended_acl_support", header="Extended ACL", format_fn=format_bool_yn),
+    ColumnDef("ad_status", header="AD Status", wide_only=True),
+]
+
+NFS_SETTINGS_COLUMNS = [
+    ColumnDef("enable_nfsv4", header="NFSv4", format_fn=format_bool_yn),
+    ColumnDef("allow_all", header="Allow All", format_fn=format_bool_yn),
+    ColumnDef("allowed_hosts", header="Allowed Hosts"),
+    ColumnDef("squash"),
+    ColumnDef("data_access", header="Access"),
+    ColumnDef("anonuid", header="Anon UID", wide_only=True),
+    ColumnDef("anongid", header="Anon GID", wide_only=True),
+]
+
 SITE_SYNC_INCOMING_COLUMNS = [
     ColumnDef("$key", header="Key"),
     ColumnDef("name"),
