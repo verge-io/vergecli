@@ -253,6 +253,17 @@ def mock_tenant() -> MagicMock:
         return data.get(key, default)
 
     tenant.get = mock_get
+
+    # Sub-manager placeholders for tenant sub-resource tests
+    tenant.nodes = MagicMock()
+    tenant.storage = MagicMock()
+    tenant.network_blocks = MagicMock()
+    tenant.external_ips = MagicMock()
+    tenant.l2_networks = MagicMock()
+    tenant.snapshots = MagicMock()
+    tenant.stats = MagicMock()
+    tenant.logs = MagicMock()
+
     return tenant
 
 

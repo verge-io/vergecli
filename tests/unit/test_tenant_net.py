@@ -2,31 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
 
 from verge_cli.cli import app
-
-
-@pytest.fixture
-def mock_tenant() -> MagicMock:
-    """Create a mock Tenant object."""
-    tenant = MagicMock()
-    tenant.key = 5
-    tenant.name = "acme-corp"
-
-    def mock_get(key: str, default: Any = None) -> Any:
-        data = {
-            "description": "Acme Corp Tenant",
-            "status": "online",
-            "state": "running",
-        }
-        return data.get(key, default)
-
-    tenant.get = mock_get
-    return tenant
 
 
 # --- Network Block fixtures ---
