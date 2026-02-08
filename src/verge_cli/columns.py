@@ -548,3 +548,32 @@ SNAPSHOT_PROFILE_PERIOD_COLUMNS = [
         wide_only=True,
     ),
 ]
+
+SITE_SYNC_OUTGOING_COLUMNS = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("name"),
+    ColumnDef("site"),
+    ColumnDef("status", style_map=STATUS_STYLES, normalize_fn=normalize_lower),
+    ColumnDef("enabled", format_fn=format_bool_yn, style_map=BOOL_STYLES),
+    ColumnDef("state"),
+    # wide-only
+    ColumnDef("encryption", format_fn=format_bool_yn, style_map=BOOL_STYLES, wide_only=True),
+    ColumnDef("compression", format_fn=format_bool_yn, style_map=BOOL_STYLES, wide_only=True),
+    ColumnDef("threads", wide_only=True),
+    ColumnDef("last_run", format_fn=format_epoch, wide_only=True),
+    ColumnDef("destination_tier", header="Dest Tier", wide_only=True),
+    ColumnDef("description", wide_only=True),
+]
+
+SITE_SYNC_INCOMING_COLUMNS = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("name"),
+    ColumnDef("site"),
+    ColumnDef("status", style_map=STATUS_STYLES, normalize_fn=normalize_lower),
+    ColumnDef("enabled", format_fn=format_bool_yn, style_map=BOOL_STYLES),
+    ColumnDef("state"),
+    # wide-only
+    ColumnDef("last_sync", format_fn=format_epoch, wide_only=True),
+    ColumnDef("min_snapshots", header="Min Snapshots", wide_only=True),
+    ColumnDef("description", wide_only=True),
+]

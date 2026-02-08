@@ -231,16 +231,16 @@ def _sync_to_dict(sync: Any) -> dict[str, Any]:
 
 **Prerequisites:** Phase 3d (Sites) must be complete with `site.py` available.
 
-- [ ] Add `SITE_SYNC_OUTGOING_COLUMNS` and `SITE_SYNC_INCOMING_COLUMNS` to `columns.py`
-- [ ] Create `site_sync_outgoing.py` with all commands
-- [ ] Create `site_sync_incoming.py` with all commands
-- [ ] Create `site_sync.py` (registers outgoing/incoming sub-typers)
-- [ ] Register `sync` sub-typer in `site.py`
-- [ ] Create `test_site_sync_outgoing.py` with all tests
-- [ ] Create `test_site_sync_incoming.py` with all tests
-- [ ] Run `uv run ruff check` and `uv run mypy src/verge_cli`
-- [ ] Run `uv run pytest tests/unit/test_site_sync_outgoing.py -v`
-- [ ] Run `uv run pytest tests/unit/test_site_sync_incoming.py -v`
+- [x] Add `SITE_SYNC_OUTGOING_COLUMNS` and `SITE_SYNC_INCOMING_COLUMNS` to `columns.py`
+- [x] Create `site_sync_outgoing.py` with all commands
+- [x] Create `site_sync_incoming.py` with all commands
+- [x] Create `site_sync.py` (registers outgoing/incoming sub-typers)
+- [x] Register `sync` sub-typer in `site.py`
+- [x] Create `test_site_sync_outgoing.py` with all tests
+- [x] Create `test_site_sync_incoming.py` with all tests
+- [x] Run `uv run ruff check` and `uv run mypy src/verge_cli`
+- [x] Run `uv run pytest tests/unit/test_site_sync_outgoing.py -v`
+- [x] Run `uv run pytest tests/unit/test_site_sync_incoming.py -v`
 
 ## SDK Reference
 
