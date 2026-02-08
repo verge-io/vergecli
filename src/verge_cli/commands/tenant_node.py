@@ -9,8 +9,8 @@ import typer
 from verge_cli.columns import TENANT_NODE_COLUMNS
 from verge_cli.context import get_context
 from verge_cli.errors import handle_errors
-from verge_cli.output import output_result
-from verge_cli.utils import resolve_resource_id
+from verge_cli.output import output_result, output_success
+from verge_cli.utils import confirm_action, resolve_resource_id
 
 app = typer.Typer(
     name="node",
@@ -99,3 +99,109 @@ def tenant_node_get(
         quiet=vctx.quiet,
         no_color=vctx.no_color,
     )
+
+
+@app.command("create")
+@handle_errors()
+def tenant_node_create(
+    ctx: typer.Context,
+    tenant: Annotated[str, typer.Argument(help="Tenant name or key")],
+    cpu_cores: Annotated[int, typer.Option("--cpu-cores", help="Number of CPU cores")],
+    ram_gb: Annotated[int, typer.Option("--ram-gb", help="RAM in GB")],
+    cluster: Annotated[int | None, typer.Option("--cluster", help="Cluster key")] = None,
+    name: Annotated[str | None, typer.Option("--name", "-n", help="Node name")] = None,
+    preferred_node: Annotated[
+        int | None, typer.Option("--preferred-node", help="Preferred host node key")
+    ] = None,
+) -> None:
+    """Allocate a compute node to a tenant."""
+    vctx, tenant_obj = _get_tenant(ctx, tenant)
+
+    create_kwargs: dict[str, Any] = {
+        "cpu_cores": cpu_cores,
+        "ram_gb": ram_gb,
+    }
+    if cluster is not None:
+        create_kwargs["cluster"] = cluster
+    if name is not None:
+        create_kwargs["name"] = name
+    if preferred_node is not None:
+        create_kwargs["preferred_node"] = preferred_node
+
+    node_obj = tenant_obj.nodes.create(**create_kwargs)
+
+    output_success(
+        f"Created tenant node '{node_obj.name}' (key: {node_obj.key})",
+        quiet=vctx.quiet,
+    )
+    output_result(
+        _tenant_node_to_dict(node_obj),
+        output_format=vctx.output_format,
+        query=vctx.query,
+        quiet=vctx.quiet,
+        no_color=vctx.no_color,
+    )
+
+
+@app.command("update")
+@handle_errors()
+def tenant_node_update(
+    ctx: typer.Context,
+    tenant: Annotated[str, typer.Argument(help="Tenant name or key")],
+    node: Annotated[str, typer.Argument(help="Node name or key")],
+    cpu_cores: Annotated[
+        int | None, typer.Option("--cpu-cores", help="Number of CPU cores")
+    ] = None,
+    ram_gb: Annotated[int | None, typer.Option("--ram-gb", help="RAM in GB")] = None,
+    name: Annotated[str | None, typer.Option("--name", "-n", help="New name")] = None,
+    enabled: Annotated[
+        bool | None, typer.Option("--enabled/--disabled", help="Enable/disable node")
+    ] = None,
+) -> None:
+    """Update a tenant compute node."""
+    vctx, tenant_obj = _get_tenant(ctx, tenant)
+    node_key = _resolve_tenant_node(tenant_obj, node)
+
+    updates: dict[str, Any] = {}
+    if cpu_cores is not None:
+        updates["cpu_cores"] = cpu_cores
+    if ram_gb is not None:
+        updates["ram"] = ram_gb * 1024  # SDK update accepts ram in MB
+    if name is not None:
+        updates["name"] = name
+    if enabled is not None:
+        updates["enabled"] = enabled
+
+    if not updates:
+        typer.echo("No updates specified.", err=True)
+        raise typer.Exit(2)
+
+    node_obj = tenant_obj.nodes.update(node_key, **updates)
+    output_success(f"Updated tenant node '{node_obj.name}'", quiet=vctx.quiet)
+    output_result(
+        _tenant_node_to_dict(node_obj),
+        output_format=vctx.output_format,
+        query=vctx.query,
+        quiet=vctx.quiet,
+        no_color=vctx.no_color,
+    )
+
+
+@app.command("delete")
+@handle_errors()
+def tenant_node_delete(
+    ctx: typer.Context,
+    tenant: Annotated[str, typer.Argument(help="Tenant name or key")],
+    node: Annotated[str, typer.Argument(help="Node name or key")],
+    yes: Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation")] = False,
+) -> None:
+    """Remove a compute node from a tenant."""
+    vctx, tenant_obj = _get_tenant(ctx, tenant)
+    node_key = _resolve_tenant_node(tenant_obj, node)
+
+    if not confirm_action(f"Delete tenant node '{node}'?", yes=yes):
+        typer.echo("Cancelled.")
+        raise typer.Exit(0)
+
+    tenant_obj.nodes.delete(node_key)
+    output_success(f"Deleted tenant node '{node}'", quiet=vctx.quiet)
