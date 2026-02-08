@@ -41,6 +41,7 @@ vrg vm list
 
 - **VM Lifecycle** — create, start, stop, restart, reset, update, and delete virtual machines
 - **VM Sub-Resources** — manage drives, NICs, and TPM devices on VMs
+- **VM Snapshots** — create, restore, and manage per-VM snapshots
 - **Network Management** — create and manage internal/external networks with DHCP
 - **Firewall Rules** — create, enable, disable, and delete network firewall rules
 - **DNS** — manage DNS views, zones, and records (A, CNAME, MX, TXT, etc.)
@@ -50,6 +51,11 @@ vrg vm list
 - **Tenant Management** — full tenant lifecycle with nodes, storage, network blocks, snapshots, and stats
 - **Clusters & Nodes** — view cluster and node inventory
 - **Storage Tiers** — inspect storage tier capacity and usage
+- **Cloud Snapshots** — create and manage cloud-level snapshots with snapshot profiles and periods
+- **Sites & Site Syncs** — manage remote sites and outgoing/incoming sync jobs
+- **NAS** — services, volumes, volume snapshots, CIFS/NFS shares, local users, sync jobs, and file browsing
+- **Media Catalog** — upload, download, and manage ISO images, disk files, and OVA/OVF packages
+- **VM Recipes** — create, deploy, and manage VM recipes with sections, questions, instances, and logs
 - **Configuration Profiles** — multiple environments with named profiles
 - **Multiple Auth Methods** — bearer token, API key, or username/password
 - **VM Templates** — declarative YAML templates with variables, dry-run, and batch provisioning
@@ -64,6 +70,7 @@ vrg vm list
 | `vrg vm drive` | `list`, `get`, `create`, `update`, `delete`, `import` |
 | `vrg vm nic` | `list`, `get`, `create`, `update`, `delete` |
 | `vrg vm device` | `list`, `get`, `create`, `delete` |
+| `vrg vm snapshot` | `list`, `get`, `create`, `delete`, `restore` |
 | `vrg network` | `list`, `get`, `create`, `update`, `delete`, `start`, `stop`, `restart`, `status`, `apply-rules`, `apply-dns` |
 | `vrg network rule` | `list`, `get`, `create`, `update`, `delete`, `enable`, `disable` |
 | `vrg network dns view` | `list`, `get`, `create`, `update`, `delete` |
@@ -84,6 +91,26 @@ vrg vm list
 | `vrg cluster` | `list`, `get` |
 | `vrg node` | `list`, `get` |
 | `vrg storage` | `list`, `get` |
+| `vrg snapshot` | `list`, `get`, `create`, `delete`, `vms`, `tenants` |
+| `vrg snapshot profile` | `list`, `get`, `create`, `update`, `delete` |
+| `vrg snapshot profile period` | `list`, `get`, `create`, `update`, `delete` |
+| `vrg site` | `list`, `get`, `create`, `update`, `delete`, `enable`, `disable`, `reauth`, `refresh` |
+| `vrg site sync outgoing` | `list`, `get`, `enable`, `disable` |
+| `vrg site sync incoming` | `list`, `get`, `enable`, `disable` |
+| `vrg nas service` | `list`, `get`, `create`, `update`, `delete`, `power-on`, `power-off`, `restart` |
+| `vrg nas volume` | `list`, `get`, `create`, `update`, `delete`, `enable`, `disable`, `reset` |
+| `vrg nas volume snapshot` | `list`, `get`, `create`, `delete` |
+| `vrg nas cifs` | `list`, `get`, `create`, `update`, `delete`, `enable`, `disable` |
+| `vrg nas nfs` | `list`, `get`, `create`, `update`, `delete`, `enable`, `disable` |
+| `vrg nas user` | `list`, `get`, `create`, `update`, `delete`, `enable`, `disable` |
+| `vrg nas sync` | `list`, `get`, `create`, `update`, `delete`, `enable`, `disable`, `start`, `stop` |
+| `vrg nas files` | `list`, `get` |
+| `vrg file` | `list`, `get`, `upload`, `download`, `update`, `delete`, `types` |
+| `vrg recipe` | `list`, `get`, `create`, `update`, `delete`, `deploy` |
+| `vrg recipe instance` | `list`, `get`, `delete` |
+| `vrg recipe section` | `list`, `get`, `create`, `update`, `delete` |
+| `vrg recipe question` | `list`, `get`, `create`, `update`, `delete` |
+| `vrg recipe log` | `list`, `get` |
 | `vrg system` | `info`, `version` |
 | `vrg configure` | `setup`, `show`, `list` |
 | `vrg completion` | `show` |
