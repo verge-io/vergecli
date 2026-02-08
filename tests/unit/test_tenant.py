@@ -325,12 +325,12 @@ def test_tenant_restart_not_running(cli_runner, mock_client, mock_tenant):
 
 
 def test_tenant_reset(cli_runner, mock_client, mock_tenant):
-    """vrg tenant reset should hard reset a running tenant."""
+    """vrg tenant reset --yes should hard reset a running tenant."""
     mock_tenant.is_running = True
     mock_client.tenants.list.return_value = [mock_tenant]
     mock_client.tenants.get.return_value = mock_tenant
 
-    result = cli_runner.invoke(app, ["tenant", "reset", "acme-corp"])
+    result = cli_runner.invoke(app, ["tenant", "reset", "acme-corp", "--yes"])
 
     assert result.exit_code == 0
     mock_client.tenants.reset.assert_called_once_with(5)
@@ -342,9 +342,21 @@ def test_tenant_reset_not_running(cli_runner, mock_client, mock_tenant):
     mock_client.tenants.list.return_value = [mock_tenant]
     mock_client.tenants.get.return_value = mock_tenant
 
-    result = cli_runner.invoke(app, ["tenant", "reset", "acme-corp"])
+    result = cli_runner.invoke(app, ["tenant", "reset", "acme-corp", "--yes"])
 
     assert result.exit_code == 1
+    mock_client.tenants.reset.assert_not_called()
+
+
+def test_tenant_reset_cancelled(cli_runner, mock_client, mock_tenant):
+    """vrg tenant reset without --yes should prompt and cancel on 'n'."""
+    mock_tenant.is_running = True
+    mock_client.tenants.list.return_value = [mock_tenant]
+    mock_client.tenants.get.return_value = mock_tenant
+
+    result = cli_runner.invoke(app, ["tenant", "reset", "acme-corp"], input="n\n")
+
+    assert result.exit_code == 0
     mock_client.tenants.reset.assert_not_called()
 
 
