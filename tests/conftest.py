@@ -587,6 +587,110 @@ def mock_nas_dir() -> dict[str, Any]:
 
 
 @pytest.fixture
+def mock_recipe() -> MagicMock:
+    """Create a mock VmRecipe object."""
+    recipe = MagicMock()
+    recipe.key = "8f73f8bcc9c9f1aaba32f733bfc295acaf548554"
+    recipe.name = "Ubuntu Server 22.04"
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "$key": "8f73f8bcc9c9f1aaba32f733bfc295acaf548554",
+            "name": "Ubuntu Server 22.04",
+            "description": "Ubuntu Server LTS recipe",
+            "enabled": True,
+            "notes": "Standard server template",
+        }
+        return data.get(key, default)
+
+    recipe.get = mock_get
+    return recipe
+
+
+@pytest.fixture
+def mock_recipe_section() -> MagicMock:
+    """Create a mock RecipeSection object."""
+    section = MagicMock()
+    section.key = 100
+    section.name = "Virtual Machine"
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "$key": 100,
+            "name": "Virtual Machine",
+            "description": "Core VM settings",
+            "orderid": 1,
+        }
+        return data.get(key, default)
+
+    section.get = mock_get
+    return section
+
+
+@pytest.fixture
+def mock_recipe_question() -> MagicMock:
+    """Create a mock RecipeQuestion object."""
+    question = MagicMock()
+    question.key = 200
+    question.name = "YB_CPU_CORES"
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "$key": 200,
+            "name": "YB_CPU_CORES",
+            "display": "CPU Cores",
+            "type": "num",
+            "required": True,
+            "default": "2",
+            "hint": "Number of CPU cores",
+        }
+        return data.get(key, default)
+
+    question.get = mock_get
+    return question
+
+
+@pytest.fixture
+def mock_recipe_instance() -> MagicMock:
+    """Create a mock VmRecipeInstance object."""
+    inst = MagicMock()
+    inst.key = 50
+    inst.name = "my-ubuntu"
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "$key": 50,
+            "name": "my-ubuntu",
+            "recipe_name": "Ubuntu Server 22.04",
+            "auto_update": False,
+        }
+        return data.get(key, default)
+
+    inst.get = mock_get
+    return inst
+
+
+@pytest.fixture
+def mock_recipe_log() -> MagicMock:
+    """Create a mock VmRecipeLog object."""
+    log = MagicMock()
+    log.key = 300
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "$key": 300,
+            "level": "message",
+            "text": "Recipe deployed successfully",
+            "timestamp": 1707350400000000,
+            "user": "admin",
+        }
+        return data.get(key, default)
+
+    log.get = mock_get
+    return log
+
+
+@pytest.fixture
 def temp_config_dir(tmp_path: Path) -> Path:
     """Create a temporary config directory."""
     config_dir = tmp_path / ".vrg"

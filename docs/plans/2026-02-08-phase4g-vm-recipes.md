@@ -367,16 +367,16 @@ def _log_to_dict(log: Any) -> dict[str, Any]:
 
 ## Task Checklist
 
-- [ ] Create `src/verge_cli/commands/recipe.py` with recipe commands + deploy
-- [ ] Create `src/verge_cli/commands/recipe_section.py` with section commands
-- [ ] Create `src/verge_cli/commands/recipe_question.py` with question commands
-- [ ] Create `src/verge_cli/commands/recipe_instance.py` with instance commands
-- [ ] Create `src/verge_cli/commands/recipe_log.py` with log commands
-- [ ] Register `recipe` typer in `cli.py` with section/question/instance/log sub-typers
-- [ ] Add fixtures to `conftest.py`
-- [ ] Create all 5 test files
-- [ ] Run `uv run ruff check` and `uv run mypy src/verge_cli`
-- [ ] Run `uv run pytest tests/unit/test_recipe*.py -v`
+- [x] Create `src/verge_cli/commands/recipe.py` with recipe commands + deploy
+- [x] Create `src/verge_cli/commands/recipe_section.py` with section commands
+- [x] Create `src/verge_cli/commands/recipe_question.py` with question commands
+- [x] Create `src/verge_cli/commands/recipe_instance.py` with instance commands
+- [x] Create `src/verge_cli/commands/recipe_log.py` with log commands
+- [x] Register `recipe` typer in `cli.py` with section/question/instance/log sub-typers
+- [x] Add fixtures to `conftest.py`
+- [x] Create all 5 test files
+- [x] Run `uv run ruff check` and `uv run mypy src/verge_cli`
+- [x] Run `uv run pytest tests/unit/test_recipe*.py -v`
 
 ## Notes
 
