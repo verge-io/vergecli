@@ -8,7 +8,7 @@ import click
 import typer
 
 from verge_cli import __version__
-from verge_cli.commands import cluster, configure, network, node, storage, system, vm
+from verge_cli.commands import cluster, configure, network, node, storage, system, tenant, vm
 from verge_cli.config import get_effective_config
 
 app = typer.Typer(
@@ -24,6 +24,7 @@ app.add_typer(network.app, name="network")
 app.add_typer(node.app, name="node")
 app.add_typer(storage.app, name="storage")
 app.add_typer(system.app, name="system")
+app.add_typer(tenant.app, name="tenant")
 app.add_typer(vm.app, name="vm")
 
 
