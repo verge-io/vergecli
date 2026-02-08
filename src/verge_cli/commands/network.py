@@ -383,7 +383,7 @@ def network_status(
 
     status_data = {
         "name": net_obj.name,
-        "key": net_obj.key,
+        "$key": net_obj.key,
         "running": net_obj.get("running", False),
         "status": net_obj.get("status", "unknown"),
         "needs_restart": net_obj.get("need_restart", False),
