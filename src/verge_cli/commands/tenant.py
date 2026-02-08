@@ -346,3 +346,95 @@ def tenant_reset(
 
     vctx.client.tenants.reset(key)
     output_success(f"Reset tenant '{tenant_obj.name}'", quiet=vctx.quiet)
+
+
+@app.command("clone")
+@handle_errors()
+def tenant_clone(
+    ctx: typer.Context,
+    tenant: Annotated[str, typer.Argument(help="Tenant name or key to clone")],
+    name: Annotated[
+        str | None,
+        typer.Option("--name", "-n", help="Name for the cloned tenant"),
+    ] = None,
+    no_network: Annotated[
+        bool,
+        typer.Option("--no-network", help="Skip cloning network configuration"),
+    ] = False,
+    no_storage: Annotated[
+        bool,
+        typer.Option("--no-storage", help="Skip cloning storage allocations"),
+    ] = False,
+    no_nodes: Annotated[
+        bool,
+        typer.Option("--no-nodes", help="Skip cloning node allocations"),
+    ] = False,
+) -> None:
+    """Clone a tenant."""
+    vctx = get_context(ctx)
+    key = resolve_resource_id(vctx.client.tenants, tenant, "Tenant")
+
+    kwargs: dict[str, Any] = {}
+    if name is not None:
+        kwargs["name"] = name
+    if no_network:
+        kwargs["no_network"] = True
+    if no_storage:
+        kwargs["no_storage"] = True
+    if no_nodes:
+        kwargs["no_nodes"] = True
+
+    result: Any = vctx.client.tenants.clone(key, **kwargs)
+
+    if result and hasattr(result, "name"):
+        output_success(
+            f"Cloned tenant to '{result.name}' (key: {result.key})",
+            quiet=vctx.quiet,
+        )
+        output_result(
+            _tenant_to_dict(result),
+            output_format=vctx.output_format,
+            query=vctx.query,
+            quiet=vctx.quiet,
+            no_color=vctx.no_color,
+        )
+    else:
+        output_success("Clone operation submitted", quiet=vctx.quiet)
+        if result:
+            output_result(
+                result,
+                output_format=vctx.output_format,
+                query=vctx.query,
+                quiet=vctx.quiet,
+                no_color=vctx.no_color,
+            )
+
+
+@app.command("isolate")
+@handle_errors()
+def tenant_isolate(
+    ctx: typer.Context,
+    tenant: Annotated[str, typer.Argument(help="Tenant name or key")],
+    enable: Annotated[
+        bool,
+        typer.Option("--enable", help="Enable network isolation"),
+    ] = False,
+    disable: Annotated[
+        bool,
+        typer.Option("--disable", help="Disable network isolation"),
+    ] = False,
+) -> None:
+    """Enable or disable network isolation for a tenant."""
+    if enable == disable:
+        typer.echo("Error: Specify either --enable or --disable.", err=True)
+        raise typer.Exit(2)
+
+    vctx = get_context(ctx)
+    key = resolve_resource_id(vctx.client.tenants, tenant, "Tenant")
+
+    if enable:
+        vctx.client.tenants.enable_isolation(key)
+        output_success("Isolation enabled", quiet=vctx.quiet)
+    else:
+        vctx.client.tenants.disable_isolation(key)
+        output_success("Isolation disabled", quiet=vctx.quiet)

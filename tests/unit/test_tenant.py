@@ -1,5 +1,7 @@
 """Tests for tenant commands."""
 
+from unittest.mock import MagicMock
+
 from verge_cli.cli import app
 
 
@@ -344,3 +346,126 @@ def test_tenant_reset_not_running(cli_runner, mock_client, mock_tenant):
 
     assert result.exit_code == 1
     mock_client.tenants.reset.assert_not_called()
+
+
+# ---------------------------------------------------------------------------
+# clone / isolate
+# ---------------------------------------------------------------------------
+
+
+def _make_cloned_tenant(key: int = 10, name: str = "acme-corp-clone") -> MagicMock:
+    """Helper to create a cloned tenant mock."""
+    cloned = MagicMock()
+    cloned.key = key
+    cloned.name = name
+    cloned.status = "stopped"
+    cloned.is_running = False
+
+    def cloned_get(k: str, default=None):  # type: ignore[no-untyped-def]
+        data = {
+            "description": "",
+            "state": "inactive",
+            "is_isolated": False,
+            "network_name": "",
+            "ui_address_ip": "",
+            "uuid": "660e8400-e29b-41d4-a716-446655440001",
+            "url": "",
+            "note": "",
+            "expose_cloud_snapshots": False,
+            "allow_branding": False,
+        }
+        return data.get(k, default)
+
+    cloned.get = cloned_get
+    return cloned
+
+
+def test_tenant_clone(cli_runner, mock_client, mock_tenant):
+    """vrg tenant clone should clone a tenant."""
+    cloned = _make_cloned_tenant()
+    mock_client.tenants.list.return_value = [mock_tenant]
+    mock_client.tenants.clone.return_value = cloned
+
+    result = cli_runner.invoke(app, ["tenant", "clone", "acme-corp"])
+
+    assert result.exit_code == 0
+    assert "acme-corp-clone" in result.output
+    mock_client.tenants.clone.assert_called_once()
+    call_args = mock_client.tenants.clone.call_args
+    assert call_args[0][0] == 5  # key
+
+
+def test_tenant_clone_with_name(cli_runner, mock_client, mock_tenant):
+    """vrg tenant clone --name should pass new name to SDK."""
+    cloned = _make_cloned_tenant(name="new-tenant")
+    mock_client.tenants.list.return_value = [mock_tenant]
+    mock_client.tenants.clone.return_value = cloned
+
+    result = cli_runner.invoke(app, ["tenant", "clone", "acme-corp", "--name", "new-tenant"])
+
+    assert result.exit_code == 0
+    call_kwargs = mock_client.tenants.clone.call_args[1]
+    assert call_kwargs["name"] == "new-tenant"
+
+
+def test_tenant_clone_skip_flags(cli_runner, mock_client, mock_tenant):
+    """vrg tenant clone should pass --no-network, --no-storage, --no-nodes."""
+    cloned = _make_cloned_tenant(name="clone")
+    mock_client.tenants.list.return_value = [mock_tenant]
+    mock_client.tenants.clone.return_value = cloned
+
+    result = cli_runner.invoke(
+        app,
+        [
+            "tenant",
+            "clone",
+            "acme-corp",
+            "--no-network",
+            "--no-storage",
+            "--no-nodes",
+        ],
+    )
+
+    assert result.exit_code == 0
+    call_kwargs = mock_client.tenants.clone.call_args[1]
+    assert call_kwargs["no_network"] is True
+    assert call_kwargs["no_storage"] is True
+    assert call_kwargs["no_nodes"] is True
+
+
+def test_tenant_isolate_enable(cli_runner, mock_client, mock_tenant):
+    """vrg tenant isolate --enable should enable isolation."""
+    mock_client.tenants.list.return_value = [mock_tenant]
+
+    result = cli_runner.invoke(app, ["tenant", "isolate", "acme-corp", "--enable"])
+
+    assert result.exit_code == 0
+    mock_client.tenants.enable_isolation.assert_called_once_with(5)
+
+
+def test_tenant_isolate_disable(cli_runner, mock_client, mock_tenant):
+    """vrg tenant isolate --disable should disable isolation."""
+    mock_client.tenants.list.return_value = [mock_tenant]
+
+    result = cli_runner.invoke(app, ["tenant", "isolate", "acme-corp", "--disable"])
+
+    assert result.exit_code == 0
+    mock_client.tenants.disable_isolation.assert_called_once_with(5)
+
+
+def test_tenant_isolate_no_flag(cli_runner, mock_client, mock_tenant):
+    """vrg tenant isolate without --enable or --disable should fail."""
+    mock_client.tenants.list.return_value = [mock_tenant]
+
+    result = cli_runner.invoke(app, ["tenant", "isolate", "acme-corp"])
+
+    assert result.exit_code == 2
+
+
+def test_tenant_isolate_both_flags(cli_runner, mock_client, mock_tenant):
+    """vrg tenant isolate with both --enable and --disable should fail."""
+    mock_client.tenants.list.return_value = [mock_tenant]
+
+    result = cli_runner.invoke(app, ["tenant", "isolate", "acme-corp", "--enable", "--disable"])
+
+    assert result.exit_code == 2
