@@ -7,6 +7,7 @@ from typing import Annotated, Any
 import typer
 
 from verge_cli.columns import TENANT_COLUMNS
+from verge_cli.commands import tenant_node
 from verge_cli.context import get_context
 from verge_cli.errors import handle_errors
 from verge_cli.output import output_result, output_success
@@ -17,6 +18,8 @@ app = typer.Typer(
     help="Manage tenants.",
     no_args_is_help=True,
 )
+
+app.add_typer(tenant_node.app, name="node")
 
 
 def _tenant_to_dict(tenant: Any) -> dict[str, Any]:
