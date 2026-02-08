@@ -2723,7 +2723,7 @@ EOF
 - [x] Task 1: Column definitions for all tenant sub-resources
 - [x] Task 2: tenant_node.py — list + get (TDD)
 - [x] Task 3: tenant_node.py — create, update, delete (TDD)
-- [ ] Task 4: tenant_storage.py — full CRUD (TDD)
+- [x] Task 4: tenant_storage.py — full CRUD (TDD)
 - [ ] Task 5: tenant_net.py — three sub-Typer apps (TDD)
 - [ ] Task 6: tenant_snapshot.py — list, get, create, delete, restore (TDD)
 - [ ] Task 7: tenant_stats.py — stats + logs (TDD)
