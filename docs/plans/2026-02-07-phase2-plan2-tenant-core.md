@@ -2819,7 +2819,7 @@ def test_tenant_send_file(cli_runner, mock_client, mock_tenant):
 - [x] Task 1: Update TENANT_COLUMNS + add mock_tenant fixture
 - [x] Task 2: tenant.py — scaffolding + list + get
 - [x] Task 3: tenant.py — create + update
-- [ ] Task 4: tenant.py — delete + power operations
+- [x] Task 4: tenant.py — delete + power operations
 - [ ] Task 5: tenant.py — clone + isolate
 - [ ] Task 6: tenant.py — crash-cart sub-Typer + send-file
 - [ ] Task 7: Register in cli.py + regression test
