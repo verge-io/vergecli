@@ -47,9 +47,13 @@ vrg vm list
 - **DHCP Host Overrides** — assign static IPs via hostname-based overrides
 - **IP Aliases** — add secondary IP addresses to networks
 - **Network Diagnostics** — DHCP leases, address tables, and traffic statistics
+- **Tenant Management** — full tenant lifecycle with nodes, storage, network blocks, snapshots, and stats
+- **Clusters & Nodes** — view cluster and node inventory
+- **Storage Tiers** — inspect storage tier capacity and usage
 - **Configuration Profiles** — multiple environments with named profiles
 - **Multiple Auth Methods** — bearer token, API key, or username/password
 - **VM Templates** — declarative YAML templates with variables, dry-run, and batch provisioning
+- **Shell Completion** — tab completion for bash, zsh, fish, and PowerShell
 - **Flexible Output** — table, wide, JSON, or CSV format with `--query` field extraction
 
 ## Command Overview
@@ -82,6 +86,7 @@ vrg vm list
 | `vrg storage` | `list`, `get` |
 | `vrg system` | `info`, `version` |
 | `vrg configure` | `setup`, `show`, `list` |
+| `vrg completion` | `show` |
 
 Run `vrg <command> --help` for detailed usage of any command.
 
@@ -89,14 +94,39 @@ Run `vrg <command> --help` for detailed usage of any command.
 
 ## Shell Completion
 
-Typer provides static shell completion for commands and options:
+Tab completion is available for bash, zsh, fish, and PowerShell.
+
+### Bash
 
 ```bash
-# Install completion for your shell
-vrg --install-completion
+vrg completion show bash >> ~/.bashrc
+```
 
-# Show completion script without installing
-vrg --show-completion
+### Zsh
+
+```bash
+vrg completion show zsh > "${fpath[1]}/_vrg"
+```
+
+### Fish
+
+```bash
+vrg completion show fish > ~/.config/fish/completions/vrg.fish
+```
+
+### PowerShell
+
+```powershell
+vrg completion show powershell >> $PROFILE
+```
+
+Restart your shell (or `source` the file) to activate completion.
+
+Alternatively, Typer's built-in flags work for quick setup:
+
+```bash
+vrg --install-completion   # auto-detect shell and install
+vrg --show-completion      # print script without installing
 ```
 
 > Dynamic resource name completion (e.g., completing VM names) is not yet available.
