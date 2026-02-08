@@ -29,6 +29,9 @@ class TestCliBasic:
         assert "network" in result.stdout
         assert "system" in result.stdout
         assert "tenant" in result.stdout
+        assert "cluster" in result.stdout
+        assert "node" in result.stdout
+        assert "storage" in result.stdout
 
     def test_no_args_shows_help(self, cli_runner: CliRunner) -> None:
         """Test that running without args shows help."""
