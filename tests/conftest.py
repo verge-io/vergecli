@@ -229,6 +229,90 @@ def mock_device() -> MagicMock:
 
 
 @pytest.fixture
+def mock_cluster() -> MagicMock:
+    """Create a mock Cluster object."""
+    cluster = MagicMock()
+    cluster.key = 1
+    cluster.name = "Cluster1"
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data = {
+            "$key": 1,
+            "name": "Cluster1",
+            "description": "Primary Cluster",
+            "status": "online",
+            "total_nodes": 4,
+            "online_nodes": 4,
+            "total_ram_gb": 256,
+            "ram_used_percent": 45.2,
+            "total_cores": 64,
+            "running_machines": 20,
+            "is_compute": True,
+            "is_storage": True,
+            "enabled": True,
+        }
+        return data.get(key, default)
+
+    cluster.get = mock_get
+    return cluster
+
+
+@pytest.fixture
+def mock_node() -> MagicMock:
+    """Create a mock Node object."""
+    node = MagicMock()
+    node.key = 10
+    node.name = "node1"
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data = {
+            "$key": 10,
+            "name": "node1",
+            "status": "online",
+            "cluster_name": "Cluster1",
+            "ram_gb": 64,
+            "cores": 16,
+            "cpu_usage": 35.0,
+            "is_physical": True,
+            "model": "PowerEdge R740",
+            "cpu": "Intel Xeon Gold 6248",
+            "core_temp": 52,
+            "vergeos_version": "6.0.1",
+        }
+        return data.get(key, default)
+
+    node.get = mock_get
+    return node
+
+
+@pytest.fixture
+def mock_storage_tier() -> MagicMock:
+    """Create a mock Storage Tier object."""
+    tier = MagicMock()
+    tier.key = 1
+    tier.name = "Tier 1 - SSD"
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data = {
+            "$key": 1,
+            "tier": 1,
+            "description": "SSD Storage",
+            "capacity_gb": 10240,
+            "used_gb": 6144,
+            "free_gb": 4096,
+            "used_percent": 60.0,
+            "dedupe_ratio": 1.5,
+            "dedupe_savings_percent": 33.3,
+            "read_ops": 15000,
+            "write_ops": 8000,
+        }
+        return data.get(key, default)
+
+    tier.get = mock_get
+    return tier
+
+
+@pytest.fixture
 def temp_config_dir(tmp_path: Path) -> Path:
     """Create a temporary config directory."""
     config_dir = tmp_path / ".vrg"
