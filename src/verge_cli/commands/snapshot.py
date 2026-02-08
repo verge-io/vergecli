@@ -11,6 +11,7 @@ from verge_cli.columns import (
     CLOUD_SNAPSHOT_TENANT_COLUMNS,
     CLOUD_SNAPSHOT_VM_COLUMNS,
 )
+from verge_cli.commands import snapshot_profile
 from verge_cli.context import get_context
 from verge_cli.errors import handle_errors
 from verge_cli.output import output_result, output_success
@@ -21,6 +22,8 @@ app = typer.Typer(
     help="Manage cloud snapshots.",
     no_args_is_help=True,
 )
+
+app.add_typer(snapshot_profile.app, name="profile")
 
 
 def _snapshot_to_dict(snap: Any) -> dict[str, Any]:

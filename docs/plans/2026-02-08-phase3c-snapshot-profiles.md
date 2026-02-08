@@ -233,11 +233,11 @@ def _period_to_dict(period: Any) -> dict[str, Any]:
 
 **Prerequisites:** Phase 3b must be complete with `snapshot.py` created.
 
-- [ ] Add `SNAPSHOT_PROFILE_COLUMNS` and `SNAPSHOT_PROFILE_PERIOD_COLUMNS` to `columns.py`
-- [ ] Create `snapshot_profile_period.py` with all period commands
-- [ ] Create `snapshot_profile.py` with all profile commands and period sub-typer registration
-- [ ] Register `profile` sub-typer in `snapshot.py`
-- [ ] Create `test_snapshot_profile_period.py` with all period tests
-- [ ] Create `test_snapshot_profile.py` with all profile tests
-- [ ] Run `uv run ruff check` and `uv run mypy src/verge_cli`
-- [ ] Run `uv run pytest tests/unit/test_snapshot_profile*.py -v`
+- [x] Add `SNAPSHOT_PROFILE_COLUMNS` and `SNAPSHOT_PROFILE_PERIOD_COLUMNS` to `columns.py`
+- [x] Create `snapshot_profile_period.py` with all period commands
+- [x] Create `snapshot_profile.py` with all profile commands and period sub-typer registration
+- [x] Register `profile` sub-typer in `snapshot.py`
+- [x] Create `test_snapshot_profile_period.py` with all period tests
+- [x] Create `test_snapshot_profile.py` with all profile tests
+- [x] Run `uv run ruff check` and `uv run mypy src/verge_cli`
+- [x] Run `uv run pytest tests/unit/test_snapshot_profile*.py -v`
