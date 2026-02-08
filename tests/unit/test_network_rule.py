@@ -56,9 +56,9 @@ def test_rule_list(cli_runner, mock_client, mock_network_for_rules, mock_rule):
     result = cli_runner.invoke(app, ["network", "rule", "list", "test-network"])
 
     assert result.exit_code == 0
-    # Output may truncate names in table format, check for partial match
+    # Output may truncate columns in table format, check for partial match
     assert "Allow" in result.output
-    assert "incoming" in result.output
+    assert "100" in result.output  # $key column
     assert "accept" in result.output
 
 
