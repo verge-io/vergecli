@@ -469,3 +469,82 @@ def test_tenant_isolate_both_flags(cli_runner, mock_client, mock_tenant):
     result = cli_runner.invoke(app, ["tenant", "isolate", "acme-corp", "--enable", "--disable"])
 
     assert result.exit_code == 2
+
+
+# ---------------------------------------------------------------------------
+# crash-cart / send-file
+# ---------------------------------------------------------------------------
+
+
+def test_tenant_crash_cart_create(cli_runner, mock_client, mock_tenant):
+    """vrg tenant crash-cart create should create a crash cart."""
+    mock_client.tenants.list.return_value = [mock_tenant]
+
+    result = cli_runner.invoke(app, ["tenant", "crash-cart", "create", "acme-corp"])
+
+    assert result.exit_code == 0
+    mock_client.tenants.create_crash_cart.assert_called_once_with(5)
+
+
+def test_tenant_crash_cart_create_with_name(cli_runner, mock_client, mock_tenant):
+    """vrg tenant crash-cart create --name should pass name to SDK."""
+    mock_client.tenants.list.return_value = [mock_tenant]
+
+    result = cli_runner.invoke(
+        app,
+        ["tenant", "crash-cart", "create", "acme-corp", "--name", "debug-cart"],
+    )
+
+    assert result.exit_code == 0
+    mock_client.tenants.create_crash_cart.assert_called_once_with(5, name="debug-cart")
+
+
+def test_tenant_crash_cart_delete(cli_runner, mock_client, mock_tenant):
+    """vrg tenant crash-cart delete should delete a crash cart."""
+    mock_client.tenants.list.return_value = [mock_tenant]
+
+    result = cli_runner.invoke(app, ["tenant", "crash-cart", "delete", "acme-corp", "--yes"])
+
+    assert result.exit_code == 0
+    mock_client.tenants.delete_crash_cart.assert_called_once_with(5)
+
+
+def test_tenant_crash_cart_delete_with_name(cli_runner, mock_client, mock_tenant):
+    """vrg tenant crash-cart delete --name should pass name to SDK."""
+    mock_client.tenants.list.return_value = [mock_tenant]
+
+    result = cli_runner.invoke(
+        app,
+        [
+            "tenant",
+            "crash-cart",
+            "delete",
+            "acme-corp",
+            "--name",
+            "debug-cart",
+            "--yes",
+        ],
+    )
+
+    assert result.exit_code == 0
+    mock_client.tenants.delete_crash_cart.assert_called_once_with(5, name="debug-cart")
+
+
+def test_tenant_crash_cart_delete_cancelled(cli_runner, mock_client, mock_tenant):
+    """vrg tenant crash-cart delete without --yes should prompt."""
+    mock_client.tenants.list.return_value = [mock_tenant]
+
+    result = cli_runner.invoke(app, ["tenant", "crash-cart", "delete", "acme-corp"], input="n\n")
+
+    assert result.exit_code == 0
+    mock_client.tenants.delete_crash_cart.assert_not_called()
+
+
+def test_tenant_send_file(cli_runner, mock_client, mock_tenant):
+    """vrg tenant send-file should send a file to the tenant."""
+    mock_client.tenants.list.return_value = [mock_tenant]
+
+    result = cli_runner.invoke(app, ["tenant", "send-file", "acme-corp", "42"])
+
+    assert result.exit_code == 0
+    mock_client.tenants.send_file.assert_called_once_with(5, file_key=42)
