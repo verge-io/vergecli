@@ -7,7 +7,13 @@ from typing import Annotated, Any
 import typer
 
 from verge_cli.columns import TENANT_COLUMNS
-from verge_cli.commands import tenant_net, tenant_node, tenant_snapshot, tenant_storage
+from verge_cli.commands import (
+    tenant_net,
+    tenant_node,
+    tenant_snapshot,
+    tenant_stats,
+    tenant_storage,
+)
 from verge_cli.context import get_context
 from verge_cli.errors import handle_errors
 from verge_cli.output import output_result, output_success
@@ -25,6 +31,8 @@ app.add_typer(tenant_net.net_block_app, name="net-block")
 app.add_typer(tenant_net.ext_ip_app, name="ext-ip")
 app.add_typer(tenant_net.l2_app, name="l2")
 app.add_typer(tenant_snapshot.app, name="snapshot")
+app.add_typer(tenant_stats.stats_app, name="stats")
+app.add_typer(tenant_stats.logs_app, name="logs")
 
 
 def _tenant_to_dict(tenant: Any) -> dict[str, Any]:
