@@ -2822,4 +2822,4 @@ def test_tenant_send_file(cli_runner, mock_client, mock_tenant):
 - [x] Task 4: tenant.py — delete + power operations
 - [x] Task 5: tenant.py — clone + isolate
 - [x] Task 6: tenant.py — crash-cart sub-Typer + send-file
-- [ ] Task 7: Register in cli.py + regression test
+- [x] Task 7: Register in cli.py + regression test
