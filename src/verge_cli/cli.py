@@ -12,6 +12,7 @@ from verge_cli.commands import (
     cluster,
     completion,
     configure,
+    nas,
     network,
     node,
     site,
@@ -33,6 +34,7 @@ app = typer.Typer(
 app.add_typer(cluster.app, name="cluster")
 app.add_typer(completion.app, name="completion")
 app.add_typer(configure.app, name="configure")
+app.add_typer(nas.app, name="nas")
 app.add_typer(network.app, name="network")
 app.add_typer(node.app, name="node")
 app.add_typer(site.app, name="site")

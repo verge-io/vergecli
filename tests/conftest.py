@@ -369,6 +369,30 @@ def mock_storage_tier() -> MagicMock:
 
 
 @pytest.fixture
+def mock_nas_service() -> MagicMock:
+    """Create a mock NAS service object."""
+    svc = MagicMock()
+    svc.key = 1
+    svc.name = "nas01"
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data = {
+            "$key": 1,
+            "name": "nas01",
+            "vm_running": True,
+            "volume_count": 3,
+            "vm_cores": 4,
+            "vm_ram": 8192,
+            "max_imports": 2,
+            "max_syncs": 2,
+        }
+        return data.get(key, default)
+
+    svc.get = mock_get
+    return svc
+
+
+@pytest.fixture
 def temp_config_dir(tmp_path: Path) -> Path:
     """Create a temporary config directory."""
     config_dir = tmp_path / ".vrg"

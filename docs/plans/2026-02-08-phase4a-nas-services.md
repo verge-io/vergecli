@@ -244,13 +244,13 @@ def _nfs_settings_to_dict(settings: Any) -> dict[str, Any]:
 
 ## Task Checklist
 
-- [ ] Create `src/verge_cli/commands/nas.py` parent app
-- [ ] Create `src/verge_cli/commands/nas_service.py` with all commands
-- [ ] Register `nas` typer in `cli.py`
-- [ ] Add `mock_nas_service` fixture to `conftest.py`
-- [ ] Create `tests/unit/test_nas_service.py` with all tests
-- [ ] Run `uv run ruff check` and `uv run mypy src/verge_cli`
-- [ ] Run `uv run pytest tests/unit/test_nas_service.py -v`
+- [x] Create `src/verge_cli/commands/nas.py` parent app
+- [x] Create `src/verge_cli/commands/nas_service.py` with all commands
+- [x] Register `nas` typer in `cli.py`
+- [x] Add `mock_nas_service` fixture to `conftest.py`
+- [x] Create `tests/unit/test_nas_service.py` with all tests
+- [x] Run `uv run ruff check` and `uv run mypy src/verge_cli`
+- [x] Run `uv run pytest tests/unit/test_nas_service.py -v`
 
 ## Notes
 
