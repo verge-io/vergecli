@@ -537,6 +537,32 @@ def mock_nas_user() -> MagicMock:
 
 
 @pytest.fixture
+def mock_nas_sync() -> MagicMock:
+    """Create a mock NAS volume sync object."""
+    sync = MagicMock()
+    sync.key = "aabb001122334455667788990011223344556677"
+    sync.name = "daily-backup"
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "$key": "aabb001122334455667788990011223344556677",
+            "name": "daily-backup",
+            "enabled": True,
+            "status": "idle",
+            "sync_method": "ysync",
+            "workers": 4,
+            "source_volume": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
+            "destination_volume": "f6e5d4c3b2a1f6e5d4c3b2a1f6e5d4c3b2a1f6e5",
+            "destination_delete": "never",
+            "description": "Daily backup sync",
+        }
+        return data.get(key, default)
+
+    sync.get = mock_get
+    return sync
+
+
+@pytest.fixture
 def temp_config_dir(tmp_path: Path) -> Path:
     """Create a temporary config directory."""
     config_dir = tmp_path / ".vrg"
