@@ -239,14 +239,14 @@ def _nfs_share_to_dict(share: Any) -> dict[str, Any]:
 
 ## Task Checklist
 
-- [ ] Create `src/verge_cli/commands/nas_cifs.py` with all commands
-- [ ] Create `src/verge_cli/commands/nas_nfs.py` with all commands
-- [ ] Register sub-typers in `nas.py`
-- [ ] Add fixtures to `conftest.py`
-- [ ] Create `tests/unit/test_nas_cifs.py`
-- [ ] Create `tests/unit/test_nas_nfs.py`
-- [ ] Run `uv run ruff check` and `uv run mypy src/verge_cli`
-- [ ] Run `uv run pytest tests/unit/test_nas_cifs.py tests/unit/test_nas_nfs.py -v`
+- [x] Create `src/verge_cli/commands/nas_cifs.py` with all commands
+- [x] Create `src/verge_cli/commands/nas_nfs.py` with all commands
+- [x] Register sub-typers in `nas.py`
+- [x] Add fixtures to `conftest.py`
+- [x] Create `tests/unit/test_nas_cifs.py`
+- [x] Create `tests/unit/test_nas_nfs.py`
+- [x] Run `uv run ruff check` and `uv run mypy src/verge_cli`
+- [x] Run `uv run pytest tests/unit/test_nas_cifs.py tests/unit/test_nas_nfs.py -v`
 
 ## Notes
 

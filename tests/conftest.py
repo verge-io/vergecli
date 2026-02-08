@@ -445,6 +445,73 @@ def mock_nas_volume_snapshot() -> MagicMock:
 
 
 @pytest.fixture
+def mock_cifs_share() -> MagicMock:
+    """Create a mock NAS CIFS share object."""
+    share = MagicMock()
+    share.key = "abc123def456abc123def456abc123def456abc1"
+    share.name = "users"
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "$key": "abc123def456abc123def456abc123def456abc1",
+            "name": "users",
+            "volume_name": "UserData",
+            "enabled": True,
+            "browseable": True,
+            "read_only": False,
+            "guest_ok": False,
+            "guest_only": False,
+            "shadow_copy_enabled": False,
+            "share_path": "/",
+            "description": "User home directories",
+            "comment": "User shares",
+            "force_user": None,
+            "force_group": None,
+            "valid_users": None,
+            "valid_groups": None,
+            "admin_users": None,
+            "admin_groups": None,
+            "allowed_hosts": None,
+            "denied_hosts": None,
+        }
+        return data.get(key, default)
+
+    share.get = mock_get
+    return share
+
+
+@pytest.fixture
+def mock_nfs_share() -> MagicMock:
+    """Create a mock NAS NFS share object."""
+    share = MagicMock()
+    share.key = "def456abc123def456abc123def456abc123def4"
+    share.name = "linuxapps"
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "$key": "def456abc123def456abc123def456abc123def4",
+            "name": "linuxapps",
+            "volume_name": "LinuxApps",
+            "enabled": True,
+            "data_access": "rw",
+            "squash": "root_squash",
+            "allowed_hosts": "10.0.0.0/24,192.168.1.0/24",
+            "allow_all": False,
+            "description": "Linux application data",
+            "anonymous_uid": None,
+            "anonymous_gid": None,
+            "async_mode": False,
+            "insecure": False,
+            "no_acl": False,
+            "filesystem_id": None,
+        }
+        return data.get(key, default)
+
+    share.get = mock_get
+    return share
+
+
+@pytest.fixture
 def temp_config_dir(tmp_path: Path) -> Path:
     """Create a temporary config directory."""
     config_dir = tmp_path / ".vrg"
