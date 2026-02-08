@@ -98,6 +98,26 @@ def json_serializer(obj: Any) -> str:
     return str(obj)
 
 
+def _percent_style(value: Any, row: dict[str, Any]) -> str | None:
+    """Style for percentage columns: >80 red bold, >60 yellow."""
+    if isinstance(value, (int, float)):
+        if value > 80:
+            return "red bold"
+        if value > 60:
+            return "yellow"
+    return None
+
+
+def _temp_style(value: Any, row: dict[str, Any]) -> str | None:
+    """Style for temperature columns: >80 red bold, >60 yellow."""
+    if isinstance(value, (int, float)):
+        if value > 80:
+            return "red bold"
+        if value > 60:
+            return "yellow"
+    return None
+
+
 def default_format(value: Any, *, for_csv: bool = False) -> str:
     """Default formatter for cell values."""
     if value is None:
@@ -262,5 +282,88 @@ DEVICE_COLUMNS = [
     ColumnDef("enabled", style_map=BOOL_STYLES, format_fn=format_bool_yn),
     ColumnDef("optional", style_map=BOOL_STYLES, format_fn=format_bool_yn),
     # wide-only
+    ColumnDef("key", wide_only=True),
+]
+
+TENANT_COLUMNS = [
+    ColumnDef("name"),
+    ColumnDef("status", style_map=STATUS_STYLES, normalize_fn=normalize_lower),
+    ColumnDef("state"),
+    # wide-only
+    ColumnDef("description", wide_only=True),
+    ColumnDef("network_name", header="Network", wide_only=True),
+    ColumnDef("ui_address_ip", header="UI IP", wide_only=True),
+    ColumnDef("uuid", wide_only=True),
+    ColumnDef(
+        "isolate",
+        header="Isolated",
+        wide_only=True,
+        format_fn=format_bool_yn,
+        style_map=BOOL_STYLES,
+    ),
+    ColumnDef("key", wide_only=True),
+]
+
+CLUSTER_COLUMNS = [
+    ColumnDef("name"),
+    ColumnDef("status", style_map=STATUS_STYLES, normalize_fn=normalize_lower),
+    ColumnDef("total_nodes", header="Nodes"),
+    ColumnDef("online_nodes", header="Online"),
+    ColumnDef("total_ram_gb", header="RAM GB"),
+    ColumnDef("ram_used_percent", header="RAM %", style_fn=_percent_style),
+    ColumnDef("total_cores", header="Cores"),
+    # wide-only
+    ColumnDef("running_machines", header="Running VMs", wide_only=True),
+    ColumnDef(
+        "is_compute",
+        header="Compute",
+        wide_only=True,
+        format_fn=format_bool_yn,
+        style_map=BOOL_STYLES,
+    ),
+    ColumnDef(
+        "is_storage",
+        header="Storage",
+        wide_only=True,
+        format_fn=format_bool_yn,
+        style_map=BOOL_STYLES,
+    ),
+    ColumnDef("key", wide_only=True),
+]
+
+NODE_COLUMNS = [
+    ColumnDef("name"),
+    ColumnDef("status", style_map=STATUS_STYLES, normalize_fn=normalize_lower),
+    ColumnDef("cluster_name", header="Cluster"),
+    ColumnDef("ram_gb", header="RAM GB"),
+    ColumnDef("cores"),
+    ColumnDef("cpu_usage", header="CPU %", style_fn=_percent_style),
+    # wide-only
+    ColumnDef(
+        "is_physical",
+        header="Physical",
+        wide_only=True,
+        format_fn=format_bool_yn,
+        style_map=BOOL_STYLES,
+    ),
+    ColumnDef("model", wide_only=True),
+    ColumnDef("cpu", header="CPU", wide_only=True),
+    ColumnDef("core_temp", header="Temp °C", wide_only=True, style_fn=_temp_style),
+    ColumnDef("vergeos_version", header="Version", wide_only=True),
+    ColumnDef("key", wide_only=True),
+]
+
+STORAGE_COLUMNS = [
+    ColumnDef("tier", header="Tier #"),
+    ColumnDef("description"),
+    ColumnDef("capacity_gb", header="Capacity GB"),
+    ColumnDef("used_gb", header="Used GB"),
+    ColumnDef("free_gb", header="Free GB"),
+    ColumnDef("used_percent", header="Used %", style_fn=_percent_style),
+    # wide-only
+    ColumnDef("dedupe_ratio", header="Dedupe", wide_only=True),
+    ColumnDef("dedupe_savings_percent", header="Savings %", wide_only=True),
+    ColumnDef("read_ops", header="Read IOPS", wide_only=True),
+    ColumnDef("write_ops", header="Write IOPS", wide_only=True),
     ColumnDef("key", wide_only=True),
 ]
