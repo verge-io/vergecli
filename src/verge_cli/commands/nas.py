@@ -8,6 +8,7 @@ from verge_cli.commands import (
     nas_cifs,
     nas_nfs,
     nas_service,
+    nas_sync,
     nas_user,
     nas_volume,
     nas_volume_snapshot,
@@ -28,3 +29,4 @@ app.add_typer(nas_volume.app, name="volume")
 app.add_typer(nas_cifs.app, name="cifs")
 app.add_typer(nas_nfs.app, name="nfs")
 app.add_typer(nas_user.app, name="user")
+app.add_typer(nas_sync.app, name="sync")

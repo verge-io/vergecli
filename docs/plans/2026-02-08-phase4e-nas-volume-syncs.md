@@ -167,12 +167,12 @@ def _sync_to_dict(sync: Any) -> dict[str, Any]:
 
 ## Task Checklist
 
-- [ ] Create `src/verge_cli/commands/nas_sync.py` with all commands
-- [ ] Register sub-typer in `nas.py`
-- [ ] Add `mock_nas_sync` fixture to `conftest.py`
-- [ ] Create `tests/unit/test_nas_sync.py` with all tests
-- [ ] Run `uv run ruff check` and `uv run mypy src/verge_cli`
-- [ ] Run `uv run pytest tests/unit/test_nas_sync.py -v`
+- [x] Create `src/verge_cli/commands/nas_sync.py` with all commands
+- [x] Register sub-typer in `nas.py`
+- [x] Add `mock_nas_sync` fixture to `conftest.py`
+- [x] Create `tests/unit/test_nas_sync.py` with all tests
+- [x] Run `uv run ruff check` and `uv run mypy src/verge_cli`
+- [x] Run `uv run pytest tests/unit/test_nas_sync.py -v`
 
 ## Notes
 
