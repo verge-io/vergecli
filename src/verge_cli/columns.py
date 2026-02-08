@@ -53,6 +53,7 @@ STATUS_STYLES: Mapping[Any, str] = {
     "degraded": "yellow",
     "pending": "yellow",
     "provisioning": "yellow",
+    "maintenance": "yellow",
     "error": "red bold",
     "failed": "red bold",
     "unreachable": "red bold",
@@ -96,26 +97,6 @@ def json_serializer(obj: Any) -> str:
     if isinstance(obj, datetime):
         return obj.isoformat()
     return str(obj)
-
-
-def _percent_style(value: Any, row: dict[str, Any]) -> str | None:
-    """Style for percentage columns: >80 red bold, >60 yellow."""
-    if isinstance(value, (int, float)):
-        if value > 80:
-            return "red bold"
-        if value > 60:
-            return "yellow"
-    return None
-
-
-def _temp_style(value: Any, row: dict[str, Any]) -> str | None:
-    """Style for temperature columns: >80 red bold, >60 yellow."""
-    if isinstance(value, (int, float)):
-        if value > 80:
-            return "red bold"
-        if value > 60:
-            return "yellow"
-    return None
 
 
 def default_format(value: Any, *, for_csv: bool = False) -> str:
@@ -334,7 +315,7 @@ CLUSTER_COLUMNS = [
     ColumnDef("total_nodes", header="Nodes"),
     ColumnDef("online_nodes", header="Online"),
     ColumnDef("total_ram_gb", header="RAM GB"),
-    ColumnDef("ram_used_percent", header="RAM %", style_fn=_percent_style),
+    ColumnDef("ram_used_percent", header="RAM %", style_fn=style_percent_threshold),
     ColumnDef("total_cores", header="Cores"),
     # wide-only
     ColumnDef("running_machines", header="Running VMs", wide_only=True),
@@ -361,7 +342,7 @@ NODE_COLUMNS = [
     ColumnDef("cluster_name", header="Cluster"),
     ColumnDef("ram_gb", header="RAM GB"),
     ColumnDef("cores"),
-    ColumnDef("cpu_usage", header="CPU %", style_fn=_percent_style),
+    ColumnDef("cpu_usage", header="CPU %", style_fn=style_percent_threshold),
     # wide-only
     ColumnDef(
         "is_physical",
@@ -372,7 +353,7 @@ NODE_COLUMNS = [
     ),
     ColumnDef("model", wide_only=True),
     ColumnDef("cpu", header="CPU", wide_only=True),
-    ColumnDef("core_temp", header="Temp °C", wide_only=True, style_fn=_temp_style),
+    ColumnDef("core_temp", header="Temp °C", wide_only=True, style_fn=style_percent_threshold),
     ColumnDef("vergeos_version", header="Version", wide_only=True),
 ]
 
@@ -383,7 +364,7 @@ STORAGE_COLUMNS = [
     ColumnDef("capacity_gb", header="Capacity GB"),
     ColumnDef("used_gb", header="Used GB"),
     ColumnDef("free_gb", header="Free GB"),
-    ColumnDef("used_percent", header="Used %", style_fn=_percent_style),
+    ColumnDef("used_percent", header="Used %", style_fn=style_percent_threshold),
     # wide-only
     ColumnDef("dedupe_ratio", header="Dedupe", wide_only=True),
     ColumnDef("dedupe_savings_percent", header="Savings %", wide_only=True),
@@ -407,12 +388,14 @@ VSAN_STATUS_COLUMNS = [
     ColumnDef("online_nodes", header="Online"),
     ColumnDef("used_ram_gb", header="RAM Used GB"),
     ColumnDef("online_ram_gb", header="RAM Total GB"),
-    ColumnDef("ram_used_percent", header="RAM %", style_fn=_percent_style),
+    ColumnDef("ram_used_percent", header="RAM %", style_fn=style_percent_threshold),
     # wide-only
     ColumnDef("total_cores", header="Cores", wide_only=True),
     ColumnDef("online_cores", header="Online Cores", wide_only=True),
     ColumnDef("used_cores", header="Used Cores", wide_only=True),
-    ColumnDef("core_used_percent", header="Core %", wide_only=True, style_fn=_percent_style),
+    ColumnDef(
+        "core_used_percent", header="Core %", wide_only=True, style_fn=style_percent_threshold
+    ),
     ColumnDef("running_machines", header="Running VMs", wide_only=True),
 ]
 
