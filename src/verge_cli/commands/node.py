@@ -9,8 +9,8 @@ import typer
 from verge_cli.columns import NODE_COLUMNS
 from verge_cli.context import get_context
 from verge_cli.errors import handle_errors
-from verge_cli.output import output_result
-from verge_cli.utils import resolve_resource_id
+from verge_cli.output import output_result, output_success
+from verge_cli.utils import confirm_action, resolve_resource_id
 
 app = typer.Typer(
     name="node",
@@ -91,3 +91,54 @@ def node_get(
         quiet=vctx.quiet,
         no_color=vctx.no_color,
     )
+
+
+@app.command("maintenance")
+@handle_errors()
+def node_maintenance(
+    ctx: typer.Context,
+    node: Annotated[str, typer.Argument(help="Node name or key")],
+    enable: Annotated[
+        bool,
+        typer.Option("--enable", help="Enable maintenance mode"),
+    ] = False,
+    disable: Annotated[
+        bool,
+        typer.Option("--disable", help="Disable maintenance mode"),
+    ] = False,
+) -> None:
+    """Enable or disable maintenance mode on a node."""
+    if enable == disable:
+        # Both True (impossible via CLI, but defensive) or both False
+        typer.echo("Error: Specify exactly one of --enable or --disable.", err=True)
+        raise typer.Exit(2)
+
+    vctx = get_context(ctx)
+    key = resolve_resource_id(vctx.client.nodes, node, "Node")
+
+    if enable:
+        vctx.client.nodes.enable_maintenance(key)
+        output_success(f"Enabled maintenance mode on node '{node}'", quiet=vctx.quiet)
+    else:
+        vctx.client.nodes.disable_maintenance(key)
+        output_success(f"Disabled maintenance mode on node '{node}'", quiet=vctx.quiet)
+
+
+@app.command("restart")
+@handle_errors()
+def node_restart(
+    ctx: typer.Context,
+    node: Annotated[str, typer.Argument(help="Node name or key")],
+    yes: Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation")] = False,
+) -> None:
+    """Restart a node."""
+    vctx = get_context(ctx)
+
+    key = resolve_resource_id(vctx.client.nodes, node, "Node")
+
+    if not confirm_action(f"Restart node '{node}'?", yes=yes):
+        typer.echo("Cancelled.")
+        raise typer.Exit(0)
+
+    vctx.client.nodes.restart(key)
+    output_success(f"Restarting node '{node}'", quiet=vctx.quiet)

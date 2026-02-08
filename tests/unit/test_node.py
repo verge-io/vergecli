@@ -65,3 +65,61 @@ def test_node_get_by_key(cli_runner, mock_client, mock_node):
 
     assert result.exit_code == 0
     assert "node1" in result.output
+
+
+def test_node_maintenance_enable(cli_runner, mock_client, mock_node):
+    """vrg node maintenance --enable should enable maintenance."""
+    mock_client.nodes.list.return_value = [mock_node]
+
+    result = cli_runner.invoke(app, ["node", "maintenance", "node1", "--enable"])
+
+    assert result.exit_code == 0
+    mock_client.nodes.enable_maintenance.assert_called_once_with(10)
+
+
+def test_node_maintenance_disable(cli_runner, mock_client, mock_node):
+    """vrg node maintenance --disable should disable maintenance."""
+    mock_client.nodes.list.return_value = [mock_node]
+
+    result = cli_runner.invoke(app, ["node", "maintenance", "node1", "--disable"])
+
+    assert result.exit_code == 0
+    mock_client.nodes.disable_maintenance.assert_called_once_with(10)
+
+
+def test_node_maintenance_no_flag(cli_runner, mock_client, mock_node):
+    """vrg node maintenance without --enable or --disable should fail."""
+    mock_client.nodes.list.return_value = [mock_node]
+
+    result = cli_runner.invoke(app, ["node", "maintenance", "node1"])
+
+    assert result.exit_code == 2
+
+
+def test_node_maintenance_both_flags(cli_runner, mock_client, mock_node):
+    """vrg node maintenance with both --enable and --disable should fail."""
+    mock_client.nodes.list.return_value = [mock_node]
+
+    result = cli_runner.invoke(app, ["node", "maintenance", "node1", "--enable", "--disable"])
+
+    assert result.exit_code == 2
+
+
+def test_node_restart(cli_runner, mock_client, mock_node):
+    """vrg node restart --yes should restart the node."""
+    mock_client.nodes.list.return_value = [mock_node]
+
+    result = cli_runner.invoke(app, ["node", "restart", "node1", "--yes"])
+
+    assert result.exit_code == 0
+    mock_client.nodes.restart.assert_called_once_with(10)
+
+
+def test_node_restart_without_yes(cli_runner, mock_client, mock_node):
+    """vrg node restart without --yes should prompt and abort on 'n'."""
+    mock_client.nodes.list.return_value = [mock_node]
+
+    result = cli_runner.invoke(app, ["node", "restart", "node1"], input="n\n")
+
+    assert result.exit_code == 0
+    mock_client.nodes.restart.assert_not_called()
