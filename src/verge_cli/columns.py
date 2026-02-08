@@ -165,6 +165,7 @@ def style_percent_threshold(value: Any, row: dict[str, Any]) -> str | None:
 # ---------------------------------------------------------------------------
 
 VM_COLUMNS = [
+    ColumnDef("$key", header="Key"),
     ColumnDef("name"),
     ColumnDef("status", style_map=STATUS_STYLES, normalize_fn=normalize_lower),
     ColumnDef("cpu_cores", header="CPU"),
@@ -180,10 +181,10 @@ VM_COLUMNS = [
     # wide-only
     ColumnDef("description", wide_only=True),
     ColumnDef("os_family", header="OS", wide_only=True),
-    ColumnDef("key", wide_only=True),
 ]
 
 NETWORK_COLUMNS = [
+    ColumnDef("$key", header="Key"),
     ColumnDef("name"),
     ColumnDef("type"),
     ColumnDef("network", header="CIDR"),
@@ -212,10 +213,10 @@ NETWORK_COLUMNS = [
     ColumnDef("description", wide_only=True),
     ColumnDef("gateway", wide_only=True),
     ColumnDef("mtu", wide_only=True),
-    ColumnDef("key", wide_only=True),
 ]
 
 RULE_COLUMNS = [
+    ColumnDef("$key", header="Key"),
     ColumnDef("name"),
     ColumnDef("direction"),
     ColumnDef("action"),
@@ -227,7 +228,6 @@ RULE_COLUMNS = [
     # wide-only
     ColumnDef("description", wide_only=True),
     ColumnDef("dest_ip", header="Dest IP", wide_only=True),
-    ColumnDef("key", wide_only=True),
 ]
 
 ZONE_COLUMNS = [
@@ -282,34 +282,31 @@ ADDRESS_COLUMNS = [
 ]
 
 DRIVE_COLUMNS = [
+    ColumnDef("$key", header="Key"),
     ColumnDef("name"),
     ColumnDef("media"),
     ColumnDef("interface"),
     ColumnDef("size_gb", header="Size (GB)"),
     ColumnDef("tier"),
     ColumnDef("enabled", style_map=BOOL_STYLES, format_fn=format_bool_yn),
-    # wide-only
-    ColumnDef("key", wide_only=True),
 ]
 
 NIC_COLUMNS = [
+    ColumnDef("$key", header="Key"),
     ColumnDef("name"),
     ColumnDef("interface"),
     ColumnDef("network_name", header="Network"),
     ColumnDef("mac_address", header="MAC"),
     ColumnDef("ip_address", header="IP"),
     ColumnDef("enabled", style_map=BOOL_STYLES, format_fn=format_bool_yn),
-    # wide-only
-    ColumnDef("key", wide_only=True),
 ]
 
 DEVICE_COLUMNS = [
+    ColumnDef("$key", header="Key"),
     ColumnDef("name"),
     ColumnDef("device_type", header="Type"),
     ColumnDef("enabled", style_map=BOOL_STYLES, format_fn=format_bool_yn),
     ColumnDef("optional", style_map=BOOL_STYLES, format_fn=format_bool_yn),
-    # wide-only
-    ColumnDef("key", wide_only=True),
 ]
 
 TENANT_COLUMNS = [
@@ -331,6 +328,7 @@ TENANT_COLUMNS = [
 ]
 
 CLUSTER_COLUMNS = [
+    ColumnDef("$key", header="Key"),
     ColumnDef("name"),
     ColumnDef("status", style_map=STATUS_STYLES, normalize_fn=normalize_lower),
     ColumnDef("total_nodes", header="Nodes"),
@@ -354,10 +352,10 @@ CLUSTER_COLUMNS = [
         format_fn=format_bool_yn,
         style_map=BOOL_STYLES,
     ),
-    ColumnDef("key", wide_only=True),
 ]
 
 NODE_COLUMNS = [
+    ColumnDef("$key", header="Key"),
     ColumnDef("name"),
     ColumnDef("status", style_map=STATUS_STYLES, normalize_fn=normalize_lower),
     ColumnDef("cluster_name", header="Cluster"),
@@ -376,10 +374,10 @@ NODE_COLUMNS = [
     ColumnDef("cpu", header="CPU", wide_only=True),
     ColumnDef("core_temp", header="Temp °C", wide_only=True, style_fn=_temp_style),
     ColumnDef("vergeos_version", header="Version", wide_only=True),
-    ColumnDef("key", wide_only=True),
 ]
 
 STORAGE_COLUMNS = [
+    ColumnDef("$key", header="Key"),
     ColumnDef("tier", header="Tier #"),
     ColumnDef("description"),
     ColumnDef("capacity_gb", header="Capacity GB"),
@@ -391,7 +389,6 @@ STORAGE_COLUMNS = [
     ColumnDef("dedupe_savings_percent", header="Savings %", wide_only=True),
     ColumnDef("read_ops", header="Read IOPS", wide_only=True),
     ColumnDef("write_ops", header="Write IOPS", wide_only=True),
-    ColumnDef("key", wide_only=True),
 ]
 
 VSAN_STATUS_COLUMNS = [
