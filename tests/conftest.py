@@ -325,6 +325,17 @@ def mock_storage_tier() -> MagicMock:
     tier = MagicMock()
     tier.key = 1
     tier.name = "Tier 1 - SSD"
+    # SDK computed properties accessed as attributes
+    tier.tier = 1
+    tier.description = "SSD Storage"
+    tier.capacity_gb = 10240
+    tier.used_gb = 6144
+    tier.free_gb = 4096
+    tier.used_percent = 60.0
+    tier.dedupe_ratio = 1.5
+    tier.dedupe_savings_percent = 33.3
+    tier.read_ops = 15000
+    tier.write_ops = 8000
 
     def mock_get(key: str, default: Any = None) -> Any:
         data = {
