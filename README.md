@@ -68,10 +68,38 @@ vrg vm list
 | `vrg network host` | `list`, `get`, `create`, `update`, `delete` |
 | `vrg network alias` | `list`, `get`, `create`, `update`, `delete` |
 | `vrg network diag` | `leases`, `addresses`, `stats` |
+| `vrg tenant` | `list`, `get`, `create`, `update`, `delete`, `start`, `stop`, `restart`, `reset`, `clone`, `isolate` |
+| `vrg tenant node` | `list`, `get`, `create`, `update`, `delete` |
+| `vrg tenant storage` | `list`, `get`, `create`, `update`, `delete` |
+| `vrg tenant net-block` | `list`, `get`, `create`, `delete` |
+| `vrg tenant ext-ip` | `list`, `get`, `create`, `delete` |
+| `vrg tenant l2` | `list`, `get`, `create`, `delete` |
+| `vrg tenant snapshot` | `list`, `get`, `create`, `delete`, `restore` |
+| `vrg tenant stats` | `current`, `history` |
+| `vrg tenant logs` | `list` |
+| `vrg cluster` | `list`, `get` |
+| `vrg node` | `list`, `get` |
+| `vrg storage` | `list`, `get` |
 | `vrg system` | `info`, `version` |
 | `vrg configure` | `setup`, `show`, `list` |
 
 Run `vrg <command> --help` for detailed usage of any command.
+
+> **Destructive operations** (`delete`, `reset`) require `--yes` to skip the confirmation prompt.
+
+## Shell Completion
+
+Typer provides static shell completion for commands and options:
+
+```bash
+# Install completion for your shell
+vrg --install-completion
+
+# Show completion script without installing
+vrg --show-completion
+```
+
+> Dynamic resource name completion (e.g., completing VM names) is not yet available.
 
 ## Configuration
 
