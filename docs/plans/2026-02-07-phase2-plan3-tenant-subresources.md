@@ -2725,6 +2725,6 @@ EOF
 - [x] Task 3: tenant_node.py — create, update, delete (TDD)
 - [x] Task 4: tenant_storage.py — full CRUD (TDD)
 - [x] Task 5: tenant_net.py — three sub-Typer apps (TDD)
-- [ ] Task 6: tenant_snapshot.py — list, get, create, delete, restore (TDD)
+- [x] Task 6: tenant_snapshot.py — list, get, create, delete, restore (TDD)
 - [ ] Task 7: tenant_stats.py — stats + logs (TDD)
 - [ ] Task 8: Final registration, regression, and verification
