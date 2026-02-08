@@ -48,6 +48,6 @@ Thumbs.db
 .claude/logs/
 
 # Local config with secrets
-.claude
+.claude/
 .worktrees/
 .mcp.json
