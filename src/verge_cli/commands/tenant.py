@@ -350,6 +350,7 @@ def tenant_restart(
 def tenant_reset(
     ctx: typer.Context,
     tenant: Annotated[str, typer.Argument(help="Tenant name or key")],
+    yes: Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation")] = False,
 ) -> None:
     """Hard reset a tenant (like pressing the reset button)."""
     vctx = get_context(ctx)
@@ -359,6 +360,13 @@ def tenant_reset(
     if not tenant_obj.is_running:
         typer.echo(f"Tenant '{tenant_obj.name}' is not running.")
         raise typer.Exit(1)
+
+    if not confirm_action(
+        f"Reset tenant '{tenant_obj.name}'? This will forcefully restart the tenant.",
+        yes=yes,
+    ):
+        typer.echo("Cancelled.")
+        raise typer.Exit(0)
 
     vctx.client.tenants.reset(key)
     output_success(f"Reset tenant '{tenant_obj.name}'", quiet=vctx.quiet)
