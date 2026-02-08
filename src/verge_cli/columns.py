@@ -505,3 +505,31 @@ CLOUD_SNAPSHOT_TENANT_COLUMNS = [
     ColumnDef("name"),
     ColumnDef("status", style_map=STATUS_STYLES, normalize_fn=normalize_lower),
 ]
+
+SNAPSHOT_PROFILE_COLUMNS = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("name"),
+    ColumnDef("description", wide_only=True),
+]
+
+SNAPSHOT_PROFILE_PERIOD_COLUMNS = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("name"),
+    ColumnDef("frequency"),
+    ColumnDef("retention", header="Retention (s)"),
+    ColumnDef("min_snapshots", header="Min Snaps"),
+    ColumnDef("max_tier", header="Max Tier"),
+    # wide-only
+    ColumnDef("minute", wide_only=True),
+    ColumnDef("hour", wide_only=True),
+    ColumnDef("day_of_week", header="Day of Week", wide_only=True),
+    ColumnDef("quiesce", format_fn=format_bool_yn, style_map=BOOL_STYLES, wide_only=True),
+    ColumnDef("immutable", format_fn=format_bool_yn, style_map=BOOL_STYLES, wide_only=True),
+    ColumnDef(
+        "skip_missed",
+        header="Skip Missed",
+        format_fn=format_bool_yn,
+        style_map=BOOL_STYLES,
+        wide_only=True,
+    ),
+]
