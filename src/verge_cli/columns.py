@@ -448,6 +448,16 @@ TENANT_L2_COLUMNS = [
     ColumnDef("is_enabled", header="Enabled", format_fn=format_bool_yn, style_map=BOOL_STYLES),
 ]
 
+VM_SNAPSHOT_COLUMNS = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("name"),
+    ColumnDef("created", format_fn=format_epoch),
+    ColumnDef("expires", format_fn=format_epoch_or_never),
+    # wide-only
+    ColumnDef("quiesced", format_fn=format_bool_yn, style_map=BOOL_STYLES, wide_only=True),
+    ColumnDef("description", wide_only=True),
+]
+
 TENANT_SNAPSHOT_COLUMNS = [
     ColumnDef("$key", header="Key"),
     ColumnDef("name"),
