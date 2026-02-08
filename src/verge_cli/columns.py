@@ -133,6 +133,33 @@ def default_format(value: Any, *, for_csv: bool = False) -> str:
     return str(value)
 
 
+def format_epoch(value: Any, *, for_csv: bool = False) -> str:
+    """Format an epoch timestamp as a datetime string."""
+    if value is None:
+        return "" if for_csv else "-"
+    if isinstance(value, (int, float)) and value > 0:
+        dt = datetime.fromtimestamp(value)
+        return dt.strftime("%Y-%m-%d %H:%M:%S")
+    return str(value)
+
+
+def format_epoch_or_never(value: Any, *, for_csv: bool = False) -> str:
+    """Format an epoch timestamp, treating 0/None as 'Never'."""
+    if value is None or value == 0:
+        return "" if for_csv else "Never"
+    return format_epoch(value, for_csv=for_csv)
+
+
+def style_percent_threshold(value: Any, row: dict[str, Any]) -> str | None:
+    """Style function for percentage values — red >80, yellow >60."""
+    if isinstance(value, (int, float)):
+        if value > 80:
+            return "red bold"
+        if value > 60:
+            return "yellow"
+    return None
+
+
 # ---------------------------------------------------------------------------
 # Resource column definitions
 # ---------------------------------------------------------------------------
@@ -390,4 +417,77 @@ VSAN_STATUS_COLUMNS = [
     ColumnDef("used_cores", header="Used Cores", wide_only=True),
     ColumnDef("core_used_percent", header="Core %", wide_only=True, style_fn=_percent_style),
     ColumnDef("running_machines", header="Running VMs", wide_only=True),
+]
+
+TENANT_NODE_COLUMNS = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("name"),
+    ColumnDef("cpu_cores", header="CPU"),
+    ColumnDef("ram_gb", header="RAM GB"),
+    ColumnDef("status", style_map=STATUS_STYLES, normalize_fn=normalize_lower),
+    ColumnDef("is_enabled", header="Enabled", format_fn=format_bool_yn, style_map=BOOL_STYLES),
+    # wide-only
+    ColumnDef("cluster_name", header="Cluster", wide_only=True),
+    ColumnDef("host_node", header="Host Node", wide_only=True),
+]
+
+TENANT_STORAGE_COLUMNS = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("tier_name", header="Tier"),
+    ColumnDef("provisioned_gb", header="Provisioned GB"),
+    # wide-only
+    ColumnDef("used_gb", header="Used GB", wide_only=True),
+    ColumnDef(
+        "used_percent",
+        header="Used %",
+        wide_only=True,
+        style_fn=style_percent_threshold,
+    ),
+]
+
+TENANT_NET_BLOCK_COLUMNS = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("cidr", header="CIDR"),
+    ColumnDef("network_name", header="Network"),
+    # wide-only
+    ColumnDef("description", wide_only=True),
+]
+
+TENANT_EXT_IP_COLUMNS = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("ip_address", header="IP"),
+    ColumnDef("network_name", header="Network"),
+    # wide-only
+    ColumnDef("hostname", wide_only=True),
+]
+
+TENANT_L2_COLUMNS = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("network_name", header="Network"),
+    ColumnDef("network_type", header="Type"),
+    ColumnDef("is_enabled", header="Enabled", format_fn=format_bool_yn, style_map=BOOL_STYLES),
+]
+
+TENANT_SNAPSHOT_COLUMNS = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("name"),
+    ColumnDef("created", format_fn=format_epoch),
+    ColumnDef("expires", format_fn=format_epoch_or_never),
+    # wide-only
+    ColumnDef("profile", wide_only=True),
+]
+
+TENANT_STATS_COLUMNS = [
+    ColumnDef("timestamp", format_fn=format_epoch),
+    ColumnDef("cpu_percent", header="CPU %", style_fn=style_percent_threshold),
+    ColumnDef("ram_used_mb", header="RAM Used MB"),
+    ColumnDef("ram_total_mb", header="RAM Total MB"),
+    ColumnDef("disk_read_ops", header="Disk Read IOPS"),
+    ColumnDef("disk_write_ops", header="Disk Write IOPS"),
+]
+
+TENANT_LOG_COLUMNS = [
+    ColumnDef("timestamp", header="Time"),
+    ColumnDef("type", header="Type"),
+    ColumnDef("message", header="Message"),
 ]
