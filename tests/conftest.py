@@ -229,6 +229,34 @@ def mock_device() -> MagicMock:
 
 
 @pytest.fixture
+def mock_tenant() -> MagicMock:
+    """Create a mock Tenant object."""
+    tenant = MagicMock()
+    tenant.key = 5
+    tenant.name = "acme-corp"
+    tenant.status = "running"
+    tenant.is_running = True
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data = {
+            "description": "ACME Corporation tenant",
+            "state": "active",
+            "is_isolated": False,
+            "network_name": "Tenant Internal",
+            "ui_address_ip": "10.10.0.100",
+            "uuid": "550e8400-e29b-41d4-a716-446655440000",
+            "url": "acme.verge.local",
+            "note": "Production tenant",
+            "expose_cloud_snapshots": True,
+            "allow_branding": False,
+        }
+        return data.get(key, default)
+
+    tenant.get = mock_get
+    return tenant
+
+
+@pytest.fixture
 def mock_cluster() -> MagicMock:
     """Create a mock Cluster object."""
     cluster = MagicMock()
