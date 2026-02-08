@@ -286,22 +286,21 @@ DEVICE_COLUMNS = [
 ]
 
 TENANT_COLUMNS = [
+    ColumnDef("$key", header="Key"),
     ColumnDef("name"),
     ColumnDef("status", style_map=STATUS_STYLES, normalize_fn=normalize_lower),
     ColumnDef("state"),
+    ColumnDef(
+        "is_isolated",
+        header="Isolated",
+        format_fn=format_bool_yn,
+        style_map=BOOL_STYLES,
+    ),
     # wide-only
     ColumnDef("description", wide_only=True),
     ColumnDef("network_name", header="Network", wide_only=True),
     ColumnDef("ui_address_ip", header="UI IP", wide_only=True),
     ColumnDef("uuid", wide_only=True),
-    ColumnDef(
-        "isolate",
-        header="Isolated",
-        wide_only=True,
-        format_fn=format_bool_yn,
-        style_map=BOOL_STYLES,
-    ),
-    ColumnDef("key", wide_only=True),
 ]
 
 CLUSTER_COLUMNS = [
