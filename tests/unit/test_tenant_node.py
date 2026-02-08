@@ -82,3 +82,128 @@ def test_tenant_node_list_empty(cli_runner, mock_client, mock_tenant):
     result = cli_runner.invoke(app, ["tenant", "node", "list", "acme-corp"])
 
     assert result.exit_code == 0
+
+
+def test_tenant_node_create(cli_runner, mock_client, mock_tenant, mock_tenant_node):
+    """vrg tenant node create should create a compute node."""
+    mock_client.tenants.list.return_value = [mock_tenant]
+    mock_client.tenants.get.return_value = mock_tenant
+    mock_tenant.nodes.create.return_value = mock_tenant_node
+
+    result = cli_runner.invoke(
+        app,
+        [
+            "tenant",
+            "node",
+            "create",
+            "acme-corp",
+            "--cpu-cores",
+            "4",
+            "--ram-gb",
+            "8",
+        ],
+    )
+
+    assert result.exit_code == 0
+    mock_tenant.nodes.create.assert_called_once()
+    call_kwargs = mock_tenant.nodes.create.call_args[1]
+    assert call_kwargs["cpu_cores"] == 4
+    assert call_kwargs["ram_gb"] == 8
+
+
+def test_tenant_node_create_with_options(cli_runner, mock_client, mock_tenant, mock_tenant_node):
+    """vrg tenant node create should accept optional flags."""
+    mock_client.tenants.list.return_value = [mock_tenant]
+    mock_client.tenants.get.return_value = mock_tenant
+    mock_tenant.nodes.create.return_value = mock_tenant_node
+
+    result = cli_runner.invoke(
+        app,
+        [
+            "tenant",
+            "node",
+            "create",
+            "acme-corp",
+            "--cpu-cores",
+            "8",
+            "--ram-gb",
+            "16",
+            "--cluster",
+            "1",
+            "--name",
+            "big-node",
+            "--preferred-node",
+            "2",
+        ],
+    )
+
+    assert result.exit_code == 0
+    call_kwargs = mock_tenant.nodes.create.call_args[1]
+    assert call_kwargs["cpu_cores"] == 8
+    assert call_kwargs["ram_gb"] == 16
+    assert call_kwargs["cluster"] == 1
+    assert call_kwargs["name"] == "big-node"
+    assert call_kwargs["preferred_node"] == 2
+
+
+def test_tenant_node_update(cli_runner, mock_client, mock_tenant, mock_tenant_node):
+    """vrg tenant node update should update node properties."""
+    mock_client.tenants.list.return_value = [mock_tenant]
+    mock_client.tenants.get.return_value = mock_tenant
+    mock_tenant.nodes.list.return_value = [mock_tenant_node]
+    mock_tenant.nodes.update.return_value = mock_tenant_node
+
+    result = cli_runner.invoke(
+        app,
+        [
+            "tenant",
+            "node",
+            "update",
+            "acme-corp",
+            "tenant-node-1",
+            "--cpu-cores",
+            "8",
+        ],
+    )
+
+    assert result.exit_code == 0
+    mock_tenant.nodes.update.assert_called_once()
+
+
+def test_tenant_node_update_no_changes(cli_runner, mock_client, mock_tenant, mock_tenant_node):
+    """vrg tenant node update with no flags should exit 2."""
+    mock_client.tenants.list.return_value = [mock_tenant]
+    mock_client.tenants.get.return_value = mock_tenant
+    mock_tenant.nodes.list.return_value = [mock_tenant_node]
+
+    result = cli_runner.invoke(app, ["tenant", "node", "update", "acme-corp", "tenant-node-1"])
+
+    assert result.exit_code == 2
+
+
+def test_tenant_node_delete(cli_runner, mock_client, mock_tenant, mock_tenant_node):
+    """vrg tenant node delete should remove a node with --yes."""
+    mock_client.tenants.list.return_value = [mock_tenant]
+    mock_client.tenants.get.return_value = mock_tenant
+    mock_tenant.nodes.list.return_value = [mock_tenant_node]
+
+    result = cli_runner.invoke(
+        app, ["tenant", "node", "delete", "acme-corp", "tenant-node-1", "--yes"]
+    )
+
+    assert result.exit_code == 0
+    mock_tenant.nodes.delete.assert_called_once_with(100)
+
+
+def test_tenant_node_delete_cancelled(cli_runner, mock_client, mock_tenant, mock_tenant_node):
+    """vrg tenant node delete without --yes should prompt and cancel on 'n'."""
+    mock_client.tenants.list.return_value = [mock_tenant]
+    mock_client.tenants.get.return_value = mock_tenant
+    mock_tenant.nodes.list.return_value = [mock_tenant_node]
+
+    result = cli_runner.invoke(
+        app, ["tenant", "node", "delete", "acme-corp", "tenant-node-1"], input="n\n"
+    )
+
+    assert result.exit_code == 0
+    mock_tenant.nodes.delete.assert_not_called()
