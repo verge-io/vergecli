@@ -3,6 +3,7 @@
 **Date:** 2026-02-08
 **Status:** Draft
 **Scope:** `vrg vm snapshot` sub-commands for VM snapshot management
+**Task Checklist:** Bottom of file — `tail -20` to check status
 
 ---
 
@@ -127,12 +128,11 @@ def _snapshot_to_dict(snap: Any) -> dict[str, Any]:
 | 11 | `test_snapshot_restore_replace_and_name_error` | --replace + --name mutual exclusion |
 | 12 | `test_snapshot_not_found` | Name resolution error (exit 6) |
 
-## Implementation Steps
+## Task Checklist
 
-1. Add `VM_SNAPSHOT_COLUMNS` to `columns.py`
-2. Create `vm_snapshot.py` with all commands
-3. Register sub-typer in `vm.py`
-4. Create `test_vm_snapshot.py` with all tests
-5. Run `uv run ruff check` and `uv run mypy src/verge_cli`
-6. Run `uv run pytest tests/unit/test_vm_snapshot.py -v`
-7. Update PRD phase 3 checklist to mark VM snapshots done
+- [ ] Add `VM_SNAPSHOT_COLUMNS` to `columns.py`
+- [ ] Create `vm_snapshot.py` with all commands
+- [ ] Register sub-typer in `vm.py`
+- [ ] Create `test_vm_snapshot.py` with all tests
+- [ ] Run `uv run ruff check` and `uv run mypy src/verge_cli`
+- [ ] Run `uv run pytest tests/unit/test_vm_snapshot.py -v`

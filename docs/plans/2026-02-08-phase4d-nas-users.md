@@ -4,6 +4,7 @@
 **Status:** Draft
 **Scope:** `vrg nas user` commands for NAS local user management
 **Depends on:** Phase 4a (NAS Services)
+**Task Checklist:** Bottom of file — `tail -20` to check status
 
 ---
 
@@ -136,14 +137,14 @@ def _user_to_dict(user: Any) -> dict[str, Any]:
 | 11 | `test_user_disable` | Disable user |
 | 12 | `test_user_not_found` | Name resolution error (exit 6) |
 
-## Implementation Steps
+## Task Checklist
 
-1. Create `src/verge_cli/commands/nas_user.py` with all commands
-2. Register sub-typer in `nas.py`
-3. Add `mock_nas_user` fixture to `conftest.py`
-4. Create `tests/unit/test_nas_user.py` with all tests
-5. Run `uv run ruff check` and `uv run mypy src/verge_cli`
-6. Run `uv run pytest tests/unit/test_nas_user.py -v`
+- [ ] Create `src/verge_cli/commands/nas_user.py` with all commands
+- [ ] Register sub-typer in `nas.py`
+- [ ] Add `mock_nas_user` fixture to `conftest.py`
+- [ ] Create `tests/unit/test_nas_user.py` with all tests
+- [ ] Run `uv run ruff check` and `uv run mypy src/verge_cli`
+- [ ] Run `uv run pytest tests/unit/test_nas_user.py -v`
 
 ## Notes
 

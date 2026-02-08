@@ -4,6 +4,7 @@
 **Status:** Draft
 **Scope:** `vrg nas cifs` and `vrg nas nfs` commands for share management
 **Depends on:** Phase 4b (NAS Volumes)
+**Task Checklist:** Bottom of file — `tail -20` to check status
 
 ---
 
@@ -236,16 +237,16 @@ def _nfs_share_to_dict(share: Any) -> dict[str, Any]:
 | 19 | `test_nfs_enable` | Enable share |
 | 20 | `test_nfs_not_found` | Name resolution error (exit 6) |
 
-## Implementation Steps
+## Task Checklist
 
-1. Create `src/verge_cli/commands/nas_cifs.py` with all commands
-2. Create `src/verge_cli/commands/nas_nfs.py` with all commands
-3. Register sub-typers in `nas.py`
-4. Add fixtures to `conftest.py`
-5. Create `tests/unit/test_nas_cifs.py`
-6. Create `tests/unit/test_nas_nfs.py`
-7. Run `uv run ruff check` and `uv run mypy src/verge_cli`
-8. Run `uv run pytest tests/unit/test_nas_cifs.py tests/unit/test_nas_nfs.py -v`
+- [ ] Create `src/verge_cli/commands/nas_cifs.py` with all commands
+- [ ] Create `src/verge_cli/commands/nas_nfs.py` with all commands
+- [ ] Register sub-typers in `nas.py`
+- [ ] Add fixtures to `conftest.py`
+- [ ] Create `tests/unit/test_nas_cifs.py`
+- [ ] Create `tests/unit/test_nas_nfs.py`
+- [ ] Run `uv run ruff check` and `uv run mypy src/verge_cli`
+- [ ] Run `uv run pytest tests/unit/test_nas_cifs.py tests/unit/test_nas_nfs.py -v`
 
 ## Notes
 

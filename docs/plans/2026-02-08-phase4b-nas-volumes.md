@@ -5,6 +5,7 @@
 **Scope:** `vrg nas volume` commands for volume CRUD and `vrg nas volume snapshot` sub-commands
 **Depends on:** Phase 4a (NAS Services)
 **Blocks:** 4c (Shares), 4e (Syncs), 4f (Files)
+**Task Checklist:** Bottom of file — `tail -20` to check status
 
 ---
 
@@ -272,17 +273,17 @@ def _snapshot_to_dict(snap: Any) -> dict[str, Any]:
 | 19 | `test_snapshot_not_found` | Snapshot name resolution error |
 | 20 | `test_resolve_nas_resource_hex_key` | Hex key passes through directly |
 
-## Implementation Steps
+## Task Checklist
 
-1. Add `resolve_nas_resource()` to `utils.py`
-2. Create `src/verge_cli/commands/nas_volume.py` with all commands
-3. Create `src/verge_cli/commands/nas_volume_snapshot.py` with all commands
-4. Register sub-typers in `nas.py`
-5. Add fixtures to `conftest.py`
-6. Create `tests/unit/test_nas_volume.py` with all tests
-7. Create `tests/unit/test_nas_volume_snapshot.py` with all tests
-8. Run `uv run ruff check` and `uv run mypy src/verge_cli`
-9. Run `uv run pytest tests/unit/test_nas_volume.py tests/unit/test_nas_volume_snapshot.py -v`
+- [ ] Add `resolve_nas_resource()` to `utils.py`
+- [ ] Create `src/verge_cli/commands/nas_volume.py` with all commands
+- [ ] Create `src/verge_cli/commands/nas_volume_snapshot.py` with all commands
+- [ ] Register sub-typers in `nas.py`
+- [ ] Add fixtures to `conftest.py`
+- [ ] Create `tests/unit/test_nas_volume.py` with all tests
+- [ ] Create `tests/unit/test_nas_volume_snapshot.py` with all tests
+- [ ] Run `uv run ruff check` and `uv run mypy src/verge_cli`
+- [ ] Run `uv run pytest tests/unit/test_nas_volume.py tests/unit/test_nas_volume_snapshot.py -v`
 
 ## Notes
 

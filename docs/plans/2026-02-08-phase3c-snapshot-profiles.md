@@ -4,6 +4,7 @@
 **Status:** Draft
 **Scope:** `vrg snapshot profile` commands for snapshot profile and period management
 **Depends on:** Phase 3b (Cloud Snapshots) — requires `snapshot.py` to be created first
+**Task Checklist:** Bottom of file — `tail -20` to check status
 
 ---
 
@@ -228,16 +229,15 @@ def _period_to_dict(period: Any) -> dict[str, Any]:
 | 9 | `test_period_not_found` | Period name resolution error (exit 6) |
 | 10 | `test_period_profile_not_found` | Profile not found error (exit 6) |
 
-## Implementation Steps
+## Task Checklist
 
 **Prerequisites:** Phase 3b must be complete with `snapshot.py` created.
 
-1. Add `SNAPSHOT_PROFILE_COLUMNS` and `SNAPSHOT_PROFILE_PERIOD_COLUMNS` to `columns.py`
-2. Create `snapshot_profile_period.py` with all period commands
-3. Create `snapshot_profile.py` with all profile commands and period sub-typer registration
-4. Register `profile` sub-typer in `snapshot.py`
-5. Create `test_snapshot_profile_period.py` with all period tests
-6. Create `test_snapshot_profile.py` with all profile tests
-7. Run `uv run ruff check` and `uv run mypy src/verge_cli`
-8. Run `uv run pytest tests/unit/test_snapshot_profile*.py -v`
-9. Update PRD phase 3 checklist to mark snapshot profiles done
+- [ ] Add `SNAPSHOT_PROFILE_COLUMNS` and `SNAPSHOT_PROFILE_PERIOD_COLUMNS` to `columns.py`
+- [ ] Create `snapshot_profile_period.py` with all period commands
+- [ ] Create `snapshot_profile.py` with all profile commands and period sub-typer registration
+- [ ] Register `profile` sub-typer in `snapshot.py`
+- [ ] Create `test_snapshot_profile_period.py` with all period tests
+- [ ] Create `test_snapshot_profile.py` with all profile tests
+- [ ] Run `uv run ruff check` and `uv run mypy src/verge_cli`
+- [ ] Run `uv run pytest tests/unit/test_snapshot_profile*.py -v`

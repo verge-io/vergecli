@@ -4,6 +4,7 @@
 **Status:** Draft
 **Scope:** `vrg recipe` commands for VM recipe management with sections, questions, instances, and logs
 **Depends on:** None (independent of NAS plans)
+**Task Checklist:** Bottom of file — `tail -20` to check status
 
 ---
 
@@ -364,18 +365,18 @@ def _log_to_dict(log: Any) -> dict[str, Any]:
 | 26 | `test_recipe_not_found` | Recipe resolution error (exit 6) |
 | 27 | `test_parse_set_args` | Parse KEY=VALUE pairs into dict |
 
-## Implementation Steps
+## Task Checklist
 
-1. Create `src/verge_cli/commands/recipe.py` with recipe commands + deploy
-2. Create `src/verge_cli/commands/recipe_section.py` with section commands
-3. Create `src/verge_cli/commands/recipe_question.py` with question commands
-4. Create `src/verge_cli/commands/recipe_instance.py` with instance commands
-5. Create `src/verge_cli/commands/recipe_log.py` with log commands
-6. Register `recipe` typer in `cli.py` with section/question/instance/log sub-typers
-7. Add fixtures to `conftest.py`
-8. Create all 5 test files
-9. Run `uv run ruff check` and `uv run mypy src/verge_cli`
-10. Run `uv run pytest tests/unit/test_recipe*.py -v`
+- [ ] Create `src/verge_cli/commands/recipe.py` with recipe commands + deploy
+- [ ] Create `src/verge_cli/commands/recipe_section.py` with section commands
+- [ ] Create `src/verge_cli/commands/recipe_question.py` with question commands
+- [ ] Create `src/verge_cli/commands/recipe_instance.py` with instance commands
+- [ ] Create `src/verge_cli/commands/recipe_log.py` with log commands
+- [ ] Register `recipe` typer in `cli.py` with section/question/instance/log sub-typers
+- [ ] Add fixtures to `conftest.py`
+- [ ] Create all 5 test files
+- [ ] Run `uv run ruff check` and `uv run mypy src/verge_cli`
+- [ ] Run `uv run pytest tests/unit/test_recipe*.py -v`
 
 ## Notes
 
