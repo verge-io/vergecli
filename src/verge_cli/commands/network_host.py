@@ -60,7 +60,7 @@ def _host_to_dict(host: Any) -> dict[str, Any]:
         Dictionary representation of the host.
     """
     return {
-        "key": host.get("$key") or getattr(host, "key", None),
+        "$key": host.get("$key") or getattr(host, "key", None),
         "host": host.get("host", ""),
         "ip": host.get("ip", ""),
         "type": host.get("type", "host"),

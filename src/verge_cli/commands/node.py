@@ -28,7 +28,7 @@ def _node_to_dict(node: Any) -> dict[str, Any]:
     Falls back to .get() for raw data fields.
     """
     return {
-        "key": node.key,
+        "$key": node.key,
         "name": node.name,
         "status": getattr(node, "status", node.get("status", "")),
         "cluster_name": getattr(node, "cluster_name", node.get("cluster_name", "")),

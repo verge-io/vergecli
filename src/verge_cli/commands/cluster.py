@@ -25,7 +25,7 @@ def _cluster_to_dict(cluster: Any) -> dict[str, Any]:
     # is_compute, is_storage, status) since .get() only accesses raw data.
     # Fall back to .get() for fields that may be on mock objects in tests.
     return {
-        "key": cluster.key,
+        "$key": cluster.key,
         "name": cluster.name,
         "status": getattr(cluster, "status", cluster.get("status", "")),
         "total_nodes": cluster.get("total_nodes"),

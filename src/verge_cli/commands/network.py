@@ -403,7 +403,7 @@ def network_status(
 def _network_to_dict(net: Any) -> dict[str, Any]:
     """Convert a Network object to a dictionary for output."""
     return {
-        "key": net.key,
+        "$key": net.key,
         "name": net.name,
         "description": net.get("description", ""),
         "type": net.get("type"),

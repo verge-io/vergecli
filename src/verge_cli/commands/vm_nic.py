@@ -30,7 +30,7 @@ def _get_vm(ctx: typer.Context, vm_identifier: str) -> tuple[Any, Any]:
 def _nic_to_dict(nic: Any) -> dict[str, Any]:
     """Convert a NIC object to a dict for output."""
     return {
-        "key": nic.key,
+        "$key": nic.key,
         "name": nic.name,
         "description": nic.get("description", ""),
         "interface": nic.get("interface", ""),
