@@ -2628,7 +2628,7 @@ app.add_typer(vm.app, name="vm")
 - [x] Task 2: cluster.py — list + get commands (TDD)
 - [x] Task 3: cluster.py — create, update, delete (TDD)
 - [x] Task 4: cluster.py — vsan-status command (TDD)
-- [ ] Task 5: node.py — list + get commands (TDD)
+- [x] Task 5: node.py — list + get commands (TDD)
 - [ ] Task 6: node.py — maintenance + restart (TDD)
 - [ ] Task 7: storage.py — list, get, summary (TDD)
 - [ ] Task 8: Registration + full regression
