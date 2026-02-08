@@ -253,11 +253,10 @@ def ext_ip_create(
     """Allocate an external IP to a tenant."""
     vctx, tenant_obj = _get_tenant(ctx, tenant)
 
-    ip_obj = tenant_obj.external_ips.create(
-        ip=ip,
-        network=network,
-        hostname=hostname,
-    )
+    kwargs: dict[str, Any] = {"ip": ip, "network": network}
+    if hostname is not None:
+        kwargs["hostname"] = hostname
+    ip_obj = tenant_obj.external_ips.create(**kwargs)
 
     output_success(
         f"Created external IP (key: {ip_obj.key})",
