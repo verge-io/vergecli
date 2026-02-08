@@ -91,7 +91,7 @@ Model options: `tis`, `crb`. Version options: `1.2`, `2.0`. No resource groups n
 
 Extension: `.vrg.yaml` (also accepts `.yaml` / `.yml`).
 
-Spec document: `docs/VergeOS-vm-tempalte-spec.md`
+Spec document: `docs/VergeOS-vm-template-spec.md`
 JSON Schema: `.claude/reference/specs/vm-schema.json` (starting point — needs refinements)
 Example templates: `.claude/reference/*.vrg.yml`
 
@@ -439,7 +439,7 @@ M1 (units + resolver)
 
 | Document | Purpose |
 |----------|---------|
-| `docs/VergeOS-vm-tempalte-spec.md` | Full template YAML specification |
+| `docs/VergeOS-vm-template-spec.md` | Full template YAML specification |
 | `.claude/reference/specs/vm-schema.json` | Draft JSON schema (needs refinements) |
 | `.claude/reference/web-server.vrg.yml` | Example: Linux web server template |
 | `.claude/reference/windows-server.vrg.yml` | Example: Windows Server template |
