@@ -1,0 +1,216 @@
+"""Cloud snapshot management commands."""
+
+from __future__ import annotations
+
+from typing import Annotated, Any
+
+import typer
+
+from verge_cli.columns import (
+    CLOUD_SNAPSHOT_COLUMNS,
+    CLOUD_SNAPSHOT_TENANT_COLUMNS,
+    CLOUD_SNAPSHOT_VM_COLUMNS,
+)
+from verge_cli.context import get_context
+from verge_cli.errors import handle_errors
+from verge_cli.output import output_result, output_success
+from verge_cli.utils import confirm_action, resolve_resource_id
+
+app = typer.Typer(
+    name="snapshot",
+    help="Manage cloud snapshots.",
+    no_args_is_help=True,
+)
+
+
+def _snapshot_to_dict(snap: Any) -> dict[str, Any]:
+    """Convert a CloudSnapshot object to a dict for output."""
+    return {
+        "$key": snap.key,
+        "name": snap.name,
+        "status": snap.get("status"),
+        "created": snap.get("created"),
+        "expires": snap.get("expires"),
+        "immutable": snap.get("immutable"),
+        "private": snap.get("private"),
+        "description": snap.get("description", ""),
+    }
+
+
+def _vm_to_dict(vm: Any) -> dict[str, Any]:
+    """Convert a CloudSnapshotVM object to a dict for output."""
+    return {
+        "$key": vm.key,
+        "name": vm.name,
+        "status": vm.get("status"),
+    }
+
+
+def _tenant_to_dict(tenant: Any) -> dict[str, Any]:
+    """Convert a CloudSnapshotTenant object to a dict for output."""
+    return {
+        "$key": tenant.key,
+        "name": tenant.name,
+        "status": tenant.get("status"),
+    }
+
+
+@app.command("list")
+@handle_errors()
+def list_cmd(
+    ctx: typer.Context,
+    include_expired: Annotated[
+        bool,
+        typer.Option("--include-expired", help="Include expired snapshots"),
+    ] = False,
+) -> None:
+    """List all cloud snapshots."""
+    vctx = get_context(ctx)
+    snapshots = vctx.client.cloud_snapshots.list(include_expired=include_expired)
+    data = [_snapshot_to_dict(s) for s in snapshots]
+    output_result(
+        data,
+        output_format=vctx.output_format,
+        query=vctx.query,
+        columns=CLOUD_SNAPSHOT_COLUMNS,
+        quiet=vctx.quiet,
+        no_color=vctx.no_color,
+    )
+
+
+@app.command("get")
+@handle_errors()
+def get_cmd(
+    ctx: typer.Context,
+    snapshot: Annotated[str, typer.Argument(help="Snapshot name or key")],
+) -> None:
+    """Get details of a cloud snapshot."""
+    vctx = get_context(ctx)
+    key = resolve_resource_id(vctx.client.cloud_snapshots, snapshot, "Cloud snapshot")
+    snap = vctx.client.cloud_snapshots.get(key)
+    output_result(
+        _snapshot_to_dict(snap),
+        output_format=vctx.output_format,
+        query=vctx.query,
+        quiet=vctx.quiet,
+        no_color=vctx.no_color,
+    )
+
+
+@app.command("create")
+@handle_errors()
+def create_cmd(
+    ctx: typer.Context,
+    name: Annotated[
+        str | None,
+        typer.Option("--name", "-n", help="Snapshot name (auto-generated if omitted)"),
+    ] = None,
+    retention: Annotated[
+        int | None,
+        typer.Option("--retention", help="Retention in seconds"),
+    ] = None,
+    never_expire: Annotated[
+        bool,
+        typer.Option("--never-expire", help="Snapshot never expires"),
+    ] = False,
+    immutable: Annotated[
+        bool,
+        typer.Option("--immutable", help="Make snapshot immutable"),
+    ] = False,
+    private: Annotated[
+        bool,
+        typer.Option("--private", help="Mark snapshot as private"),
+    ] = False,
+    wait: Annotated[
+        bool,
+        typer.Option("--wait", help="Wait for snapshot completion"),
+    ] = False,
+) -> None:
+    """Create a new cloud snapshot."""
+    # Mutual exclusion check
+    if retention is not None and never_expire:
+        typer.echo("Error: --retention and --never-expire are mutually exclusive.", err=True)
+        raise typer.Exit(2)
+
+    vctx = get_context(ctx)
+
+    kwargs: dict[str, Any] = {
+        "name": name,
+        "immutable": immutable,
+        "private": private,
+        "wait": wait,
+    }
+    if never_expire:
+        kwargs["never_expire"] = True
+    elif retention is not None:
+        kwargs["retention_seconds"] = retention
+
+    result = vctx.client.cloud_snapshots.create(**kwargs)
+
+    snap_name = result.name if result else (name or "snapshot")
+    snap_key = result.key if result else "?"
+    output_success(
+        f"Created cloud snapshot '{snap_name}' (key: {snap_key})",
+        quiet=vctx.quiet,
+    )
+
+
+@app.command("delete")
+@handle_errors()
+def delete_cmd(
+    ctx: typer.Context,
+    snapshot: Annotated[str, typer.Argument(help="Snapshot name or key")],
+    yes: Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation")] = False,
+) -> None:
+    """Delete a cloud snapshot."""
+    vctx = get_context(ctx)
+    key = resolve_resource_id(vctx.client.cloud_snapshots, snapshot, "Cloud snapshot")
+
+    if not confirm_action(f"Delete cloud snapshot '{snapshot}'?", yes=yes):
+        typer.echo("Cancelled.")
+        raise typer.Exit(0)
+
+    vctx.client.cloud_snapshots.delete(key)
+    output_success(f"Deleted cloud snapshot '{snapshot}'", quiet=vctx.quiet)
+
+
+@app.command("vms")
+@handle_errors()
+def vms_cmd(
+    ctx: typer.Context,
+    snapshot: Annotated[str, typer.Argument(help="Snapshot name or key")],
+) -> None:
+    """List VMs captured in a cloud snapshot."""
+    vctx = get_context(ctx)
+    key = resolve_resource_id(vctx.client.cloud_snapshots, snapshot, "Cloud snapshot")
+    vms = vctx.client.cloud_snapshots.vms(key).list()
+    data = [_vm_to_dict(v) for v in vms]
+    output_result(
+        data,
+        output_format=vctx.output_format,
+        query=vctx.query,
+        columns=CLOUD_SNAPSHOT_VM_COLUMNS,
+        quiet=vctx.quiet,
+        no_color=vctx.no_color,
+    )
+
+
+@app.command("tenants")
+@handle_errors()
+def tenants_cmd(
+    ctx: typer.Context,
+    snapshot: Annotated[str, typer.Argument(help="Snapshot name or key")],
+) -> None:
+    """List tenants captured in a cloud snapshot."""
+    vctx = get_context(ctx)
+    key = resolve_resource_id(vctx.client.cloud_snapshots, snapshot, "Cloud snapshot")
+    tenants = vctx.client.cloud_snapshots.tenants(key).list()
+    data = [_tenant_to_dict(t) for t in tenants]
+    output_result(
+        data,
+        output_format=vctx.output_format,
+        query=vctx.query,
+        columns=CLOUD_SNAPSHOT_TENANT_COLUMNS,
+        quiet=vctx.quiet,
+        no_color=vctx.no_color,
+    )

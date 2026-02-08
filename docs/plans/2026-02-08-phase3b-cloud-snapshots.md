@@ -169,12 +169,12 @@ def _tenant_to_dict(tenant: Any) -> dict[str, Any]:
 
 ## Task Checklist
 
-- [ ] Add `CLOUD_SNAPSHOT_COLUMNS`, `CLOUD_SNAPSHOT_VM_COLUMNS`, `CLOUD_SNAPSHOT_TENANT_COLUMNS` to `columns.py`
-- [ ] Create `snapshot.py` with all commands
-- [ ] Register top-level typer in `cli.py`
-- [ ] Create `test_snapshot.py` with all tests
-- [ ] Run `uv run ruff check` and `uv run mypy src/verge_cli`
-- [ ] Run `uv run pytest tests/unit/test_snapshot.py -v`
+- [x] Add `CLOUD_SNAPSHOT_COLUMNS`, `CLOUD_SNAPSHOT_VM_COLUMNS`, `CLOUD_SNAPSHOT_TENANT_COLUMNS` to `columns.py`
+- [x] Create `snapshot.py` with all commands
+- [x] Register top-level typer in `cli.py`
+- [x] Create `test_snapshot.py` with all tests
+- [x] Run `uv run ruff check` and `uv run mypy src/verge_cli`
+- [x] Run `uv run pytest tests/unit/test_snapshot.py -v`
 
 ## Notes
 
