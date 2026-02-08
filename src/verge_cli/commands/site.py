@@ -8,6 +8,7 @@ import click
 import typer
 
 from verge_cli.columns import SITE_COLUMNS
+from verge_cli.commands import site_sync
 from verge_cli.context import get_context
 from verge_cli.errors import handle_errors
 from verge_cli.output import output_result, output_success
@@ -18,6 +19,8 @@ app = typer.Typer(
     help="Manage remote sites.",
     no_args_is_help=True,
 )
+
+app.add_typer(site_sync.app, name="sync")
 
 
 def _site_to_dict(site: Any) -> dict[str, Any]:
