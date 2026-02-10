@@ -152,3 +152,17 @@ def test_update_apply_force(
 
     assert result.exit_code == 0
     mock_client.update_settings.update_all.assert_called_once_with(force=True)
+
+
+def test_update_status_dashboard(
+    cli_runner: CliRunner,
+    mock_client: MagicMock,
+    mock_update_dashboard: MagicMock,
+) -> None:
+    """Test the update status (dashboard) command."""
+    mock_client.update_dashboard.get.return_value = mock_update_dashboard
+
+    result = cli_runner.invoke(app, ["update", "status"])
+
+    assert result.exit_code == 0
+    mock_client.update_dashboard.get.assert_called_once()

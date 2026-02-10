@@ -1251,6 +1251,109 @@ def mock_update_source_status() -> MagicMock:
 
 
 @pytest.fixture
+def mock_update_branch() -> MagicMock:
+    """Create a mock UpdateBranch object."""
+    branch = MagicMock()
+    branch.key = 1
+    branch.name = "stable-4.13"
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "description": "Stable 4.13 release branch",
+            "created": "2026-01-15T00:00:00",
+        }
+        return data.get(key, default)
+
+    branch.get = mock_get
+    return branch
+
+
+@pytest.fixture
+def mock_update_package() -> MagicMock:
+    """Create a mock UpdatePackage object."""
+    pkg = MagicMock()
+    pkg.key = "yb-core"
+    pkg.name = "yb-core"
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "version": "4.13.1-12345",
+            "type": "ybpkg",
+            "optional": False,
+            "description": "VergeOS Core Package",
+            "branch": 1,
+            "modified": "2026-02-08T00:00:00",
+        }
+        return data.get(key, default)
+
+    pkg.get = mock_get
+    return pkg
+
+
+@pytest.fixture
+def mock_update_source_package() -> MagicMock:
+    """Create a mock UpdateSourcePackage object."""
+    pkg = MagicMock()
+    pkg.key = 10
+    pkg.name = "yb-core"
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "version": "4.13.2-12400",
+            "downloaded": False,
+            "optional": False,
+            "description": "VergeOS Core Package",
+            "branch": 1,
+            "source": 1,
+            "require_license_feature": "",
+        }
+        return data.get(key, default)
+
+    pkg.get = mock_get
+    return pkg
+
+
+@pytest.fixture
+def mock_update_log() -> MagicMock:
+    """Create a mock UpdateLog object."""
+    log = MagicMock()
+    log.key = 500
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "level": "audit",
+            "text": "Update check completed",
+            "timestamp": 1707000000000000,
+            "user": "admin",
+            "object_name": "system",
+        }
+        return data.get(key, default)
+
+    log.get = mock_get
+    return log
+
+
+@pytest.fixture
+def mock_update_dashboard() -> MagicMock:
+    """Create a mock UpdateDashboard object."""
+    dashboard = MagicMock()
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "node_count": 3,
+            "counts": {"event_count": 12, "task_count": 5},
+            "logs": [],
+            "packages": [],
+            "branches": [],
+            "settings": {},
+        }
+        return data.get(key, default)
+
+    dashboard.get = mock_get
+    return dashboard
+
+
+@pytest.fixture
 def temp_config_dir(tmp_path: Path) -> Path:
     """Create a temporary config directory."""
     config_dir = tmp_path / ".vrg"
