@@ -7,6 +7,7 @@ from typing import Annotated, Any
 import typer
 
 from verge_cli.columns import OIDC_APP_COLUMNS
+from verge_cli.commands import oidc_group, oidc_log, oidc_user
 from verge_cli.context import get_context
 from verge_cli.errors import handle_errors
 from verge_cli.output import output_result, output_success, output_warning
@@ -17,6 +18,10 @@ app = typer.Typer(
     help="Manage OIDC applications (VergeOS as identity provider).",
     no_args_is_help=True,
 )
+
+app.add_typer(oidc_user.app, name="user")
+app.add_typer(oidc_group.app, name="group")
+app.add_typer(oidc_log.app, name="log")
 
 
 def _resolve_oidc_app(client: Any, identifier: str) -> int:

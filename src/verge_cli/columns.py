@@ -124,6 +124,16 @@ def format_epoch(value: Any, *, for_csv: bool = False) -> str:
     return str(value)
 
 
+def format_microseconds(value: Any, *, for_csv: bool = False) -> str:
+    """Format microsecond timestamp as datetime string."""
+    if value is None:
+        return "" if for_csv else "-"
+    if isinstance(value, (int, float)) and value > 0:
+        dt = datetime.fromtimestamp(value / 1_000_000)
+        return dt.strftime("%Y-%m-%d %H:%M:%S")
+    return str(value)
+
+
 def format_epoch_or_never(value: Any, *, for_csv: bool = False) -> str:
     """Format an epoch timestamp, treating 0/None as 'Never'."""
     if value is None or value == 0:
@@ -793,6 +803,36 @@ OIDC_APP_COLUMNS: list[ColumnDef] = [
     ColumnDef("redirect_uris_display", header="Redirect URIs", wide_only=True),
     ColumnDef("force_auth_source_display", header="Auth Source", wide_only=True),
     ColumnDef("description", wide_only=True),
+]
+
+OIDC_USER_COLUMNS: list[ColumnDef] = [
+    ColumnDef("$key", header="Entry Key"),
+    ColumnDef("user_display", header="User"),
+    ColumnDef("user_key", header="User Key"),
+]
+
+OIDC_GROUP_COLUMNS: list[ColumnDef] = [
+    ColumnDef("$key", header="Entry Key"),
+    ColumnDef("group_display", header="Group"),
+    ColumnDef("group_key", header="Group Key"),
+]
+
+OIDC_LOG_COLUMNS: list[ColumnDef] = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("timestamp", format_fn=format_microseconds),
+    ColumnDef(
+        "level",
+        style_map={
+            "audit": "cyan",
+            "message": "dim",
+            "warning": "yellow",
+            "error": "red bold",
+            "critical": "red bold",
+        },
+    ),
+    ColumnDef("text", header="Message"),
+    # wide-only
+    ColumnDef("user_display", header="User", wide_only=True),
 ]
 
 CERTIFICATE_COLUMNS: list[ColumnDef] = [
