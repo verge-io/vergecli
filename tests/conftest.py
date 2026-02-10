@@ -912,6 +912,75 @@ def mock_task_trigger() -> MagicMock:
 
 
 @pytest.fixture
+def mock_task_event() -> MagicMock:
+    """Create a mock TaskEvent object."""
+    event = MagicMock()
+    event.key = 400
+    event.event_type = "poweron"
+    event.event_name_display = "Power On"
+    event.owner_key = 1
+    event.owner_display = "web-server"
+    event.owner_table = "vms"
+    event.task_key = 100
+    event.task_display = "nightly-backup"
+    event.event_filters = None
+    event.event_context = None
+    return event
+
+
+@pytest.fixture
+def mock_task_script() -> MagicMock:
+    """Create a mock TaskScript object."""
+    script = MagicMock()
+    script.key = 500
+    script.name = "cleanup-logs"
+    script.script_code = 'log("Cleaning up old logs")\ndelete_old_files("/var/log", 30)'
+    script.task_count = 2
+    script.settings = None
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "description": "Cleans up log files older than 30 days",
+        }
+        return data.get(key, default)
+
+    script.get = mock_get
+    return script
+
+
+@pytest.fixture
+def mock_certificate() -> MagicMock:
+    """Create a mock Certificate object."""
+    cert = MagicMock()
+    cert.key = 70
+    cert.is_valid = True
+    cert.cert_type_display = "Self-Signed"
+    cert.key_type_display = "ECDSA"
+    cert.days_until_expiry = 350
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "domain": "example.com",
+            "domainname": "example.com",
+            "domainlist": "*.example.com,api.example.com",
+            "description": "Main wildcard cert",
+            "type": "self_signed",
+            "key_type": "ecdsa",
+            "valid": True,
+            "expires": 1738000000,
+            "created": 1707000000,
+            "autocreated": False,
+            "public": "-----BEGIN CERTIFICATE-----\nMIIB...",
+            "private": "-----BEGIN PRIVATE KEY-----\nMIIE...",
+            "chain": "",
+        }
+        return data.get(key, default)
+
+    cert.get = mock_get
+    return cert
+
+
+@pytest.fixture
 def temp_config_dir(tmp_path: Path) -> Path:
     """Create a temporary config directory."""
     config_dir = tmp_path / ".vrg"

@@ -9,7 +9,7 @@ import click
 import typer
 
 from verge_cli.columns import TASK_COLUMNS
-from verge_cli.commands import task_schedule, task_trigger
+from verge_cli.commands import task_event, task_schedule, task_script, task_trigger
 from verge_cli.context import get_context
 from verge_cli.errors import handle_errors
 from verge_cli.output import output_result, output_success
@@ -22,7 +22,9 @@ app = typer.Typer(
 )
 
 # Register sub-command groups
+app.add_typer(task_event.app, name="event")
 app.add_typer(task_schedule.app, name="schedule")
+app.add_typer(task_script.app, name="script")
 app.add_typer(task_trigger.app, name="trigger")
 
 
