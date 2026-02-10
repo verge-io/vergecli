@@ -26,6 +26,7 @@ from verge_cli.commands import (
     oidc,
     permission,
     recipe,
+    resource_group,
     site,
     snapshot,
     storage,
@@ -63,6 +64,7 @@ app.add_typer(node.app, name="node")
 app.add_typer(oidc.app, name="oidc")
 app.add_typer(permission.app, name="permission")
 app.add_typer(recipe.app, name="recipe")
+app.add_typer(resource_group.app, name="resource-group")
 app.add_typer(site.app, name="site")
 app.add_typer(snapshot.app, name="snapshot")
 app.add_typer(storage.app, name="storage")

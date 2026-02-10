@@ -1481,6 +1481,27 @@ def mock_tag_member() -> MagicMock:
 
 
 @pytest.fixture
+def mock_resource_group() -> MagicMock:
+    """Create a mock ResourceGroup object."""
+    from datetime import datetime
+
+    group = MagicMock()
+    group.key = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+    group.uuid = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+    group.name = "gpu-passthrough"
+    group.device_type = "node_pci_devices"
+    group.device_type_display = "PCI"
+    group.device_class = "gpu"
+    group.device_class_display = "GPU"
+    group.is_enabled = True
+    group.resource_count = 2
+    group.description = "GPU passthrough group"
+    group.created_at = datetime(2026, 2, 10, 0, 0, 0)
+    group.modified_at = datetime(2026, 2, 10, 0, 0, 0)
+    return group
+
+
+@pytest.fixture
 def temp_config_dir(tmp_path: Path) -> Path:
     """Create a temporary config directory."""
     config_dir = tmp_path / ".vrg"
