@@ -1180,6 +1180,77 @@ def mock_catalog_repo_log() -> MagicMock:
 
 
 @pytest.fixture
+def mock_update_settings() -> MagicMock:
+    """Create a mock UpdateSettings object."""
+    settings = MagicMock()
+    settings.key = 1
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "source": 1,
+            "branch": 1,
+            "auto_refresh": True,
+            "auto_update": False,
+            "auto_reboot": False,
+            "update_time": "02:00",
+            "max_vsan_usage": 80,
+            "warm_reboot": True,
+            "multi_cluster_update": False,
+            "snapshot_cloud_on_update": True,
+            "snapshot_cloud_expire_seconds": 86400,
+            "installed": False,
+            "reboot_required": False,
+            "applying_updates": False,
+            "anonymize_statistics": False,
+        }
+        return data.get(key, default)
+
+    settings.get = mock_get
+    return settings
+
+
+@pytest.fixture
+def mock_update_source() -> MagicMock:
+    """Create a mock UpdateSource object."""
+    source = MagicMock()
+    source.key = 1
+    source.name = "test-source"
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "description": "Default update source",
+            "url": "https://updates.verge.io",
+            "enabled": True,
+            "last_updated": "2026-02-10T00:00:00",
+            "last_refreshed": "2026-02-10T00:00:00",
+        }
+        return data.get(key, default)
+
+    source.get = mock_get
+    return source
+
+
+@pytest.fixture
+def mock_update_source_status() -> MagicMock:
+    """Create a mock UpdateSourceStatus object."""
+    status = MagicMock()
+    status.key = 1
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "source": 1,
+            "status": "idle",
+            "info": "",
+            "nodes_updated": 2,
+            "last_update": "2026-02-10T00:00:00",
+        }
+        return data.get(key, default)
+
+    status.get = mock_get
+    return status
+
+
+@pytest.fixture
 def temp_config_dir(tmp_path: Path) -> Path:
     """Create a temporary config directory."""
     config_dir = tmp_path / ".vrg"
