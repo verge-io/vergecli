@@ -1,0 +1,359 @@
+"""Tag management commands."""
+
+from __future__ import annotations
+
+from typing import Annotated, Any
+
+import typer
+
+from verge_cli.columns import ColumnDef, format_epoch
+from verge_cli.commands import tag_category
+from verge_cli.context import get_context
+from verge_cli.errors import handle_errors
+from verge_cli.output import output_result, output_success
+from verge_cli.utils import confirm_action, resolve_resource_id
+
+app = typer.Typer(
+    name="tag",
+    help="Manage tags and tag categories.",
+    no_args_is_help=True,
+)
+
+# Register tag category as a sub-command
+app.add_typer(tag_category.app, name="category")
+
+TAG_COLUMNS: list[ColumnDef] = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("name"),
+    ColumnDef("category_name", header="Category"),
+    ColumnDef("description", wide_only=True),
+    ColumnDef("created", format_fn=format_epoch, wide_only=True),
+]
+
+TAG_MEMBER_COLUMNS: list[ColumnDef] = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("resource_type", header="Type"),
+    ColumnDef("resource_key", header="Resource Key"),
+    ColumnDef("resource_name", header="Resource Name"),
+]
+
+# Map user-friendly resource type names to SDK values
+RESOURCE_TYPE_MAP: dict[str, str] = {
+    "vm": "vms",
+    "network": "vnets",
+    "node": "nodes",
+    "tenant": "tenants",
+    "user": "users",
+    "cluster": "clusters",
+    "site": "sites",
+    "group": "groups",
+    "volume": "volumes",
+}
+
+# Reverse map for display
+_SDK_TO_DISPLAY: dict[str, str] = {v: k for k, v in RESOURCE_TYPE_MAP.items()}
+
+
+def _tag_to_dict(tag: Any) -> dict[str, Any]:
+    """Convert a Tag SDK object to a dict for output."""
+    return {
+        "$key": int(tag.key),
+        "name": tag.name,
+        "category_name": tag.category_name or "",
+        "description": tag.description or "",
+        "created": tag.created,
+    }
+
+
+def _member_to_dict(member: Any) -> dict[str, Any]:
+    """Convert a TagMember SDK object to a dict for output."""
+    resource_type = member.resource_type or ""
+    display_type = _SDK_TO_DISPLAY.get(resource_type, resource_type)
+    return {
+        "$key": int(member.key),
+        "resource_type": display_type,
+        "resource_key": member.resource_key or "",
+        "resource_name": getattr(member, "resource_name", "") or "",
+    }
+
+
+def _resolve_tag(vctx: Any, identifier: str, category: str | None = None) -> int:
+    """Resolve a tag identifier to a key.
+
+    If the identifier is numeric, return it directly.
+    Otherwise, use resolve_resource_id on client.tags.
+    """
+    return resolve_resource_id(vctx.client.tags, identifier, "Tag")
+
+
+def _resolve_target_resource(
+    vctx: Any, resource_type_cli: str, resource_id: str
+) -> tuple[str, int]:
+    """Resolve a target resource type and ID for assign/unassign.
+
+    Returns:
+        Tuple of (sdk_resource_type, resource_key).
+    """
+    sdk_type = RESOURCE_TYPE_MAP.get(resource_type_cli.lower())
+    if sdk_type is None:
+        valid_types = ", ".join(sorted(RESOURCE_TYPE_MAP.keys()))
+        raise typer.BadParameter(
+            f"Invalid resource type '{resource_type_cli}'. Valid types: {valid_types}"
+        )
+
+    # Resolve the resource ID to a key
+    # Get the appropriate manager for the resource type
+    manager_map: dict[str, str] = {
+        "vms": "vms",
+        "vnets": "networks",
+        "nodes": "nodes",
+        "tenants": "tenants",
+        "users": "users",
+        "clusters": "clusters",
+        "sites": "sites",
+        "groups": "groups",
+        "volumes": "volumes",
+    }
+    manager_attr = manager_map.get(sdk_type, sdk_type)
+    manager = getattr(vctx.client, manager_attr, None)
+    if manager is None:
+        # If we can't resolve, try treating as numeric
+        if resource_id.isdigit():
+            return sdk_type, int(resource_id)
+        raise typer.BadParameter(
+            f"Cannot resolve '{resource_type_cli}' resources. Please use a numeric key."
+        )
+    resource_key = resolve_resource_id(manager, resource_id, resource_type_cli)
+    return sdk_type, resource_key
+
+
+@app.command("list")
+@handle_errors()
+def list_cmd(
+    ctx: typer.Context,
+    filter_expr: Annotated[
+        str | None,
+        typer.Option("--filter", help="OData filter expression."),
+    ] = None,
+    category: Annotated[
+        str | None,
+        typer.Option("--category", help="Filter by category name or key."),
+    ] = None,
+) -> None:
+    """List tags."""
+    vctx = get_context(ctx)
+    kwargs: dict[str, Any] = {}
+    if filter_expr is not None:
+        kwargs["filter"] = filter_expr
+    if category is not None:
+        # Try numeric first
+        if category.isdigit():
+            kwargs["category_key"] = int(category)
+        else:
+            kwargs["category_name"] = category
+    tags = vctx.client.tags.list(**kwargs)
+    output_result(
+        [_tag_to_dict(t) for t in tags],
+        output_format=vctx.output_format,
+        query=vctx.query,
+        columns=TAG_COLUMNS,
+        quiet=vctx.quiet,
+        no_color=vctx.no_color,
+    )
+
+
+@app.command("get")
+@handle_errors()
+def get_cmd(
+    ctx: typer.Context,
+    tag: Annotated[str, typer.Argument(help="Tag name or key.")],
+    category: Annotated[
+        str | None,
+        typer.Option("--category", help="Category name or key (for name lookup)."),
+    ] = None,
+) -> None:
+    """Get a tag by name or key."""
+    vctx = get_context(ctx)
+    if tag.isdigit():
+        item = vctx.client.tags.get(int(tag))
+    else:
+        # Name lookup — optionally scoped to category
+        get_kwargs: dict[str, Any] = {"name": tag}
+        if category is not None:
+            if category.isdigit():
+                get_kwargs["category_key"] = int(category)
+            else:
+                get_kwargs["category_name"] = category
+        item = vctx.client.tags.get(**get_kwargs)
+    output_result(
+        _tag_to_dict(item),
+        output_format=vctx.output_format,
+        query=vctx.query,
+        columns=TAG_COLUMNS,
+        quiet=vctx.quiet,
+        no_color=vctx.no_color,
+    )
+
+
+@app.command("create")
+@handle_errors()
+def create_cmd(
+    ctx: typer.Context,
+    name: Annotated[str, typer.Option("--name", "-n", help="Tag name.")],
+    category: Annotated[
+        str,
+        typer.Option("--category", "-c", help="Category name or key."),
+    ],
+    description: Annotated[
+        str | None,
+        typer.Option("--description", "-d", help="Tag description."),
+    ] = None,
+) -> None:
+    """Create a new tag."""
+    vctx = get_context(ctx)
+    cat_key = resolve_resource_id(vctx.client.tag_categories, category, "Tag category")
+    kwargs: dict[str, Any] = {"name": name, "category_key": cat_key}
+    if description is not None:
+        kwargs["description"] = description
+    result = vctx.client.tags.create(**kwargs)
+    output_result(
+        _tag_to_dict(result),
+        output_format=vctx.output_format,
+        query=vctx.query,
+        columns=TAG_COLUMNS,
+        quiet=vctx.quiet,
+        no_color=vctx.no_color,
+    )
+    output_success(f"Tag '{name}' created.")
+
+
+@app.command("update")
+@handle_errors()
+def update_cmd(
+    ctx: typer.Context,
+    tag: Annotated[str, typer.Argument(help="Tag name or key.")],
+    name: Annotated[
+        str | None,
+        typer.Option("--name", "-n", help="New tag name."),
+    ] = None,
+    description: Annotated[
+        str | None,
+        typer.Option("--description", "-d", help="New description."),
+    ] = None,
+) -> None:
+    """Update a tag."""
+    vctx = get_context(ctx)
+    key = _resolve_tag(vctx, tag)
+    kwargs: dict[str, Any] = {}
+    if name is not None:
+        kwargs["name"] = name
+    if description is not None:
+        kwargs["description"] = description
+    result = vctx.client.tags.update(key, **kwargs)
+    output_result(
+        _tag_to_dict(result),
+        output_format=vctx.output_format,
+        query=vctx.query,
+        columns=TAG_COLUMNS,
+        quiet=vctx.quiet,
+        no_color=vctx.no_color,
+    )
+    output_success(f"Tag '{tag}' updated.")
+
+
+@app.command("delete")
+@handle_errors()
+def delete_cmd(
+    ctx: typer.Context,
+    tag: Annotated[str, typer.Argument(help="Tag name or key.")],
+    yes: Annotated[
+        bool,
+        typer.Option("--yes", "-y", help="Skip confirmation."),
+    ] = False,
+) -> None:
+    """Delete a tag."""
+    vctx = get_context(ctx)
+    key = _resolve_tag(vctx, tag)
+    if not confirm_action(f"Delete tag '{tag}'?", yes=yes):
+        raise typer.Abort()
+    vctx.client.tags.delete(key)
+    output_success(f"Tag '{tag}' deleted.")
+
+
+@app.command("assign")
+@handle_errors()
+def assign_cmd(
+    ctx: typer.Context,
+    tag: Annotated[str, typer.Argument(help="Tag name or key.")],
+    resource_type: Annotated[
+        str,
+        typer.Argument(
+            help="Resource type (vm, network, node, tenant, user, cluster, site, group, volume)."
+        ),
+    ],
+    resource_id: Annotated[str, typer.Argument(help="Resource name or key.")],
+) -> None:
+    """Assign a tag to a resource."""
+    vctx = get_context(ctx)
+    tag_key = _resolve_tag(vctx, tag)
+    sdk_type, res_key = _resolve_target_resource(vctx, resource_type, resource_id)
+    members_mgr = vctx.client.tags.members(tag_key)
+    members_mgr.add(sdk_type, res_key)
+    output_success(f"Tag '{tag}' assigned to {resource_type} '{resource_id}'.")
+
+
+@app.command("unassign")
+@handle_errors()
+def unassign_cmd(
+    ctx: typer.Context,
+    tag: Annotated[str, typer.Argument(help="Tag name or key.")],
+    resource_type: Annotated[
+        str,
+        typer.Argument(
+            help="Resource type (vm, network, node, tenant, user, cluster, site, group, volume)."
+        ),
+    ],
+    resource_id: Annotated[str, typer.Argument(help="Resource name or key.")],
+) -> None:
+    """Unassign a tag from a resource."""
+    vctx = get_context(ctx)
+    tag_key = _resolve_tag(vctx, tag)
+    sdk_type, res_key = _resolve_target_resource(vctx, resource_type, resource_id)
+    members_mgr = vctx.client.tags.members(tag_key)
+    members_mgr.remove_resource(sdk_type, res_key)
+    output_success(f"Tag '{tag}' unassigned from {resource_type} '{resource_id}'.")
+
+
+@app.command("members")
+@handle_errors()
+def members_cmd(
+    ctx: typer.Context,
+    tag: Annotated[str, typer.Argument(help="Tag name or key.")],
+    resource_type: Annotated[
+        str | None,
+        typer.Option("--type", help="Filter by resource type."),
+    ] = None,
+) -> None:
+    """List resources tagged with a tag."""
+    vctx = get_context(ctx)
+    tag_key = _resolve_tag(vctx, tag)
+    members_mgr = vctx.client.tags.members(tag_key)
+    kwargs: dict[str, Any] = {}
+    if resource_type is not None:
+        # Convert CLI type name to SDK type name
+        sdk_type = RESOURCE_TYPE_MAP.get(resource_type.lower())
+        if sdk_type is None:
+            valid_types = ", ".join(sorted(RESOURCE_TYPE_MAP.keys()))
+            raise typer.BadParameter(
+                f"Invalid resource type '{resource_type}'. Valid types: {valid_types}"
+            )
+        kwargs["resource_type"] = sdk_type
+    members = members_mgr.list(**kwargs)
+    output_result(
+        [_member_to_dict(m) for m in members],
+        output_format=vctx.output_format,
+        query=vctx.query,
+        columns=TAG_MEMBER_COLUMNS,
+        quiet=vctx.quiet,
+        no_color=vctx.no_color,
+    )

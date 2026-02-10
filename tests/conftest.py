@@ -1419,6 +1419,68 @@ def mock_log_entry() -> MagicMock:
 
 
 @pytest.fixture
+def mock_tag() -> MagicMock:
+    """Create a mock Tag object."""
+    tag = MagicMock()
+    tag.key = 5
+    tag.name = "production"
+    tag.description = "Production environment"
+    tag.category_name = "Environment"
+    tag.category_key = 1
+    tag.created = 1707000000
+    tag.modified = 1707000000
+    tag.members = MagicMock()  # TagMemberManager
+    return tag
+
+
+@pytest.fixture
+def mock_tag_category() -> MagicMock:
+    """Create a mock TagCategory object."""
+    cat = MagicMock()
+    cat.key = 1
+    cat.name = "Environment"
+    cat.description = "Environment classification"
+    cat.is_single_tag_selection = True
+    cat.taggable_vms = True
+    cat.taggable_networks = True
+    cat.taggable_volumes = False
+    cat.taggable_nodes = True
+    cat.taggable_tenants = True
+    cat.taggable_users = False
+    cat.taggable_clusters = False
+    cat.taggable_sites = False
+    cat.taggable_groups = False
+    cat.taggable_network_rules = False
+    cat.taggable_vmware_containers = False
+    cat.taggable_tenant_nodes = False
+    cat.created = 1707000000
+    cat.modified = 1707000000
+    return cat
+
+
+@pytest.fixture
+def mock_tag_member() -> MagicMock:
+    """Create a mock TagMember object."""
+    member = MagicMock()
+    member.key = 10
+    member.resource_type = "vms"
+    member.resource_key = 42
+    member.resource_name = "web-server-01"
+    member.resource_ref = "vms/42"
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "resource_type": "vms",
+            "resource_key": 42,
+            "resource_name": "web-server-01",
+        }
+        return data.get(key, default)
+
+    member.get = mock_get
+    return member
+
+
+@pytest.fixture
 def temp_config_dir(tmp_path: Path) -> Path:
     """Create a temporary config directory."""
     config_dir = tmp_path / ".vrg"
