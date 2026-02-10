@@ -600,6 +600,50 @@ NFS_SETTINGS_COLUMNS = [
     ColumnDef("anongid", header="Anon GID", wide_only=True),
 ]
 
+USER_COLUMNS = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("name"),
+    ColumnDef("displayname", header="Display Name"),
+    ColumnDef("email"),
+    ColumnDef("user_type", header="Type"),
+    ColumnDef("enabled", format_fn=format_bool_yn, style_map=BOOL_STYLES),
+    # wide-only
+    ColumnDef("last_login", format_fn=format_epoch, wide_only=True),
+    ColumnDef(
+        "two_factor_enabled",
+        header="2FA",
+        format_fn=format_bool_yn,
+        style_map=BOOL_STYLES,
+        wide_only=True,
+    ),
+    ColumnDef(
+        "is_locked",
+        header="Locked",
+        format_fn=format_bool_yn,
+        style_map=FLAG_STYLES,
+        wide_only=True,
+    ),
+    ColumnDef("auth_source_name", header="Auth Source", wide_only=True),
+]
+
+GROUP_COLUMNS = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("name"),
+    ColumnDef("description"),
+    ColumnDef("email"),
+    ColumnDef("enabled", format_fn=format_bool_yn, style_map=BOOL_STYLES),
+    ColumnDef("member_count", header="Members"),
+    # wide-only
+    ColumnDef("created", format_fn=format_epoch, wide_only=True),
+]
+
+GROUP_MEMBER_COLUMNS = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("member_name", header="Name"),
+    ColumnDef("member_type", header="Type"),
+    ColumnDef("member_key", header="Member Key"),
+]
+
 SITE_SYNC_INCOMING_COLUMNS = [
     ColumnDef("$key", header="Key"),
     ColumnDef("name"),
