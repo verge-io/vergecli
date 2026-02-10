@@ -805,6 +805,36 @@ def mock_api_key_created() -> MagicMock:
 
 
 @pytest.fixture
+def mock_auth_source() -> MagicMock:
+    """Create a mock AuthSource object."""
+    source = MagicMock()
+    source.key = 40
+    source.name = "azure-sso"
+    source.driver = "azure"
+    source.is_menu = True
+    source.is_debug_enabled = False
+    source.is_azure = True
+    source.is_google = False
+    source.is_gitlab = False
+    source.is_okta = False
+    source.is_openid = False
+    source.is_oauth2 = False
+    source.is_vergeos = False
+    source.button_style = {
+        "background_color": "#0078d4",
+        "text_color": "#ffffff",
+        "icon": "bi-microsoft",
+        "icon_color": "#ffffff",
+    }
+    source.settings = {
+        "client_id": "abc-123",
+        "tenant_id": "tenant-456",
+        "scope": "openid profile email",
+    }
+    return source
+
+
+@pytest.fixture
 def temp_config_dir(tmp_path: Path) -> Path:
     """Create a temporary config directory."""
     config_dir = tmp_path / ".vrg"
