@@ -9,6 +9,7 @@ import typer
 
 from verge_cli import __version__
 from verge_cli.commands import (
+    alarm,
     api_key,
     auth_source,
     catalog,
@@ -43,6 +44,7 @@ app = typer.Typer(
 )
 
 # Register sub-commands
+app.add_typer(alarm.app, name="alarm")
 app.add_typer(api_key.app, name="api-key")
 app.add_typer(auth_source.app, name="auth-source")
 app.add_typer(catalog.app, name="catalog")
