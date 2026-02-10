@@ -9,6 +9,7 @@ import typer
 
 from verge_cli import __version__
 from verge_cli.commands import (
+    api_key,
     cluster,
     completion,
     configure,
@@ -17,6 +18,7 @@ from verge_cli.commands import (
     nas,
     network,
     node,
+    permission,
     recipe,
     site,
     snapshot,
@@ -35,6 +37,7 @@ app = typer.Typer(
 )
 
 # Register sub-commands
+app.add_typer(api_key.app, name="api-key")
 app.add_typer(cluster.app, name="cluster")
 app.add_typer(completion.app, name="completion")
 app.add_typer(configure.app, name="configure")
@@ -43,6 +46,7 @@ app.add_typer(group.app, name="group")
 app.add_typer(nas.app, name="nas")
 app.add_typer(network.app, name="network")
 app.add_typer(node.app, name="node")
+app.add_typer(permission.app, name="permission")
 app.add_typer(recipe.app, name="recipe")
 app.add_typer(site.app, name="site")
 app.add_typer(snapshot.app, name="snapshot")
