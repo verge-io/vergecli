@@ -656,3 +656,35 @@ SITE_SYNC_INCOMING_COLUMNS = [
     ColumnDef("min_snapshots", header="Min Snapshots", wide_only=True),
     ColumnDef("description", wide_only=True),
 ]
+
+PERMISSION_COLUMNS = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("identity_name", header="Identity"),
+    ColumnDef("table"),
+    ColumnDef("row_display", header="Resource"),
+    ColumnDef("can_list", header="List", format_fn=format_bool_yn, style_map=BOOL_STYLES),
+    ColumnDef("can_read", header="Read", format_fn=format_bool_yn, style_map=BOOL_STYLES),
+    ColumnDef("can_create", header="Create", format_fn=format_bool_yn, style_map=BOOL_STYLES),
+    ColumnDef("can_modify", header="Modify", format_fn=format_bool_yn, style_map=BOOL_STYLES),
+    ColumnDef("can_delete", header="Delete", format_fn=format_bool_yn, style_map=BOOL_STYLES),
+]
+
+API_KEY_COLUMNS = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("name"),
+    ColumnDef("user_name", header="User"),
+    ColumnDef("created", format_fn=format_epoch),
+    ColumnDef("expires", format_fn=format_epoch_or_never),
+    ColumnDef("is_expired", header="Expired", format_fn=format_bool_yn, style_map=FLAG_STYLES),
+    # wide-only
+    ColumnDef("last_login", format_fn=format_epoch, wide_only=True),
+    ColumnDef("last_login_ip", header="Last IP", wide_only=True),
+    ColumnDef("description", wide_only=True),
+]
+
+API_KEY_CREATED_COLUMNS = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("name"),
+    ColumnDef("user_name", header="User"),
+    ColumnDef("secret"),
+]

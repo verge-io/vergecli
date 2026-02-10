@@ -750,6 +750,61 @@ def mock_group_member() -> MagicMock:
 
 
 @pytest.fixture
+def mock_permission() -> MagicMock:
+    """Create a mock Permission object."""
+    perm = MagicMock()
+    perm.key = 50
+    perm.identity_name = "admin"
+    perm.table = "vms"
+    perm.row_key = 0
+    perm.row_display = ""
+    perm.is_table_level = True
+    perm.can_list = True
+    perm.can_read = True
+    perm.can_create = False
+    perm.can_modify = False
+    perm.can_delete = False
+    perm.has_full_control = False
+    return perm
+
+
+@pytest.fixture
+def mock_api_key() -> MagicMock:
+    """Create a mock API Key object."""
+    key = MagicMock()
+    key.key = 60
+    key.name = "automation"
+    key.user_name = "admin"
+    key.is_expired = False
+    key.ip_allow_list = []
+    key.ip_deny_list = []
+
+    def mock_get(attr: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "description": "Automation key",
+            "created": 1707100000,
+            "expires": 0,
+            "last_login": 1707200000,
+            "last_login_ip": "192.168.1.100",
+        }
+        return data.get(attr, default)
+
+    key.get = mock_get
+    return key
+
+
+@pytest.fixture
+def mock_api_key_created() -> MagicMock:
+    """Create a mock APIKeyCreated response object."""
+    result = MagicMock()
+    result.key = 61
+    result.name = "new-key"
+    result.user_name = "admin"
+    result.secret = "vrg_sk_abc123def456ghi789"
+    return result
+
+
+@pytest.fixture
 def temp_config_dir(tmp_path: Path) -> Path:
     """Create a temporary config directory."""
     config_dir = tmp_path / ".vrg"
