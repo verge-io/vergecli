@@ -701,3 +701,58 @@ AUTH_SOURCE_COLUMNS = [
     ColumnDef("button_icon", header="Icon", wide_only=True),
     ColumnDef("button_bg_color", header="BG Color", wide_only=True),
 ]
+
+TASK_COLUMNS: list[ColumnDef] = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("name"),
+    ColumnDef("action_display", header="Action"),
+    ColumnDef("owner_display", header="Owner"),
+    ColumnDef("status", style_map={"running": "green", "idle": "dim", "error": "red bold"}),
+    ColumnDef("enabled", format_fn=format_bool_yn, style_map=BOOL_STYLES),
+    # wide-only
+    ColumnDef("last_run", format_fn=format_epoch, wide_only=True),
+    ColumnDef("progress", wide_only=True),
+    ColumnDef("triggers_count", header="Triggers", wide_only=True),
+    ColumnDef("events_count", header="Events", wide_only=True),
+    ColumnDef("description", wide_only=True),
+    ColumnDef(
+        "delete_after_run",
+        header="Auto-Delete",
+        format_fn=format_bool_yn,
+        style_map=FLAG_STYLES,
+        wide_only=True,
+    ),
+]
+
+TASK_SCHEDULE_COLUMNS: list[ColumnDef] = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("name"),
+    ColumnDef("repeat_display", header="Repeat"),
+    ColumnDef("repeat_iteration", header="Every N"),
+    ColumnDef("enabled", format_fn=format_bool_yn, style_map=BOOL_STYLES),
+    ColumnDef("active_days", header="Days"),
+    # wide-only
+    ColumnDef("start_date", wide_only=True),
+    ColumnDef("end_date", wide_only=True),
+    ColumnDef("start_time_display", header="Start Time", wide_only=True),
+    ColumnDef("end_time_display", header="End Time", wide_only=True),
+    ColumnDef("day_of_month", header="Day of Month", wide_only=True),
+    ColumnDef("description", wide_only=True),
+]
+
+TASK_TRIGGER_COLUMNS: list[ColumnDef] = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("task_display", header="Task"),
+    ColumnDef("schedule_display", header="Schedule"),
+    ColumnDef(
+        "schedule_enabled",
+        header="Sch Enabled",
+        format_fn=format_bool_yn,
+        style_map=BOOL_STYLES,
+    ),
+    ColumnDef("schedule_repeat", header="Repeat"),
+]
+
+SCHEDULE_UPCOMING_COLUMNS: list[ColumnDef] = [
+    ColumnDef("execution_time", header="Scheduled Time"),
+]

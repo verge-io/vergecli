@@ -835,6 +835,83 @@ def mock_auth_source() -> MagicMock:
 
 
 @pytest.fixture
+def mock_task() -> MagicMock:
+    """Create a mock Task object."""
+    task = MagicMock()
+    task.key = 100
+    task.name = "nightly-backup"
+    task.status = "idle"
+    task.is_enabled = True
+    task.is_running = False
+    task.is_complete = True
+    task.has_error = False
+    task.action_display_name = "Snapshot"
+    task.owner_display = "web-server"
+    task.creator_display = "admin"
+    task.is_delete_after_run = False
+    task.is_system_created = False
+    task.progress = 0
+    task.trigger_count = 1
+    task.event_count = 0
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "description": "Nightly backup task",
+            "action": "snapshot",
+            "action_display": "Snapshot",
+            "table": "vms",
+            "owner": 1,
+            "last_run": 1707200000,
+            "error": "",
+        }
+        return data.get(key, default)
+
+    task.get = mock_get
+    return task
+
+
+@pytest.fixture
+def mock_task_schedule() -> MagicMock:
+    """Create a mock TaskSchedule object."""
+    schedule = MagicMock()
+    schedule.key = 200
+    schedule.name = "nightly-window"
+    schedule.is_enabled = True
+    schedule.repeat_every_display = "Day(s)"
+    schedule.repeat_count = 1
+    schedule.active_days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "description": "Nightly maintenance window",
+            "repeat_every": "day",
+            "start_date": "2026-01-01",
+            "end_date": "",
+            "start_time_of_day": 7200,
+            "end_time_of_day": 14400,
+            "day_of_month": "start_date",
+        }
+        return data.get(key, default)
+
+    schedule.get = mock_get
+    return schedule
+
+
+@pytest.fixture
+def mock_task_trigger() -> MagicMock:
+    """Create a mock TaskScheduleTrigger object."""
+    trigger = MagicMock()
+    trigger.key = 300
+    trigger.task_key = 100
+    trigger.task_display = "nightly-backup"
+    trigger.schedule_key = 200
+    trigger.schedule_display = "nightly-window"
+    trigger.is_schedule_enabled = True
+    trigger.schedule_repeat_every = "day"
+    return trigger
+
+
+@pytest.fixture
 def temp_config_dir(tmp_path: Path) -> Path:
     """Create a temporary config directory."""
     config_dir = tmp_path / ".vrg"
