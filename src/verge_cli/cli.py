@@ -20,6 +20,7 @@ from verge_cli.commands import (
     nas,
     network,
     node,
+    oidc,
     permission,
     recipe,
     site,
@@ -51,6 +52,7 @@ app.add_typer(group.app, name="group")
 app.add_typer(nas.app, name="nas")
 app.add_typer(network.app, name="network")
 app.add_typer(node.app, name="node")
+app.add_typer(oidc.app, name="oidc")
 app.add_typer(permission.app, name="permission")
 app.add_typer(recipe.app, name="recipe")
 app.add_typer(site.app, name="site")

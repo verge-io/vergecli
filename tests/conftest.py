@@ -981,6 +981,42 @@ def mock_certificate() -> MagicMock:
 
 
 @pytest.fixture
+def mock_oidc_app() -> MagicMock:
+    """Create a mock OIDC Application object."""
+    oidc_app = MagicMock()
+    oidc_app.key = 80
+    oidc_app.name = "grafana"
+    oidc_app.is_enabled = True
+    oidc_app.is_access_restricted = False
+    oidc_app.redirect_uris = ["https://grafana.example.com/callback"]
+    oidc_app.scopes = ["openid", "profile", "email", "groups"]
+    oidc_app.force_auth_source_key = None
+    oidc_app.map_user_key = None
+    oidc_app.client_id = "oidc_abc123"
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "description": "Grafana SSO",
+            "client_id": "oidc_abc123",
+            "client_secret": "oidc_secret_xyz789",
+            "enabled": True,
+            "redirect_uri": "https://grafana.example.com/callback",
+            "restrict_access": False,
+            "scope_profile": True,
+            "scope_email": True,
+            "scope_groups": True,
+            "force_auth_source": "",
+            "map_user": "",
+            "created": 1707000000,
+            "well_known_configuration": "https://verge.example.com/.well-known/openid-configuration",
+        }
+        return data.get(key, default)
+
+    oidc_app.get = mock_get
+    return oidc_app
+
+
+@pytest.fixture
 def temp_config_dir(tmp_path: Path) -> Path:
     """Create a temporary config directory."""
     config_dir = tmp_path / ".vrg"

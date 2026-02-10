@@ -777,6 +777,24 @@ TASK_SCRIPT_COLUMNS: list[ColumnDef] = [
     # wide-only — script code is too long for table, show in get/json only
 ]
 
+OIDC_APP_COLUMNS: list[ColumnDef] = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("name"),
+    ColumnDef("client_id", header="Client ID"),
+    ColumnDef("enabled", format_fn=format_bool_yn, style_map=BOOL_STYLES),
+    ColumnDef("scopes", header="Scopes"),
+    ColumnDef(
+        "restrict_access",
+        header="Restricted",
+        format_fn=format_bool_yn,
+        style_map=FLAG_STYLES,
+    ),
+    # wide-only
+    ColumnDef("redirect_uris_display", header="Redirect URIs", wide_only=True),
+    ColumnDef("force_auth_source_display", header="Auth Source", wide_only=True),
+    ColumnDef("description", wide_only=True),
+]
+
 CERTIFICATE_COLUMNS: list[ColumnDef] = [
     ColumnDef("$key", header="Key"),
     ColumnDef("domain"),
