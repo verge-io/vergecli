@@ -1076,6 +1076,69 @@ def mock_oidc_log() -> MagicMock:
 
 
 @pytest.fixture
+def mock_catalog_repo() -> MagicMock:
+    """Create a mock CatalogRepository object."""
+    repo = MagicMock()
+    repo.key = 1
+    repo.name = "test-repo"
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "type": "local",
+            "description": "Test repository",
+            "url": "",
+            "enabled": True,
+            "auto_refresh": True,
+            "max_tier": "1",
+            "override_default_scope": "none",
+            "last_refreshed": "2026-02-10T00:00:00",
+        }
+        return data.get(key, default)
+
+    repo.get = mock_get
+    return repo
+
+
+@pytest.fixture
+def mock_catalog_repo_status() -> MagicMock:
+    """Create a mock CatalogRepositoryStatus object."""
+    status = MagicMock()
+    status.key = 1
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "status": "online",
+            "state": "online",
+            "info": "",
+            "last_update": "2026-02-10T00:00:00",
+        }
+        return data.get(key, default)
+
+    status.get = mock_get
+    return status
+
+
+@pytest.fixture
+def mock_catalog_repo_log() -> MagicMock:
+    """Create a mock CatalogRepositoryLog object."""
+    log = MagicMock()
+    log.key = 100
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "catalog_repository": 1,
+            "level": "message",
+            "text": "Repository refreshed successfully",
+            "timestamp": 1707000000000000,
+            "user": "admin",
+        }
+        return data.get(key, default)
+
+    log.get = mock_get
+    return log
+
+
+@pytest.fixture
 def temp_config_dir(tmp_path: Path) -> Path:
     """Create a temporary config directory."""
     config_dir = tmp_path / ".vrg"
