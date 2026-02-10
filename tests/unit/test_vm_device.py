@@ -61,6 +61,70 @@ def test_device_create_tpm_defaults(cli_runner, mock_client, mock_vm, mock_devic
     assert call_kwargs["settings"]["version"] == "2"
 
 
+def test_device_update_name(cli_runner, mock_client, mock_vm, mock_device):
+    """vrg vm device update --name should rename a device."""
+    mock_client.vms.list.return_value = [mock_vm]
+    mock_client.vms.get.return_value = mock_vm
+    mock_vm.devices.list.return_value = [mock_device]
+    mock_vm.devices.get.return_value = mock_device
+
+    result = cli_runner.invoke(
+        app,
+        ["vm", "device", "update", "test-vm", "TPM", "--name", "TPM-renamed"],
+    )
+
+    assert result.exit_code == 0
+    mock_vm.devices.update.assert_called_once_with(30, name="TPM-renamed")
+
+
+def test_device_update_enabled(cli_runner, mock_client, mock_vm, mock_device):
+    """vrg vm device update --no-enabled should disable a device."""
+    mock_client.vms.list.return_value = [mock_vm]
+    mock_client.vms.get.return_value = mock_vm
+    mock_vm.devices.list.return_value = [mock_device]
+    mock_vm.devices.get.return_value = mock_device
+
+    result = cli_runner.invoke(
+        app,
+        ["vm", "device", "update", "test-vm", "TPM", "--no-enabled"],
+    )
+
+    assert result.exit_code == 0
+    mock_vm.devices.update.assert_called_once_with(30, enabled=False)
+
+
+def test_device_update_settings(cli_runner, mock_client, mock_vm, mock_device):
+    """vrg vm device update --model --version should update TPM settings."""
+    mock_client.vms.list.return_value = [mock_vm]
+    mock_client.vms.get.return_value = mock_vm
+    mock_vm.devices.list.return_value = [mock_device]
+    mock_vm.devices.get.return_value = mock_device
+
+    result = cli_runner.invoke(
+        app,
+        ["vm", "device", "update", "test-vm", "TPM", "--model", "tis", "--version", "1"],
+    )
+
+    assert result.exit_code == 0
+    mock_vm.devices.update.assert_called_once_with(
+        30, settings_args={"model": "tis", "version": "1"}
+    )
+
+
+def test_device_update_no_options(cli_runner, mock_client, mock_vm, mock_device):
+    """vrg vm device update with no options should fail."""
+    mock_client.vms.list.return_value = [mock_vm]
+    mock_client.vms.get.return_value = mock_vm
+    mock_vm.devices.list.return_value = [mock_device]
+
+    result = cli_runner.invoke(
+        app,
+        ["vm", "device", "update", "test-vm", "TPM"],
+    )
+
+    assert result.exit_code == 2
+
+
 def test_device_delete(cli_runner, mock_client, mock_vm, mock_device):
     """vrg vm device delete should remove a device."""
     mock_client.vms.list.return_value = [mock_vm]

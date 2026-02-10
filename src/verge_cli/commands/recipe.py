@@ -125,6 +125,7 @@ def create_cmd(
     ctx: typer.Context,
     name: Annotated[str, typer.Option("--name", "-n", help="Recipe name.")],
     catalog: Annotated[str, typer.Option("--catalog", help="Catalog name or key.")],
+    version: Annotated[str, typer.Option("--version", help="Recipe version string.")],
     description: Annotated[
         str | None,
         typer.Option("--description", "-d", help="Recipe description."),
@@ -140,7 +141,7 @@ def create_cmd(
 ) -> None:
     """Create a new VM recipe."""
     vctx = get_context(ctx)
-    kwargs: dict[str, Any] = {"name": name, "catalog": catalog}
+    kwargs: dict[str, Any] = {"name": name, "catalog": catalog, "version": version}
     if description is not None:
         kwargs["description"] = description
     if notes is not None:

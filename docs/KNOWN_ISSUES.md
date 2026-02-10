@@ -43,21 +43,39 @@ In `utils.py`, `resolve_resource_id()` returned early if `identifier.isdigit()`.
 **Fix Applied:**
 Changed `resolve_resource_id()` to always search by name first. If no name match is found AND the identifier is numeric, it falls back to treating it as a key. This allows both numeric names and numeric keys to work correctly.
 
-## Limitations
+---
 
 ### 3. No update/edit command for VM devices
 
 **Severity:** Low
 **Found:** 2026-02-06
+**Fixed:** 2026-02-10
 
 **Description:**
-`vrg vm device` supports `list`, `get`, `create`, and `delete` but has no `update` command. Device properties (name, enabled, settings) cannot be modified after creation — the device must be deleted and recreated.
+`vrg vm device` supported `list`, `get`, `create`, and `delete` but had no `update` command. Device properties (name, enabled, settings) could not be modified after creation.
 
-**Reason:**
-The VergeOS API does not currently support updating device settings after creation.
+**Root Cause:**
+The CLI command was never implemented, though the pyvergeos SDK supported `devices.update()` all along.
+
+**Fix Applied:**
+Added `vrg vm device update <VM> <DEVICE>` command with options: `--name`, `--description`, `--enabled/--no-enabled`, `--optional/--no-optional`, `--model`, `--version`.
 
 ---
 
-## Bugs
+### 4. `recipe create` missing `--version` option
 
-No known bugs at this time.
+**Severity:** Medium
+**Found:** 2026-02-08
+**Fixed:** 2026-02-10
+
+**Description:**
+`vrg recipe create` failed with an API validation error because the CLI did not expose a `--version` option:
+```
+Error: field 'vm_recipes.version' is required
+```
+
+**Root Cause:**
+The `--version` option was present on the `update` command but was omitted from `create`.
+
+**Fix Applied:**
+Added required `--version` option to the `create` command in `recipe.py`.
