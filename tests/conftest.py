@@ -1400,6 +1400,25 @@ def mock_alarm_history() -> MagicMock:
 
 
 @pytest.fixture
+def mock_log_entry() -> MagicMock:
+    """Create a mock Log entry object."""
+    from datetime import datetime
+
+    log = MagicMock()
+    log.key = 1000
+    log.level = "audit"
+    log.level_display = "Audit"
+    log.text = "VM 'web-server-01' started by admin"
+    log.user = "admin"
+    log.object_type = "vm"
+    log.object_type_display = "VM"
+    log.object_name = "web-server-01"
+    log.timestamp_us = 1707000000000000  # microseconds
+    log.created_at = datetime(2026, 2, 4, 0, 0, 0)
+    return log
+
+
+@pytest.fixture
 def temp_config_dir(tmp_path: Path) -> Path:
     """Create a temporary config directory."""
     config_dir = tmp_path / ".vrg"
