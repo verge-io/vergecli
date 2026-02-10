@@ -1017,6 +1017,65 @@ def mock_oidc_app() -> MagicMock:
 
 
 @pytest.fixture
+def mock_oidc_user_entry() -> MagicMock:
+    """Create a mock OIDC application user ACL entry."""
+    entry = MagicMock()
+    entry.key = 90
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "user": 10,
+            "user_display": "admin",
+            "oidc_application": 80,
+        }
+        return data.get(key, default)
+
+    entry.get = mock_get
+    return entry
+
+
+@pytest.fixture
+def mock_oidc_group_entry() -> MagicMock:
+    """Create a mock OIDC application group ACL entry."""
+    entry = MagicMock()
+    entry.key = 91
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "group": 20,
+            "group_display": "admins",
+            "oidc_application": 80,
+        }
+        return data.get(key, default)
+
+    entry.get = mock_get
+    return entry
+
+
+@pytest.fixture
+def mock_oidc_log() -> MagicMock:
+    """Create a mock OIDC application log entry."""
+    log = MagicMock()
+    log.key = 1000
+    log.application_key = 80
+    log.is_error = False
+    log.is_warning = False
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "timestamp": 1707100000000000,  # microseconds
+            "level": "audit",
+            "text": "User admin authenticated successfully",
+            "user": 10,
+            "user_display": "admin",
+        }
+        return data.get(key, default)
+
+    log.get = mock_get
+    return log
+
+
+@pytest.fixture
 def temp_config_dir(tmp_path: Path) -> Path:
     """Create a temporary config directory."""
     config_dir = tmp_path / ".vrg"
