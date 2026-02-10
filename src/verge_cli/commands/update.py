@@ -7,7 +7,13 @@ from typing import Annotated, Any
 import typer
 
 from verge_cli.columns import ColumnDef, format_bool_yn
-from verge_cli.commands import update_source
+from verge_cli.commands import (
+    update_available,
+    update_branch,
+    update_log,
+    update_package,
+    update_source,
+)
 from verge_cli.context import get_context
 from verge_cli.errors import handle_errors
 from verge_cli.output import output_result, output_success
@@ -20,6 +26,10 @@ app = typer.Typer(
 
 # Register sub-commands
 app.add_typer(update_source.app, name="source")
+app.add_typer(update_branch.app, name="branch")
+app.add_typer(update_package.app, name="package")
+app.add_typer(update_available.app, name="available")
+app.add_typer(update_log.app, name="log")
 
 SETTINGS_COLUMNS: list[ColumnDef] = [
     ColumnDef("source", header="Source"),
@@ -297,3 +307,46 @@ def apply_cmd(
             no_color=vctx.no_color,
         )
     output_success("Update apply initiated.", quiet=vctx.quiet)
+
+
+# ---------------------------------------------------------------------------
+# Dashboard / Status
+# ---------------------------------------------------------------------------
+
+DASHBOARD_COLUMNS: list[ColumnDef] = [
+    ColumnDef("node_count", header="Nodes"),
+    ColumnDef("event_count", header="Events"),
+    ColumnDef("task_count", header="Tasks"),
+]
+
+
+def _dashboard_to_dict(dashboard: Any) -> dict[str, Any]:
+    """Convert UpdateDashboard SDK object to dict for output."""
+    # node_count may be a dict like {"$count": 2} — extract the int
+    nc = dashboard.get("node_count", 0)
+    if isinstance(nc, dict):
+        nc = nc.get("$count", 0)
+    counts = dashboard.get("counts", {})
+    if not isinstance(counts, dict):
+        counts = {}
+    return {
+        "node_count": int(nc) if nc is not None else 0,
+        "event_count": int(counts.get("event_count", 0)),
+        "task_count": int(counts.get("task_count", 0)),
+    }
+
+
+@app.command("status")
+@handle_errors()
+def status_cmd(ctx: typer.Context) -> None:
+    """Display the update dashboard summary."""
+    vctx = get_context(ctx)
+    dashboard = vctx.client.update_dashboard.get()
+    output_result(
+        _dashboard_to_dict(dashboard),
+        output_format=vctx.output_format,
+        query=vctx.query,
+        columns=DASHBOARD_COLUMNS,
+        quiet=vctx.quiet,
+        no_color=vctx.no_color,
+    )
