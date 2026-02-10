@@ -756,3 +756,43 @@ TASK_TRIGGER_COLUMNS: list[ColumnDef] = [
 SCHEDULE_UPCOMING_COLUMNS: list[ColumnDef] = [
     ColumnDef("execution_time", header="Scheduled Time"),
 ]
+
+TASK_EVENT_COLUMNS: list[ColumnDef] = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("event", header="Event"),
+    ColumnDef("event_name", header="Event Name"),
+    ColumnDef("owner_display", header="Owner"),
+    ColumnDef("table", header="Table"),
+    ColumnDef("task_display", header="Task"),
+    # wide-only
+    ColumnDef("owner_key", header="Owner Key", wide_only=True),
+    ColumnDef("task_key", header="Task Key", wide_only=True),
+]
+
+TASK_SCRIPT_COLUMNS: list[ColumnDef] = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("name"),
+    ColumnDef("description"),
+    ColumnDef("task_count", header="Tasks"),
+    # wide-only — script code is too long for table, show in get/json only
+]
+
+CERTIFICATE_COLUMNS: list[ColumnDef] = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("domain"),
+    ColumnDef("type_display", header="Type"),
+    ColumnDef("key_type_display", header="Key Type"),
+    ColumnDef("valid", header="Valid", format_fn=format_bool_yn, style_map=BOOL_STYLES),
+    ColumnDef("days_until_expiry", header="Expires In"),
+    # wide-only
+    ColumnDef("domain_list", header="SANs", wide_only=True),
+    ColumnDef("expires", format_fn=format_epoch, wide_only=True),
+    ColumnDef("description", wide_only=True),
+    ColumnDef(
+        "autocreated",
+        header="Auto",
+        format_fn=format_bool_yn,
+        style_map=FLAG_STYLES,
+        wide_only=True,
+    ),
+]
