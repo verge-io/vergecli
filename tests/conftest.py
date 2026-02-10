@@ -1502,6 +1502,26 @@ def mock_resource_group() -> MagicMock:
 
 
 @pytest.fixture
+def mock_shared_object() -> MagicMock:
+    """Create a mock SharedObject."""
+    from datetime import datetime
+
+    obj = MagicMock()
+    obj.key = 15
+    obj.name = "shared-web-server"
+    obj.description = "Web server VM shared to dev tenant"
+    obj.tenant_key = 3
+    obj.tenant_name = "dev-tenant"
+    obj.object_type = "vm"
+    obj.object_id = "vms/42"
+    obj.snapshot_path = None
+    obj.snapshot_key = None
+    obj.is_inbox = True
+    obj.created_at = datetime(2026, 2, 10, 0, 0, 0)
+    return obj
+
+
+@pytest.fixture
 def temp_config_dir(tmp_path: Path) -> Path:
     """Create a temporary config directory."""
     config_dir = tmp_path / ".vrg"
