@@ -11,6 +11,7 @@ from verge_cli import __version__
 from verge_cli.commands import (
     api_key,
     auth_source,
+    catalog,
     certificate,
     cluster,
     completion,
@@ -43,6 +44,7 @@ app = typer.Typer(
 # Register sub-commands
 app.add_typer(api_key.app, name="api-key")
 app.add_typer(auth_source.app, name="auth-source")
+app.add_typer(catalog.app, name="catalog")
 app.add_typer(certificate.app, name="certificate")
 app.add_typer(cluster.app, name="cluster")
 app.add_typer(completion.app, name="completion")
