@@ -1076,6 +1076,47 @@ def mock_oidc_log() -> MagicMock:
 
 
 @pytest.fixture
+def mock_catalog() -> MagicMock:
+    """Create a mock Catalog object."""
+    catalog = MagicMock()
+    catalog.key = "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
+    catalog.name = "test-catalog"
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "repository": 1,
+            "description": "Test catalog",
+            "publishing_scope": "private",
+            "enabled": True,
+            "created": "2026-02-10T00:00:00",
+        }
+        return data.get(key, default)
+
+    catalog.get = mock_get
+    return catalog
+
+
+@pytest.fixture
+def mock_catalog_log() -> MagicMock:
+    """Create a mock CatalogLog object."""
+    log = MagicMock()
+    log.key = 200
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "catalog": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
+            "level": "message",
+            "text": "Catalog synced successfully",
+            "timestamp": 1707000000000000,
+            "user": "admin",
+        }
+        return data.get(key, default)
+
+    log.get = mock_get
+    return log
+
+
+@pytest.fixture
 def mock_catalog_repo() -> MagicMock:
     """Create a mock CatalogRepository object."""
     repo = MagicMock()
