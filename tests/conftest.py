@@ -1354,6 +1354,52 @@ def mock_update_dashboard() -> MagicMock:
 
 
 @pytest.fixture
+def mock_alarm() -> MagicMock:
+    """Create a mock Alarm object."""
+    from datetime import datetime
+
+    alarm = MagicMock()
+    alarm.key = 42
+    alarm.level = "warning"
+    alarm.level_display = "Warning"
+    alarm.alarm_type = "High CPU Usage"
+    alarm.alarm_id = "a1b2c3d4"
+    alarm.status = "CPU usage above 90% for 15 minutes"
+    alarm.description = "Triggered when CPU usage exceeds threshold"
+    alarm.owner_type = "vms"
+    alarm.owner_type_display = "VM"
+    alarm.owner_name = "web-server-01"
+    alarm.owner_key = 10
+    alarm.is_resolvable = True
+    alarm.resolve_text = "Reduce CPU load or add resources"
+    alarm.is_snoozed = False
+    alarm.snoozed_by = ""
+    alarm.snooze_until = None
+    alarm.created_at = datetime(2026, 2, 10, 12, 0, 0)
+    alarm.modified_at = datetime(2026, 2, 10, 12, 0, 0)
+    return alarm
+
+
+@pytest.fixture
+def mock_alarm_history() -> MagicMock:
+    """Create a mock AlarmHistory object."""
+    from datetime import datetime
+
+    entry = MagicMock()
+    entry.key = 100
+    entry.level = "error"
+    entry.level_display = "Error"
+    entry.alarm_type = "Disk Failure"
+    entry.alarm_id = "e5f6g7h8"
+    entry.status = "Disk /dev/sdb failed"
+    entry.owner = "node-01"
+    entry.archived_by = "auto"
+    entry.raised_at = datetime(2026, 2, 8, 10, 0, 0)
+    entry.lowered_at = datetime(2026, 2, 8, 14, 0, 0)
+    return entry
+
+
+@pytest.fixture
 def temp_config_dir(tmp_path: Path) -> Path:
     """Create a temporary config directory."""
     config_dir = tmp_path / ".vrg"
