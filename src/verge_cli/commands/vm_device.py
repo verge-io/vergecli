@@ -121,6 +121,68 @@ def device_create(
     )
 
 
+@app.command("update")
+@handle_errors()
+def device_update(
+    ctx: typer.Context,
+    vm: Annotated[str, typer.Argument(help="VM name or key")],
+    device: Annotated[str, typer.Argument(help="Device name or key")],
+    name: Annotated[str | None, typer.Option("--name", "-n", help="New device name")] = None,
+    description: Annotated[
+        str | None, typer.Option("--description", "-d", help="New description")
+    ] = None,
+    enabled: Annotated[
+        bool | None,
+        typer.Option("--enabled/--no-enabled", help="Enable or disable the device"),
+    ] = None,
+    optional: Annotated[
+        bool | None,
+        typer.Option("--optional/--no-optional", help="Toggle whether device is optional"),
+    ] = None,
+    model: Annotated[str | None, typer.Option("--model", "-m", help="TPM model (tis, crb)")] = None,
+    version: Annotated[
+        str | None, typer.Option("--version", "-V", help="TPM version (1, 2)")
+    ] = None,
+) -> None:
+    """Update a VM device."""
+    vctx, vm_obj = _get_vm(ctx, vm)
+    device_key = _resolve_device(vm_obj, device)
+
+    kwargs: dict[str, Any] = {}
+    if name is not None:
+        kwargs["name"] = name
+    if description is not None:
+        kwargs["description"] = description
+    if enabled is not None:
+        kwargs["enabled"] = enabled
+    if optional is not None:
+        kwargs["optional"] = optional
+
+    # Pack TPM settings if provided
+    settings: dict[str, str] = {}
+    if model is not None:
+        settings["model"] = model
+    if version is not None:
+        settings["version"] = version
+    if settings:
+        kwargs["settings_args"] = settings
+
+    if not kwargs:
+        typer.echo("Error: No update options provided.", err=True)
+        raise typer.Exit(2)
+
+    vm_obj.devices.update(device_key, **kwargs)
+    device_obj = vm_obj.devices.get(device_key)
+    output_success(f"Updated device '{device}'", quiet=vctx.quiet)
+    output_result(
+        _device_to_dict(device_obj),
+        output_format=vctx.output_format,
+        query=vctx.query,
+        quiet=vctx.quiet,
+        no_color=vctx.no_color,
+    )
+
+
 @app.command("delete")
 @handle_errors()
 def device_delete(

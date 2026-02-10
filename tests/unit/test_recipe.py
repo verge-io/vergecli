@@ -40,7 +40,7 @@ def test_recipe_get(cli_runner, mock_client, mock_recipe):
 
 
 def test_recipe_create(cli_runner, mock_client, mock_recipe):
-    """vrg recipe create should create a new recipe."""
+    """vrg recipe create should create a new recipe with --version."""
     mock_client.vm_recipes.create.return_value = mock_recipe
 
     result = cli_runner.invoke(
@@ -52,12 +52,32 @@ def test_recipe_create(cli_runner, mock_client, mock_recipe):
             "Ubuntu Server 22.04",
             "--catalog",
             "default",
+            "--version",
+            "1.0",
         ],
     )
 
     assert result.exit_code == 0
     assert "created" in result.output.lower()
-    mock_client.vm_recipes.create.assert_called_once()
+    call_kwargs = mock_client.vm_recipes.create.call_args[1]
+    assert call_kwargs["version"] == "1.0"
+
+
+def test_recipe_create_missing_version(cli_runner, mock_client):
+    """vrg recipe create without --version should fail."""
+    result = cli_runner.invoke(
+        app,
+        [
+            "recipe",
+            "create",
+            "--name",
+            "Test Recipe",
+            "--catalog",
+            "default",
+        ],
+    )
+
+    assert result.exit_code != 0
 
 
 def test_recipe_update(cli_runner, mock_client, mock_recipe):
