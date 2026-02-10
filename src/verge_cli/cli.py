@@ -19,6 +19,7 @@ from verge_cli.commands import (
     configure,
     file,
     group,
+    log,
     nas,
     network,
     node,
@@ -54,6 +55,7 @@ app.add_typer(completion.app, name="completion")
 app.add_typer(configure.app, name="configure")
 app.add_typer(file.app, name="file")
 app.add_typer(group.app, name="group")
+app.add_typer(log.app, name="log")
 app.add_typer(nas.app, name="nas")
 app.add_typer(network.app, name="network")
 app.add_typer(node.app, name="node")
