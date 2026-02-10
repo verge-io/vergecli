@@ -688,3 +688,16 @@ API_KEY_CREATED_COLUMNS = [
     ColumnDef("user_name", header="User"),
     ColumnDef("secret"),
 ]
+
+AUTH_SOURCE_COLUMNS = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("name"),
+    ColumnDef("driver"),
+    ColumnDef(
+        "show_on_login", header="Login Menu", format_fn=format_bool_yn, style_map=BOOL_STYLES
+    ),
+    ColumnDef("debug", header="Debug", format_fn=format_bool_yn, style_map=FLAG_STYLES),
+    # wide-only
+    ColumnDef("button_icon", header="Icon", wide_only=True),
+    ColumnDef("button_bg_color", header="BG Color", wide_only=True),
+]
