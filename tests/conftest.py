@@ -691,6 +691,65 @@ def mock_recipe_log() -> MagicMock:
 
 
 @pytest.fixture
+def mock_user() -> MagicMock:
+    """Create a mock User object."""
+    user = MagicMock()
+    user.key = 10
+    user.name = "admin"
+    user.is_enabled = True
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "displayname": "Administrator",
+            "email": "admin@example.com",
+            "user_type": "normal",
+            "user_type_display": "Normal",
+            "two_factor_enabled": False,
+            "is_locked": False,
+            "auth_source_name": "",
+            "last_login": 1707100000,
+            "created": 1707000000,
+            "ssh_keys": "",
+        }
+        return data.get(key, default)
+
+    user.get = mock_get
+    return user
+
+
+@pytest.fixture
+def mock_group() -> MagicMock:
+    """Create a mock Group object."""
+    group = MagicMock()
+    group.key = 20
+    group.name = "admins"
+    group.is_enabled = True
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "description": "Admin group",
+            "email": "admins@example.com",
+            "member_count": 3,
+            "created": 1707000000,
+        }
+        return data.get(key, default)
+
+    group.get = mock_get
+    return group
+
+
+@pytest.fixture
+def mock_group_member() -> MagicMock:
+    """Create a mock GroupMember object."""
+    member = MagicMock()
+    member.key = 30
+    member.member_name = "admin"
+    member.member_type = "User"
+    member.member_key = 10
+    return member
+
+
+@pytest.fixture
 def temp_config_dir(tmp_path: Path) -> Path:
     """Create a temporary config directory."""
     config_dir = tmp_path / ".vrg"

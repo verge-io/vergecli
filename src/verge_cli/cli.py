@@ -13,6 +13,7 @@ from verge_cli.commands import (
     completion,
     configure,
     file,
+    group,
     nas,
     network,
     node,
@@ -22,6 +23,7 @@ from verge_cli.commands import (
     storage,
     system,
     tenant,
+    user,
     vm,
 )
 from verge_cli.config import get_effective_config
@@ -37,6 +39,7 @@ app.add_typer(cluster.app, name="cluster")
 app.add_typer(completion.app, name="completion")
 app.add_typer(configure.app, name="configure")
 app.add_typer(file.app, name="file")
+app.add_typer(group.app, name="group")
 app.add_typer(nas.app, name="nas")
 app.add_typer(network.app, name="network")
 app.add_typer(node.app, name="node")
@@ -46,6 +49,7 @@ app.add_typer(snapshot.app, name="snapshot")
 app.add_typer(storage.app, name="storage")
 app.add_typer(system.app, name="system")
 app.add_typer(tenant.app, name="tenant")
+app.add_typer(user.app, name="user")
 app.add_typer(vm.app, name="vm")
 
 
