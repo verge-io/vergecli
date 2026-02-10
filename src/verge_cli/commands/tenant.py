@@ -10,6 +10,7 @@ from verge_cli.columns import TENANT_COLUMNS
 from verge_cli.commands import (
     tenant_net,
     tenant_node,
+    tenant_share,
     tenant_snapshot,
     tenant_stats,
     tenant_storage,
@@ -30,6 +31,7 @@ app.add_typer(tenant_storage.app, name="storage")
 app.add_typer(tenant_net.net_block_app, name="net-block")
 app.add_typer(tenant_net.ext_ip_app, name="ext-ip")
 app.add_typer(tenant_net.l2_app, name="l2")
+app.add_typer(tenant_share.app, name="share")
 app.add_typer(tenant_snapshot.app, name="snapshot")
 app.add_typer(tenant_stats.stats_app, name="stats")
 app.add_typer(tenant_stats.logs_app, name="logs")
