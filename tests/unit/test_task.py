@@ -62,7 +62,18 @@ def test_task_create(cli_runner, mock_client, mock_task):
     mock_client.tasks.create.return_value = mock_task
     result = cli_runner.invoke(
         app,
-        ["task", "create", "--name", "nightly-backup", "--owner", "1", "--action", "snapshot"],
+        [
+            "task",
+            "create",
+            "--name",
+            "nightly-backup",
+            "--owner",
+            "1",
+            "--action",
+            "snapshot",
+            "--table",
+            "vms",
+        ],
     )
     assert result.exit_code == 0
     assert "created" in result.output.lower()
@@ -70,6 +81,7 @@ def test_task_create(cli_runner, mock_client, mock_task):
         name="nightly-backup",
         owner=1,
         action="snapshot",
+        table="vms",
         enabled=True,
         delete_after_run=False,
     )

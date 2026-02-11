@@ -129,9 +129,9 @@ def task_create(
         str, typer.Option("--action", help="Action to perform (e.g. poweron, snapshot).")
     ],
     table: Annotated[
-        str | None,
+        str,
         typer.Option("--table", help="Owner resource type (e.g. vms, tenants)."),
-    ] = None,
+    ],
     description: Annotated[
         str | None,
         typer.Option("--description", help="Task description."),
@@ -155,11 +155,10 @@ def task_create(
         "name": name,
         "owner": owner,
         "action": action,
+        "table": table,
         "enabled": not disabled,
         "delete_after_run": delete_after_run,
     }
-    if table is not None:
-        kwargs["table"] = table
     if description is not None:
         kwargs["description"] = description
     if settings_json is not None:
