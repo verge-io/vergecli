@@ -64,7 +64,7 @@ class TestApplySetOverrides:
     def test_upsert_new_key(self):
         data = {"vm": {"name": "test"}}
         apply_set_overrides(data, ["vm.cpu_cores=4"])
-        assert data["vm"]["cpu_cores"] == "4"
+        assert data["vm"]["cpu_cores"] == 4
 
     def test_multiple_overrides(self):
         data = {"vm": {"name": "old", "ram": "4GB"}}
