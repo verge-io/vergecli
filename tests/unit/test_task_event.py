@@ -60,15 +60,15 @@ def test_event_create(cli_runner, mock_client, mock_task, mock_task_event):
             "create",
             "--task",
             "nightly-backup",
-            "--owner",
-            "1",
             "--event",
             "poweron",
+            "--table",
+            "vms",
         ],
     )
     assert result.exit_code == 0
     assert "created" in result.output
-    mock_client.task_events.create.assert_called_once_with(task=100, owner=1, event="poweron")
+    mock_client.task_events.create.assert_called_once_with(task=100, event="poweron", table="vms")
 
 
 def test_event_create_with_options(cli_runner, mock_client, mock_task, mock_task_event):
@@ -83,8 +83,6 @@ def test_event_create_with_options(cli_runner, mock_client, mock_task, mock_task
             "create",
             "--task",
             "nightly-backup",
-            "--owner",
-            "1",
             "--event",
             "poweron",
             "--table",
@@ -100,7 +98,6 @@ def test_event_create_with_options(cli_runner, mock_client, mock_task, mock_task
     assert result.exit_code == 0
     mock_client.task_events.create.assert_called_once_with(
         task=100,
-        owner=1,
         event="poweron",
         table="vms",
         event_name="Power On",

@@ -104,12 +104,11 @@ def event_get(
 def event_create(
     ctx: typer.Context,
     task: Annotated[str, typer.Option("--task", help="Task to fire (name or key).")],
-    owner: Annotated[int, typer.Option("--owner", help="Owner resource key.")],
-    event: Annotated[str, typer.Option("--event", help="Event identifier (e.g. poweron, login).")],
+    event: Annotated[str, typer.Option("--event", help="Event identifier (e.g. lowered, login).")],
     table: Annotated[
-        str | None,
-        typer.Option("--table", help="Owner resource type (e.g. vms)."),
-    ] = None,
+        str,
+        typer.Option("--table", help="Event source table (e.g. alarms, vms)."),
+    ],
     event_name: Annotated[
         str | None,
         typer.Option("--event-name", help="Human-readable event name."),
@@ -128,11 +127,9 @@ def event_create(
     task_key = resolve_resource_id(vctx.client.tasks, task, "Task")
     kwargs: dict[str, Any] = {
         "task": task_key,
-        "owner": owner,
         "event": event,
+        "table": table,
     }
-    if table is not None:
-        kwargs["table"] = table
     if event_name is not None:
         kwargs["event_name"] = event_name
     if filters_json is not None:

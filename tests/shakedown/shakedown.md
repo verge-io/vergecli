@@ -789,7 +789,7 @@ Run these against any representative commands (e.g., `vm list`, `network get`).
 
 - [ ] `vrg --profile <name> vm list` — uses specified profile
 - [ ] `vrg --no-color vm list` — output without ANSI colors
-- [ ] `vrg -H <host> --username admin --password <password> --no-verify-ssl vm list` — inline credentials work (include `--no-verify-ssl` for self-signed cert environments)
+- [ ] `vrg -H <host> --username admin --password <password> vm list` — inline credentials work (set `VERGE_VERIFY_SSL=false` for self-signed cert environments)
 
 ---
 
