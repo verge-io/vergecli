@@ -155,7 +155,6 @@ By submitting a pull request, you agree to the terms of our [Contributor License
 - [Template Guide](docs/TEMPLATES.md) — Template language reference
 - [Cookbook](docs/COOKBOOK.md) — Task-oriented recipes
 - [Architecture](docs/ARCHITECTURE.md) — Design patterns and internals
-- [Changelog](CHANGELOG.md) — Version history
 - [Known Issues](docs/KNOWN_ISSUES.md) — Current limitations and workarounds
 
 ## License
