@@ -4,7 +4,7 @@ Command-line interface for [VergeOS](https://www.verge.io) — manage virtual ma
 
 [![PyPI version](https://img.shields.io/pypi/v/verge-cli)](https://pypi.org/project/verge-cli/)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ## Installation
 
@@ -361,7 +361,11 @@ See the [Template Guide](docs/templates.md) for the full field reference, cloud-
 | 9 | Timeout |
 | 10 | Connection error |
 
-## Development
+## Contributing
+
+We welcome contributions! Please read the following before submitting a pull request.
+
+### Getting Started
 
 ```bash
 # Clone the repository
@@ -384,6 +388,17 @@ uv run mypy src/verge_cli
 uv build
 ```
 
+### Contributor License Agreement
+
+By submitting a pull request, you agree to the terms of our [Contributor License Agreement](CLA.md). This grants Verge.io the necessary rights to use and distribute your contributions while you retain ownership of your work.
+
+### Guidelines
+
+- Follow the existing code style and conventions
+- Add tests for new functionality
+- Keep pull requests focused — one feature or fix per PR
+- Use [conventional commit](https://www.conventionalcommits.org/) messages
+
 ## Documentation
 
 - [Template Guide](docs/templates.md) — Full template language reference
@@ -393,4 +408,4 @@ uv build
 
 ## License
 
-MIT License — see [LICENSE](LICENSE) for details.
+Apache License 2.0 — see [LICENSE](LICENSE) for details.
