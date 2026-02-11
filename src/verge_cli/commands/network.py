@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ipaddress
 from typing import Annotated, Any
 
 import typer
@@ -103,6 +104,10 @@ def network_get(
 def network_create(
     ctx: typer.Context,
     name: Annotated[str, typer.Option("--name", "-n", help="Network name")],
+    network_type: Annotated[
+        str,
+        typer.Option("--type", "-t", help="Network type (internal, external)"),
+    ] = "internal",
     cidr: Annotated[
         str | None,
         typer.Option("--cidr", "-c", help="Network CIDR (e.g., 10.0.0.0/24)"),
@@ -144,11 +149,19 @@ def network_create(
 
     create_kwargs: dict[str, Any] = {
         "name": name,
+        "network_type": network_type,
         "description": description,
     }
 
     if cidr:
         create_kwargs["network_address"] = cidr
+        # API requires ipaddress alongside network CIDR — auto-derive if not provided
+        if not ip_address:
+            try:
+                net = ipaddress.ip_network(cidr, strict=False)
+                ip_address = str(list(net.hosts())[0])
+            except (ValueError, StopIteration):
+                pass
     if ip_address:
         create_kwargs["ip_address"] = ip_address
     if gateway:

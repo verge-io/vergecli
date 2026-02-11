@@ -11,7 +11,7 @@ from verge_cli.commands import recipe_instance, recipe_log, recipe_question, rec
 from verge_cli.context import get_context
 from verge_cli.errors import handle_errors
 from verge_cli.output import output_result, output_success
-from verge_cli.utils import confirm_action, resolve_nas_resource
+from verge_cli.utils import confirm_action, resolve_nas_resource, resolve_resource_id
 
 app = typer.Typer(
     name="recipe",
@@ -124,8 +124,15 @@ def get_cmd(
 def create_cmd(
     ctx: typer.Context,
     name: Annotated[str, typer.Option("--name", "-n", help="Recipe name.")],
-    catalog: Annotated[str, typer.Option("--catalog", help="Catalog name or key.")],
-    version: Annotated[str, typer.Option("--version", help="Recipe version string.")],
+    vm: Annotated[str, typer.Option("--vm", help="Source VM name or key to base the recipe on.")],
+    catalog: Annotated[
+        str | None,
+        typer.Option("--catalog", help="Catalog name or key."),
+    ] = None,
+    version: Annotated[
+        str | None,
+        typer.Option("--version", help="Recipe version string."),
+    ] = None,
     description: Annotated[
         str | None,
         typer.Option("--description", "-d", help="Recipe description."),
@@ -139,9 +146,14 @@ def create_cmd(
         typer.Option("--enabled/--no-enabled", help="Enable the recipe."),
     ] = True,
 ) -> None:
-    """Create a new VM recipe."""
+    """Create a new VM recipe from an existing VM."""
     vctx = get_context(ctx)
-    kwargs: dict[str, Any] = {"name": name, "catalog": catalog, "version": version}
+    vm_key = resolve_resource_id(vctx.client.vms, vm, "vm")
+    kwargs: dict[str, Any] = {"name": name, "vm": vm_key}
+    if catalog is not None:
+        kwargs["catalog"] = catalog
+    if version is not None:
+        kwargs["version"] = version
     if description is not None:
         kwargs["description"] = description
     if notes is not None:
@@ -156,7 +168,7 @@ def create_cmd(
         quiet=vctx.quiet,
         no_color=vctx.no_color,
     )
-    output_success(f"Recipe '{name}' created.")
+    output_success(f"Recipe '{name}' created from VM '{vm}'.")
 
 
 @app.command("update")
@@ -216,6 +228,19 @@ def delete_cmd(
         raise typer.Abort()
     vctx.client.vm_recipes.delete(key)
     output_success(f"Recipe '{recipe}' deleted.")
+
+
+@app.command("download")
+@handle_errors()
+def download_cmd(
+    ctx: typer.Context,
+    recipe: Annotated[str, typer.Argument(help="Recipe name or key.")],
+) -> None:
+    """Download a recipe from the catalog repository."""
+    vctx = get_context(ctx)
+    key = _resolve_recipe(vctx, recipe)
+    vctx.client.vm_recipes.download(key)
+    output_success(f"Recipe '{recipe}' downloaded.")
 
 
 @app.command("deploy")
