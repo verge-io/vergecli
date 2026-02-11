@@ -3,7 +3,7 @@
 
 string test_name = "shakedown";
 string timestamp = datetime();
-num start = now();
+num start = nowms();
 
 printline("=== Verge CLI Shakedown Script ===");
 printline("Test: " + test_name);
@@ -20,8 +20,8 @@ num total = a + b;
 printline("Math check: " + as_string(a) + " + " + as_string(b) + " = " + as_string(total));
 
 // Duration
-num elapsed = now() - start;
-printline("Elapsed: " + as_string(elapsed) + "s");
+num elapsed = nowms() - start;
+printline("Elapsed: " + as_string(elapsed) + "ms");
 printline("=== Shakedown Complete ===");
 
 return_success();
