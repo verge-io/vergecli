@@ -1,0 +1,27 @@
+// Shakedown test script for verge-cli
+// Exercises basic GCS: variables, string ops, datetime, logging, return
+
+string test_name = "shakedown";
+string timestamp = datetime();
+num start = now();
+
+printline("=== Verge CLI Shakedown Script ===");
+printline("Test: " + test_name);
+printline("Started: " + timestamp);
+
+// Basic string operations
+string greeting = "Hello from " + as_uppercase(test_name);
+printline(greeting);
+
+// Basic math
+num a = 7;
+num b = 3;
+num total = a + b;
+printline("Math check: " + as_string(a) + " + " + as_string(b) + " = " + as_string(total));
+
+// Duration
+num elapsed = now() - start;
+printline("Elapsed: " + as_string(elapsed) + "s");
+printline("=== Shakedown Complete ===");
+
+return_success();

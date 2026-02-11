@@ -577,11 +577,15 @@ Warmup / read-only tests. Use existing config or create one.
 
 ### Task Scripts
 
-> Scripts are currently reserved for internal system operations (VergeOS 26.0).
-> Test read-only operations on existing scripts.
+> Scripts use GCS (a C/JS-like language internal to VergeOS). A test script
+> is provided at `tests/shakedown/shakedown-script.gcs`.
 
 - [ ] `vrg task script list` — lists task scripts
-- [ ] `vrg task script get <script-id>` — shows script details (if any exist)
+- [ ] `vrg task script create --name shakedown-script --script @tests/shakedown/shakedown-script.gcs --description "Shakedown test script"` — script created
+- [ ] `vrg task script get shakedown-script` — shows script details (name, code)
+- [ ] `vrg task script update shakedown-script --description "Updated shakedown script"` — updated
+- [ ] `vrg task script run shakedown-script` — script executed (check logs for output)
+- [ ] `vrg task script delete shakedown-script --yes` — script deleted
 
 ---
 
@@ -808,6 +812,7 @@ Delete all test resources in reverse order. Verify each deletion.
 
 ### Task Cleanup
 
+- [ ] Delete task script (if created): `vrg task script delete shakedown-script --yes`
 - [ ] Delete task triggers (if created): `vrg task trigger delete <trigger-id> --yes`
 - [ ] Delete task schedule: `vrg task schedule delete shakedown-schedule --yes`
 - [ ] Delete task: `vrg task delete shakedown-task --yes`
