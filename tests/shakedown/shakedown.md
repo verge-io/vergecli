@@ -716,7 +716,7 @@ Warmup / read-only tests. Use existing config or create one.
 ### Tag Categories
 
 - [ ] `vrg tag category list` — lists tag categories (may be empty)
-- [ ] `vrg tag category create --name shakedown-category --description "Shakedown test category"` — created
+- [ ] `vrg tag category create --name shakedown-category --description "Shakedown test category" --taggable-vms --taggable-networks` — created (must enable taggable types for assign to work)
 - [ ] `vrg tag category get shakedown-category` — shows category details
 - [ ] `vrg tag category update shakedown-category --description "Updated category"` — updated
 
@@ -785,9 +785,11 @@ Run these against any representative commands (e.g., `vm list`, `network get`).
 
 ### Global Options
 
+> Use credentials from `.claude/TESTENV.md` for inline credential tests.
+
 - [ ] `vrg --profile <name> vm list` — uses specified profile
 - [ ] `vrg --no-color vm list` — output without ANSI colors
-- [ ] `vrg -H <host> --token <token> vm list` — inline credentials work
+- [ ] `vrg -H <host> --username admin --password <password> --no-verify-ssl vm list` — inline credentials work (include `--no-verify-ssl` for self-signed cert environments)
 
 ---
 
