@@ -39,8 +39,9 @@ def test_recipe_get(cli_runner, mock_client, mock_recipe):
     assert "Ubuntu Server 22.04" in result.output
 
 
-def test_recipe_create(cli_runner, mock_client, mock_recipe):
-    """vrg recipe create should create a new recipe with --version."""
+def test_recipe_create(cli_runner, mock_client, mock_recipe, mock_vm):
+    """vrg recipe create should create a recipe from a VM."""
+    mock_client.vms.list.return_value = [mock_vm]
     mock_client.vm_recipes.create.return_value = mock_recipe
 
     result = cli_runner.invoke(
@@ -50,8 +51,8 @@ def test_recipe_create(cli_runner, mock_client, mock_recipe):
             "create",
             "--name",
             "Ubuntu Server 22.04",
-            "--catalog",
-            "default",
+            "--vm",
+            "test-vm",
             "--version",
             "1.0",
         ],
@@ -60,11 +61,12 @@ def test_recipe_create(cli_runner, mock_client, mock_recipe):
     assert result.exit_code == 0
     assert "created" in result.output.lower()
     call_kwargs = mock_client.vm_recipes.create.call_args[1]
+    assert call_kwargs["vm"] == 1  # Resolved from mock_vm.key
     assert call_kwargs["version"] == "1.0"
 
 
-def test_recipe_create_missing_version(cli_runner, mock_client):
-    """vrg recipe create without --version should fail."""
+def test_recipe_create_missing_vm(cli_runner, mock_client):
+    """vrg recipe create without --vm should fail."""
     result = cli_runner.invoke(
         app,
         [
@@ -72,12 +74,26 @@ def test_recipe_create_missing_version(cli_runner, mock_client):
             "create",
             "--name",
             "Test Recipe",
-            "--catalog",
-            "default",
         ],
     )
 
     assert result.exit_code != 0
+
+
+def test_recipe_download(cli_runner, mock_client, mock_recipe):
+    """vrg recipe download should download a recipe from catalog."""
+    mock_client.vm_recipes.list.return_value = [mock_recipe]
+
+    result = cli_runner.invoke(
+        app,
+        ["recipe", "download", "Ubuntu Server 22.04"],
+    )
+
+    assert result.exit_code == 0
+    assert "downloaded" in result.output.lower()
+    mock_client.vm_recipes.download.assert_called_once_with(
+        "8f73f8bcc9c9f1aaba32f733bfc295acaf548554"
+    )
 
 
 def test_recipe_update(cli_runner, mock_client, mock_recipe):
