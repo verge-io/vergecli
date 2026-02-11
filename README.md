@@ -37,299 +37,67 @@ vrg system info
 vrg vm list
 ```
 
-## Features
+## Highlights
 
-- **VM Lifecycle** — create, start, stop, restart, reset, update, and delete virtual machines
-- **VM Sub-Resources** — manage drives, NICs, and TPM devices on VMs
-- **VM Snapshots** — create, restore, and manage per-VM snapshots
-- **Network Management** — create and manage internal/external networks with DHCP
-- **Firewall Rules** — create, enable, disable, and delete network firewall rules
-- **DNS** — manage DNS views, zones, and records (A, CNAME, MX, TXT, etc.)
-- **DHCP Host Overrides** — assign static IPs via hostname-based overrides
-- **IP Aliases** — add secondary IP addresses to networks
-- **Network Diagnostics** — DHCP leases, address tables, and traffic statistics
-- **Tenant Management** — full tenant lifecycle with nodes, storage, network blocks, snapshots, and stats
-- **Clusters & Nodes** — view cluster and node inventory
-- **Storage Tiers** — inspect storage tier capacity and usage
-- **Cloud Snapshots** — create and manage cloud-level snapshots with snapshot profiles and periods
-- **Sites & Site Syncs** — manage remote sites and outgoing/incoming sync jobs
-- **NAS** — services, volumes, volume snapshots, CIFS/NFS shares, local users, sync jobs, and file browsing
-- **Media Catalog** — upload, download, and manage ISO images, disk files, and OVA/OVF packages
-- **VM Recipes** — create, deploy, and manage VM recipes with sections, questions, instances, and logs
-- **Configuration Profiles** — multiple environments with named profiles
-- **Multiple Auth Methods** — bearer token, API key, or username/password
-- **VM Templates** — declarative YAML templates with variables, dry-run, and batch provisioning
-- **Shell Completion** — tab completion for bash, zsh, fish, and PowerShell
-- **Flexible Output** — table, wide, JSON, or CSV format with `--query` field extraction
+- **200+ commands** across compute, networking, tenants, NAS, identity, automation, and monitoring
+- **Declarative VM templates** — provision from `.vrg.yaml` files with variables, dry-run, and batch support
+- **Flexible auth** — interactive setup via `vrg configure`, bearer token, API key, or username/password with named profiles
+- **Flexible output** — table, wide, JSON, or CSV with `--query` field extraction
+- **Shell completion** — tab completion for bash, zsh, fish, and PowerShell
 
-## Command Overview
+## Commands
 
-| Command | Subcommands |
-|---------|-------------|
-| `vrg vm` | `list`, `get`, `create`, `update`, `delete`, `start`, `stop`, `restart`, `reset`, `validate` |
-| `vrg vm drive` | `list`, `get`, `create`, `update`, `delete`, `import` |
-| `vrg vm nic` | `list`, `get`, `create`, `update`, `delete` |
-| `vrg vm device` | `list`, `get`, `create`, `delete` |
-| `vrg vm snapshot` | `list`, `get`, `create`, `delete`, `restore` |
-| `vrg network` | `list`, `get`, `create`, `update`, `delete`, `start`, `stop`, `restart`, `status`, `apply-rules`, `apply-dns` |
-| `vrg network rule` | `list`, `get`, `create`, `update`, `delete`, `enable`, `disable` |
-| `vrg network dns view` | `list`, `get`, `create`, `update`, `delete` |
-| `vrg network dns zone` | `list`, `get`, `create`, `update`, `delete` |
-| `vrg network dns record` | `list`, `get`, `create`, `update`, `delete` |
-| `vrg network host` | `list`, `get`, `create`, `update`, `delete` |
-| `vrg network alias` | `list`, `get`, `create`, `update`, `delete` |
-| `vrg network diag` | `leases`, `addresses`, `stats` |
-| `vrg tenant` | `list`, `get`, `create`, `update`, `delete`, `start`, `stop`, `restart`, `reset`, `clone`, `isolate` |
-| `vrg tenant node` | `list`, `get`, `create`, `update`, `delete` |
-| `vrg tenant storage` | `list`, `get`, `create`, `update`, `delete` |
-| `vrg tenant net-block` | `list`, `get`, `create`, `delete` |
-| `vrg tenant ext-ip` | `list`, `get`, `create`, `delete` |
-| `vrg tenant l2` | `list`, `get`, `create`, `delete` |
-| `vrg tenant snapshot` | `list`, `get`, `create`, `delete`, `restore` |
-| `vrg tenant stats` | `current`, `history` |
-| `vrg tenant logs` | `list` |
-| `vrg cluster` | `list`, `get` |
-| `vrg node` | `list`, `get` |
-| `vrg storage` | `list`, `get` |
-| `vrg snapshot` | `list`, `get`, `create`, `delete`, `vms`, `tenants` |
-| `vrg snapshot profile` | `list`, `get`, `create`, `update`, `delete` |
-| `vrg snapshot profile period` | `list`, `get`, `create`, `update`, `delete` |
-| `vrg site` | `list`, `get`, `create`, `update`, `delete`, `enable`, `disable`, `reauth`, `refresh` |
-| `vrg site sync outgoing` | `list`, `get`, `enable`, `disable` |
-| `vrg site sync incoming` | `list`, `get`, `enable`, `disable` |
-| `vrg nas service` | `list`, `get`, `create`, `update`, `delete`, `power-on`, `power-off`, `restart` |
-| `vrg nas volume` | `list`, `get`, `create`, `update`, `delete`, `enable`, `disable`, `reset` |
-| `vrg nas volume snapshot` | `list`, `get`, `create`, `delete` |
-| `vrg nas cifs` | `list`, `get`, `create`, `update`, `delete`, `enable`, `disable` |
-| `vrg nas nfs` | `list`, `get`, `create`, `update`, `delete`, `enable`, `disable` |
-| `vrg nas user` | `list`, `get`, `create`, `update`, `delete`, `enable`, `disable` |
-| `vrg nas sync` | `list`, `get`, `create`, `update`, `delete`, `enable`, `disable`, `start`, `stop` |
-| `vrg nas files` | `list`, `get` |
-| `vrg file` | `list`, `get`, `upload`, `download`, `update`, `delete`, `types` |
-| `vrg recipe` | `list`, `get`, `create`, `update`, `delete`, `deploy` |
-| `vrg recipe instance` | `list`, `get`, `delete` |
-| `vrg recipe section` | `list`, `get`, `create`, `update`, `delete` |
-| `vrg recipe question` | `list`, `get`, `create`, `update`, `delete` |
-| `vrg recipe log` | `list`, `get` |
-| `vrg system` | `info`, `version` |
-| `vrg configure` | `setup`, `show`, `list` |
-| `vrg completion` | `show` |
-
-Run `vrg <command> --help` for detailed usage of any command.
-
-> **Destructive operations** (`delete`, `reset`) require `--yes` to skip the confirmation prompt.
-
-## Shell Completion
-
-Tab completion is available for bash, zsh, fish, and PowerShell.
-
-### Bash
-
-```bash
-vrg completion show bash >> ~/.bashrc
+```
+vrg <domain> [sub-domain] <action> [options]
 ```
 
-### Zsh
+| Domain | Commands |
+|--------|----------|
+| **Compute** | `vm`, `vm drive`, `vm nic`, `vm device`, `vm snapshot` |
+| **Networking** | `network`, `network rule`, `network dns`, `network host`, `network alias`, `network diag` |
+| **Tenants** | `tenant`, `tenant node`, `tenant storage`, `tenant net`, `tenant snapshot`, `tenant stats`, `tenant share`, `tenant logs` |
+| **NAS** | `nas service`, `nas volume`, `nas cifs`, `nas nfs`, `nas user`, `nas sync`, `nas files` |
+| **Infrastructure** | `cluster`, `node`, `storage` |
+| **Snapshots** | `snapshot`, `snapshot profile` |
+| **Sites & Replication** | `site`, `site sync outgoing`, `site sync incoming` |
+| **Identity & Access** | `user`, `group`, `permission`, `api-key`, `auth-source` |
+| **Certificates & SSO** | `certificate`, `oidc` |
+| **Automation** | `task`, `task schedule`, `task trigger`, `task event`, `task script` |
+| **Recipes** | `recipe`, `recipe section`, `recipe question`, `recipe instance`, `recipe log` |
+| **Catalog** | `catalog`, `catalog repo` |
+| **Updates** | `update`, `update source`, `update branch`, `update package`, `update available` |
+| **Monitoring** | `alarm`, `alarm history`, `log` |
+| **Tagging** | `tag`, `tag category`, `resource-group` |
+| **System** | `system`, `configure`, `file`, `completion` |
 
-```bash
-vrg completion show zsh > "${fpath[1]}/_vrg"
-```
+Most commands follow a consistent CRUD pattern (`list`, `get`, `create`, `update`, `delete`). Destructive operations require `--yes` to skip confirmation.
 
-### Fish
-
-```bash
-vrg completion show fish > ~/.config/fish/completions/vrg.fish
-```
-
-### PowerShell
-
-```powershell
-vrg completion show powershell >> $PROFILE
-```
-
-Restart your shell (or `source` the file) to activate completion.
-
-Alternatively, Typer's built-in flags work for quick setup:
-
-```bash
-vrg --install-completion   # auto-detect shell and install
-vrg --show-completion      # print script without installing
-```
-
-> Dynamic resource name completion (e.g., completing VM names) is not yet available.
+Run `vrg <command> --help` for usage details, or see the full [Command Reference](docs/COMMANDS.md).
 
 ## Configuration
 
-### Config File
+Configuration is stored in `~/.vrg/config.toml`. Run `vrg configure setup` for interactive setup, or set environment variables (`VERGE_HOST`, `VERGE_TOKEN`, etc.) to override. Multiple named profiles are supported.
 
-Configuration is stored in `~/.vrg/config.toml`:
-
-```toml
-[default]
-host = "https://verge.example.com"
-token = "your-api-token"
-verify_ssl = true
-output = "table"
-timeout = 30
-
-[profile.production]
-host = "https://verge-prod.example.com"
-api_key = "vk_xxxxxxxxxxxx"
-
-[profile.dev]
-host = "https://192.168.1.100"
-username = "admin"
-password = "secret123"
-verify_ssl = false
-```
-
-### Authentication Methods
-
-The CLI supports three authentication methods (in priority order):
-
-1. **Bearer Token** — `--token` or `VERGE_TOKEN`
-2. **API Key** — `--api-key` or `VERGE_API_KEY`
-3. **Basic Auth** — `--username`/`--password` or `VERGE_USERNAME`/`VERGE_PASSWORD`
-
-### Environment Variables
-
-All settings can be overridden with environment variables:
-
-| Variable | Description |
-|----------|-------------|
-| `VERGE_HOST` | VergeOS host URL |
-| `VERGE_TOKEN` | Bearer token for authentication |
-| `VERGE_API_KEY` | API key for authentication |
-| `VERGE_USERNAME` | Username for basic auth |
-| `VERGE_PASSWORD` | Password for basic auth |
-| `VERGE_PROFILE` | Default profile to use |
-| `VERGE_VERIFY_SSL` | Verify SSL certificates (true/false) |
-| `VERGE_TIMEOUT` | Request timeout in seconds |
-| `VERGE_OUTPUT` | Default output format (table/wide/json/csv) |
-
-## Output Formats
-
-### Table (default)
-
-```bash
-vrg vm list
-```
-
-### Wide
-
-Shows all columns including those hidden in the default table view:
-
-```bash
-vrg -o wide vm list
-```
-
-### JSON
-
-```bash
-vrg -o json vm list
-```
-
-### CSV
-
-Machine-readable output for piping to other tools:
-
-```bash
-vrg -o csv vm list
-```
-
-### Field Extraction
-
-Extract specific fields using dot notation:
-
-```bash
-# Get just the status
-vrg --query status vm get web-server
-
-# Get nested field
-vrg --query config.ram vm get web-server
-```
+See the [Cookbook](docs/COOKBOOK.md) for setup recipes and the [Command Reference](docs/COMMANDS.md) for all environment variables.
 
 ## VM Templates
 
-Create VMs from declarative `.vrg.yaml` files instead of long command lines.
-
-### Template Structure
-
-```yaml
-apiVersion: v4
-kind: VirtualMachine
-
-vm:
-  name: web-server-01
-  os_family: linux
-  cpu_cores: 4
-  ram: 8GB
-  machine_type: q35
-  uefi: true
-
-  drives:
-    - name: "OS Disk"
-      media: disk
-      interface: virtio-scsi
-      size: 50GB
-
-  nics:
-    - name: "Primary"
-      interface: virtio
-      network: External
-
-  devices:
-    - type: tpm
-      model: crb
-      version: "2.0"
-
-  cloudinit:
-    datasource: nocloud
-    files:
-      - name: user-data
-        content: |
-          #cloud-config
-          hostname: web-server-01
-          packages: [nginx]
-```
-
-### Usage
+Create VMs from declarative `.vrg.yaml` files instead of long command lines. Templates support variables, dry-run previews, runtime overrides (`--set`), cloud-init, and batch provisioning.
 
 ```bash
-# Validate a template
-vrg vm validate -f web-server.vrg.yaml
-
-# Preview without creating
-vrg vm create -f web-server.vrg.yaml --dry-run
-
-# Create from template
-vrg vm create -f web-server.vrg.yaml
-
-# Override values at create time
-vrg vm create -f web-server.vrg.yaml --set vm.name=web-02 --set vm.ram=16GB
+vrg vm create -f web-server.vrg.yaml --dry-run   # Preview
+vrg vm create -f web-server.vrg.yaml              # Create
 ```
 
-### Variables
+See the [Template Guide](docs/TEMPLATES.md) for the full field reference and examples.
 
-Templates support `${VAR}` substitution from environment variables or a `vars:` block. Use `${VAR:-default}` for optional variables with defaults.
+## Output Formats
 
-```yaml
-vars:
-  env: staging
-vm:
-  name: "${env}-web-01"
-  ram: "${VM_RAM:-4GB}"
-```
+All commands support `--output table|wide|json|csv` and `--query` for field extraction. See the [Command Reference](docs/COMMANDS.md#global-options).
 
-### Batch Provisioning
+## Shell Completion
 
-Use `kind: VirtualMachineSet` to create multiple VMs from shared defaults. Each VM in `vms:` inherits from `defaults:` and can override any field.
-
-```bash
-vrg vm create -f k8s-cluster.vrg.yaml --dry-run
-```
-
-See the [Template Guide](docs/TEMPLATES.md) for the full field reference, cloud-init, variables, and more examples.
+Tab completion is available for bash, zsh, fish, and PowerShell. Run `vrg --install-completion` for quick setup, or see the [Cookbook](docs/COOKBOOK.md) for manual configuration.
 
 ## Global Options
 
@@ -365,34 +133,16 @@ See the [Template Guide](docs/TEMPLATES.md) for the full field reference, cloud-
 
 We welcome contributions! Please read the following before submitting a pull request.
 
-### Getting Started
-
 ```bash
-# Clone the repository
 git clone https://github.com/verge-io/verge-cli.git
 cd verge-cli
-
-# Install with development dependencies
 uv sync --all-extras
-
-# Run tests
-uv run pytest
-
-# Run linter
-uv run ruff check .
-
-# Run type checker
-uv run mypy src/verge_cli
-
-# Build package
-uv build
+uv run pytest              # Tests
+uv run ruff check .        # Lint
+uv run mypy src/verge_cli  # Type check
 ```
 
-### Contributor License Agreement
-
-By submitting a pull request, you agree to the terms of our [Contributor License Agreement](CLA.md). This grants Verge.io the necessary rights to use and distribute your contributions while you retain ownership of your work.
-
-### Guidelines
+By submitting a pull request, you agree to the terms of our [Contributor License Agreement](CLA.md).
 
 - Follow the existing code style and conventions
 - Add tests for new functionality
@@ -401,8 +151,10 @@ By submitting a pull request, you agree to the terms of our [Contributor License
 
 ## Documentation
 
-- [Template Guide](docs/TEMPLATES.md) — Full template language reference
-- [Cookbook](docs/COOKBOOK.md) — Task-oriented recipes for common workflows
+- [Command Reference](docs/COMMANDS.md) — Full command reference
+- [Template Guide](docs/TEMPLATES.md) — Template language reference
+- [Cookbook](docs/COOKBOOK.md) — Task-oriented recipes
+- [Architecture](docs/ARCHITECTURE.md) — Design patterns and internals
 - [Changelog](CHANGELOG.md) — Version history
 - [Known Issues](docs/KNOWN_ISSUES.md) — Current limitations and workarounds
 
