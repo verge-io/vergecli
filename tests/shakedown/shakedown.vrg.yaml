@@ -1,0 +1,39 @@
+apiVersion: v4
+kind: VirtualMachine
+
+vars:
+  VM_NAME: shakedown-template-vm
+  NETWORK: shakedown-net
+
+vm:
+  name: "${VM_NAME}"
+  description: "VM created from shakedown test template"
+  os_family: linux
+  os_description: "Generic Linux (shakedown test)"
+  cpu_cores: 1
+  ram: 512 MB
+  machine_type: q35
+  boot_order: cd
+  guest_agent: false
+
+  drives:
+    - name: "OS Disk"
+      media: disk
+      interface: virtio-scsi
+      size: 10 GB
+
+    - name: "Data Disk"
+      media: disk
+      interface: virtio-scsi
+      size: 5 GB
+
+  nics:
+    - name: "Primary NIC"
+      network: "${NETWORK}"
+      interface: virtio
+
+  devices:
+    - name: "TPM"
+      type: tpm
+      model: tis
+      version: "2.0"
