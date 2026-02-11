@@ -10,7 +10,7 @@ import typer
 from verge_cli.columns import ColumnDef, format_epoch
 from verge_cli.context import get_context
 from verge_cli.errors import handle_errors
-from verge_cli.output import output_result
+from verge_cli.output import output_result, output_warning
 
 app = typer.Typer(
     name="log",
@@ -134,6 +134,18 @@ def list_cmd(
 
     since_dt = _parse_datetime(since) if since else None
     before_dt = _parse_datetime(before) if before else None
+
+    # Warn if --before will be ignored by specialized routes
+    if before_dt and (
+        errors
+        or (user and not level and not object_type)
+        or (object_type and not level and not user)
+        or (level and not user and not object_type)
+    ):
+        output_warning(
+            "--before is not supported with --errors/--user/--object-type/--level filters and will be ignored.",
+            quiet=vctx.quiet,
+        )
 
     # Route to appropriate SDK method based on filters
     if errors:

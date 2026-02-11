@@ -10,7 +10,7 @@ import typer
 from verge_cli.columns import BOOL_STYLES, ColumnDef, format_bool_yn, format_epoch
 from verge_cli.context import get_context
 from verge_cli.errors import handle_errors
-from verge_cli.output import output_result, output_success
+from verge_cli.output import output_error, output_result, output_success
 from verge_cli.utils import confirm_action
 
 app = typer.Typer(
@@ -105,7 +105,7 @@ def list_cmd(
         api_type = DEVICE_TYPE_MAP.get(device_type)
         if api_type is None:
             valid = ", ".join(sorted(DEVICE_TYPE_MAP.keys()))
-            typer.echo(f"Error: Invalid device type '{device_type}'. Valid: {valid}", err=True)
+            output_error(f"Invalid device type '{device_type}'. Valid: {valid}")
             raise typer.Exit(2)
         groups = vctx.client.resource_groups.list_by_type(device_type=api_type, enabled=enabled)
     elif device_class is not None:
@@ -220,7 +220,7 @@ def create_cmd(
     # Validate device type
     if device_type not in DEVICE_TYPE_MAP:
         valid = ", ".join(sorted(DEVICE_TYPE_MAP.keys()))
-        typer.echo(f"Error: Invalid device type '{device_type}'. Valid: {valid}", err=True)
+        output_error(f"Invalid device type '{device_type}'. Valid: {valid}")
         raise typer.Exit(2)
 
     enabled = not no_enabled
@@ -256,10 +256,7 @@ def create_cmd(
 
     elif device_type == "nvidia-vgpu":
         if driver_file is None:
-            typer.echo(
-                "Error: --driver-file is required for nvidia-vgpu type.",
-                err=True,
-            )
+            output_error("--driver-file is required for nvidia-vgpu type.")
             raise typer.Exit(2)
         vgpu_kwargs: dict[str, Any] = {
             "name": name,
@@ -333,7 +330,7 @@ def update_cmd(
         updates["enabled"] = enabled
 
     if not updates:
-        typer.echo("No updates specified.", err=True)
+        output_error("No updates specified.")
         raise typer.Exit(2)
 
     result = vctx.client.resource_groups.update(uuid_key, **updates)

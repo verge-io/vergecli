@@ -10,7 +10,7 @@ import typer
 from verge_cli.columns import AUTH_SOURCE_COLUMNS
 from verge_cli.context import get_context
 from verge_cli.errors import handle_errors
-from verge_cli.output import output_result, output_success
+from verge_cli.output import output_error, output_result, output_success
 from verge_cli.utils import confirm_action, resolve_resource_id
 
 app = typer.Typer(
@@ -48,7 +48,12 @@ def _build_settings(
     """Build settings dict from JSON base + individual flags."""
     settings: dict[str, Any] = {}
     if settings_json:
-        settings = json.loads(settings_json)
+        try:
+            parsed = json.loads(settings_json)
+        except json.JSONDecodeError as exc:
+            output_error(f"Invalid JSON for --settings-json: {exc}")
+            raise typer.Exit(2) from None
+        settings = parsed
 
     flag_map: dict[str, Any] = {
         "client_id": client_id,

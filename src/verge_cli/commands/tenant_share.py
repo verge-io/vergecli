@@ -99,6 +99,7 @@ def share_get(
 
     output_result(
         _share_to_dict(obj),
+        columns=SHARE_COLUMNS,
         output_format=vctx.output_format,
         query=vctx.query,
         quiet=vctx.quiet,
@@ -148,6 +149,7 @@ def share_create(
     )
     output_result(
         _share_to_dict(obj),
+        columns=SHARE_COLUMNS,
         output_format=vctx.output_format,
         query=vctx.query,
         quiet=vctx.quiet,
@@ -165,7 +167,7 @@ def share_import(
     """Import a shared object into the tenant (creates a VM copy)."""
     vctx = get_context(ctx)
     resolve_resource_id(vctx.client.tenants, tenant, "Tenant")
-    share_key = int(share) if share.isdigit() else int(share)
+    share_key = int(share)
 
     result = vctx.client.shared_objects.import_object(key=share_key)
     output_success(
@@ -192,7 +194,7 @@ def share_refresh(
     """Refresh a shared object's data from the source."""
     vctx = get_context(ctx)
     resolve_resource_id(vctx.client.tenants, tenant, "Tenant")
-    share_key = int(share) if share.isdigit() else int(share)
+    share_key = int(share)
 
     vctx.client.shared_objects.refresh_object(key=share_key)
     output_success(
@@ -215,8 +217,7 @@ def share_delete(
     share_key = _resolve_share(vctx.client, tenant_key, share)
 
     if not confirm_action(f"Delete shared object (key: {share_key})?", yes=yes):
-        typer.echo("Cancelled.")
-        raise typer.Exit(0)
+        raise typer.Abort()
 
     vctx.client.shared_objects.delete(key=share_key)
     output_success(

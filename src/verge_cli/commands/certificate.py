@@ -151,6 +151,7 @@ def cert_get(
         _cert_to_dict(cert_obj, include_keys=show_keys),
         output_format=vctx.output_format,
         query=vctx.query,
+        columns=CERTIFICATE_COLUMNS,
         quiet=vctx.quiet,
         no_color=vctx.no_color,
     )
