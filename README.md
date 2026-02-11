@@ -329,7 +329,7 @@ Use `kind: VirtualMachineSet` to create multiple VMs from shared defaults. Each 
 vrg vm create -f k8s-cluster.vrg.yaml --dry-run
 ```
 
-See the [Template Guide](docs/templates.md) for the full field reference, cloud-init, variables, and more examples.
+See the [Template Guide](docs/TEMPLATES.md) for the full field reference, cloud-init, variables, and more examples.
 
 ## Global Options
 
@@ -401,8 +401,8 @@ By submitting a pull request, you agree to the terms of our [Contributor License
 
 ## Documentation
 
-- [Template Guide](docs/templates.md) — Full template language reference
-- [Cookbook](docs/cookbook.md) — Task-oriented recipes for common workflows
+- [Template Guide](docs/TEMPLATES.md) — Full template language reference
+- [Cookbook](docs/COOKBOOK.md) — Task-oriented recipes for common workflows
 - [Changelog](CHANGELOG.md) — Version history
 - [Known Issues](docs/KNOWN_ISSUES.md) — Current limitations and workarounds
 
