@@ -110,6 +110,7 @@ def oidc_log_get(
         _oidc_log_to_dict(log_entry),
         output_format=vctx.output_format,
         query=vctx.query,
+        columns=OIDC_LOG_COLUMNS,
         quiet=vctx.quiet,
         no_color=vctx.no_color,
     )

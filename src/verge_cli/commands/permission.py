@@ -37,27 +37,6 @@ def _permission_to_dict(perm: Any) -> dict[str, Any]:
     }
 
 
-def _resolve_identity(
-    ctx_client: Any,
-    user: str | None,
-    group: str | None,
-) -> tuple[int | None, int | None]:
-    """Resolve --user/--group to keys.
-
-    Returns:
-        Tuple of (user_key, group_key). Exactly one will be non-None.
-    """
-    user_key: int | None = None
-    group_key: int | None = None
-
-    if user is not None:
-        user_key = resolve_resource_id(ctx_client.users, user, "User")
-    if group is not None:
-        group_key = resolve_resource_id(ctx_client.groups, group, "Group")
-
-    return user_key, group_key
-
-
 @app.command("list")
 @handle_errors()
 def permission_list(

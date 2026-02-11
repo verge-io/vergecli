@@ -4,7 +4,6 @@
 
 A Python CLI for managing VergeOS virtual machines, networks, tenants, storage, and more. Targets system administrators, DevOps engineers, and MSPs who need terminal-based automation.
 
-**Status:** Phase 1 MVP complete — see `docs/plans/2026-02-04-phase1-mvp-implementation.md` for task checklist.
 
 ## Tech Stack
 

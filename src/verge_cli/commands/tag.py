@@ -77,7 +77,7 @@ def _member_to_dict(member: Any) -> dict[str, Any]:
     }
 
 
-def _resolve_tag(vctx: Any, identifier: str, category: str | None = None) -> int:
+def _resolve_tag(vctx: Any, identifier: str) -> int:
     """Resolve a tag identifier to a key.
 
     If the identifier is numeric, return it directly.
@@ -224,7 +224,7 @@ def create_cmd(
         quiet=vctx.quiet,
         no_color=vctx.no_color,
     )
-    output_success(f"Tag '{name}' created.")
+    output_success(f"Tag '{name}' created.", quiet=vctx.quiet)
 
 
 @app.command("update")
@@ -258,7 +258,7 @@ def update_cmd(
         quiet=vctx.quiet,
         no_color=vctx.no_color,
     )
-    output_success(f"Tag '{tag}' updated.")
+    output_success(f"Tag '{tag}' updated.", quiet=vctx.quiet)
 
 
 @app.command("delete")
@@ -277,7 +277,7 @@ def delete_cmd(
     if not confirm_action(f"Delete tag '{tag}'?", yes=yes):
         raise typer.Abort()
     vctx.client.tags.delete(key)
-    output_success(f"Tag '{tag}' deleted.")
+    output_success(f"Tag '{tag}' deleted.", quiet=vctx.quiet)
 
 
 @app.command("assign")

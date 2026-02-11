@@ -218,7 +218,7 @@ def create_cmd(
         quiet=vctx.quiet,
         no_color=vctx.no_color,
     )
-    output_success(f"Tag category '{name}' created.")
+    output_success(f"Tag category '{name}' created.", quiet=vctx.quiet)
 
 
 @app.command("update")
@@ -339,7 +339,7 @@ def update_cmd(
         quiet=vctx.quiet,
         no_color=vctx.no_color,
     )
-    output_success(f"Tag category '{category}' updated.")
+    output_success(f"Tag category '{category}' updated.", quiet=vctx.quiet)
 
 
 @app.command("delete")
@@ -358,4 +358,4 @@ def delete_cmd(
     if not confirm_action(f"Delete tag category '{category}'?", yes=yes):
         raise typer.Abort()
     vctx.client.tag_categories.delete(key)
-    output_success(f"Tag category '{category}' deleted.")
+    output_success(f"Tag category '{category}' deleted.", quiet=vctx.quiet)

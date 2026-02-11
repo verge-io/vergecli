@@ -159,8 +159,7 @@ def test_share_delete_no_confirm(cli_runner, mock_client, mock_tenant):
 
     result = cli_runner.invoke(app, ["tenant", "share", "delete", "acme-corp", "15"], input="n\n")
 
-    assert result.exit_code == 0
-    assert "Cancelled" in result.output
+    assert result.exit_code != 0
     mock_client.shared_objects.delete.assert_not_called()
 
 

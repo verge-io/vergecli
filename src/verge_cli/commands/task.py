@@ -12,7 +12,7 @@ from verge_cli.columns import TASK_COLUMNS
 from verge_cli.commands import task_event, task_schedule, task_script, task_trigger
 from verge_cli.context import get_context
 from verge_cli.errors import handle_errors
-from verge_cli.output import output_result, output_success
+from verge_cli.output import output_error, output_result, output_success
 from verge_cli.utils import confirm_action, resolve_resource_id
 
 app = typer.Typer(
@@ -163,9 +163,13 @@ def task_create(
     if description is not None:
         kwargs["description"] = description
     if settings_json is not None:
-        kwargs["settings_args"] = json.loads(settings_json)
+        try:
+            kwargs["settings_args"] = json.loads(settings_json)
+        except json.JSONDecodeError as exc:
+            output_error(f"Invalid JSON for --settings-json: {exc}")
+            raise typer.Exit(2) from None
     task = vctx.client.tasks.create(**kwargs)
-    output_success(f"Task '{task.name}' created (key={int(task.key)}).")
+    output_success(f"Task '{task.name}' created (key={int(task.key)}).", quiet=vctx.quiet)
 
 
 @app.command("update")
@@ -207,9 +211,13 @@ def task_update(
     if delete_after_run is not None:
         kwargs["delete_after_run"] = delete_after_run
     if settings_json is not None:
-        kwargs["settings_args"] = json.loads(settings_json)
+        try:
+            kwargs["settings_args"] = json.loads(settings_json)
+        except json.JSONDecodeError as exc:
+            output_error(f"Invalid JSON for --settings-json: {exc}")
+            raise typer.Exit(2) from None
     vctx.client.tasks.update(key, **kwargs)
-    output_success(f"Task '{identifier}' updated.")
+    output_success(f"Task '{identifier}' updated.", quiet=vctx.quiet)
 
 
 @app.command("delete")
@@ -228,7 +236,7 @@ def task_delete(
     if not confirm_action(f"Delete task '{identifier}'?", yes=yes):
         raise typer.Exit(0)
     vctx.client.tasks.delete(key)
-    output_success(f"Task '{identifier}' deleted.")
+    output_success(f"Task '{identifier}' deleted.", quiet=vctx.quiet)
 
 
 @app.command("enable")
@@ -241,7 +249,7 @@ def task_enable(
     vctx = get_context(ctx)
     key = resolve_resource_id(vctx.client.tasks, identifier, "Task")
     vctx.client.tasks.enable(key)
-    output_success(f"Task '{identifier}' enabled.")
+    output_success(f"Task '{identifier}' enabled.", quiet=vctx.quiet)
 
 
 @app.command("disable")
@@ -254,7 +262,7 @@ def task_disable(
     vctx = get_context(ctx)
     key = resolve_resource_id(vctx.client.tasks, identifier, "Task")
     vctx.client.tasks.disable(key)
-    output_success(f"Task '{identifier}' disabled.")
+    output_success(f"Task '{identifier}' disabled.", quiet=vctx.quiet)
 
 
 @app.command("run")
@@ -280,13 +288,17 @@ def task_run(
     key = resolve_resource_id(vctx.client.tasks, identifier, "Task")
     params: dict[str, Any] = {}
     if params_json is not None:
-        params = json.loads(params_json)
+        try:
+            params = json.loads(params_json)
+        except json.JSONDecodeError as exc:
+            output_error(f"Invalid JSON for --params-json: {exc}")
+            raise typer.Exit(2) from None
     vctx.client.tasks.execute(key, **params)
     if wait:
         task = vctx.client.tasks.wait(key, timeout=timeout, raise_on_error=True)
-        output_success(f"Task '{identifier}' completed (status={task.status}).")
+        output_success(f"Task '{identifier}' completed (status={task.status}).", quiet=vctx.quiet)
     else:
-        output_success(f"Task '{identifier}' started.")
+        output_success(f"Task '{identifier}' started.", quiet=vctx.quiet)
 
 
 @app.command("cancel")
@@ -299,4 +311,4 @@ def task_cancel(
     vctx = get_context(ctx)
     key = resolve_resource_id(vctx.client.tasks, identifier, "Task")
     vctx.client.tasks.cancel(key)
-    output_success(f"Task '{identifier}' cancelled.")
+    output_success(f"Task '{identifier}' cancelled.", quiet=vctx.quiet)
