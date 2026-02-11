@@ -236,7 +236,11 @@ def _build_device_kwargs(config: dict[str, Any]) -> dict[str, Any]:
     if "model" in config:
         settings["model"] = config["model"]
     if "version" in config:
-        settings["version"] = config["version"]
+        # API expects "1" or "2", not "1.0" or "2.0"
+        ver = str(config["version"])
+        if ver.endswith(".0"):
+            ver = ver[:-2]
+        settings["version"] = ver
     if settings:
         kwargs["settings"] = settings
     if "name" in config:

@@ -47,6 +47,27 @@ def substitute_variables(text: str, variables: dict[str, str]) -> str:
     return result
 
 
+def _coerce_value(value: str) -> str | int | float | bool:
+    """Coerce a --set string value to its natural type.
+
+    Handles ints, floats, and booleans so schema validation passes.
+    Strings with units (e.g. '1 GB') are left as-is for the unit parser.
+    """
+    if value.lower() in ("true", "yes"):
+        return True
+    if value.lower() in ("false", "no"):
+        return False
+    try:
+        return int(value)
+    except ValueError:
+        pass
+    try:
+        return float(value)
+    except ValueError:
+        pass
+    return value
+
+
 def apply_set_overrides(data: dict, overrides: list[str]) -> None:  # type: ignore[type-arg]
     """Apply --set dot-path overrides to parsed data (in-place).
 
@@ -72,7 +93,7 @@ def apply_set_overrides(data: dict, overrides: list[str]) -> None:  # type: igno
                 target[part] = {}
             target = target[part]
 
-        target[parts[-1]] = value
+        target[parts[-1]] = _coerce_value(value)
 
 
 def _extract_vars_block(text: str) -> dict[str, str]:
