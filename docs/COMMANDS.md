@@ -108,6 +108,51 @@ Per-VM snapshot management. Source: `commands/vm_snapshot.py`
 | `delete` | Delete a snapshot |
 | `restore` | Restore VM from snapshot |
 
+### `vrg vm export`
+
+VM export management. Source: `commands/vm_export.py`
+
+| Subcommand | Description |
+|------------|-------------|
+| `list` | List VM exports |
+| `get` | Get a VM export by name or key |
+| `create` | Create a new VM export configuration |
+| `start` | Start a VM export job |
+| `stop` | Stop a running VM export job |
+| `delete` | Delete a VM export configuration |
+| `cleanup` | Clean up exported files for a VM export |
+
+### `vrg vm export stats`
+
+VM export statistics. Source: `commands/vm_export_stats.py`
+
+| Subcommand | Description |
+|------------|-------------|
+| `list` | List VM export statistics |
+| `get` | Get a VM export stat entry by key |
+
+### `vrg vm import`
+
+VM import management. Source: `commands/vm_import.py`
+
+| Subcommand | Description |
+|------------|-------------|
+| `list` | List VM imports |
+| `get` | Get a VM import by name or key |
+| `create` | Create a new VM import job |
+| `start` | Start a VM import job |
+| `cancel` | Cancel a running VM import job |
+| `delete` | Delete a VM import job |
+
+### `vrg vm import log`
+
+VM import logs. Source: `commands/vm_import_log.py`
+
+| Subcommand | Description |
+|------------|-------------|
+| `list` | List VM import logs |
+| `get` | Get a VM import log entry by key |
+
 ---
 
 ## Network
@@ -335,6 +380,38 @@ Tenant object sharing. Source: `commands/tenant_share.py`
 | `reject` | Reject a shared object |
 | `delete` | Remove a shared object |
 
+### `vrg tenant-recipe`
+
+Tenant recipe management. Source: `commands/tenant_recipe.py`
+
+| Subcommand | Description |
+|------------|-------------|
+| `list` | List tenant recipes |
+| `get` | Get a tenant recipe by name or key |
+| `update` | Update a tenant recipe |
+| `delete` | Delete a tenant recipe |
+| `download` | Download a tenant recipe from the catalog repository |
+| `deploy` | Deploy a tenant recipe to create a new tenant |
+
+### `vrg tenant-recipe instance`
+
+Tenant recipe instance management. Source: `commands/tenant_recipe_instance.py`
+
+| Subcommand | Description |
+|------------|-------------|
+| `list` | List tenant recipe instances |
+| `get` | Get a tenant recipe instance by name or key |
+| `delete` | Delete a tenant recipe instance |
+
+### `vrg tenant-recipe log`
+
+Tenant recipe logs. Source: `commands/tenant_recipe_log.py`
+
+| Subcommand | Description |
+|------------|-------------|
+| `list` | List tenant recipe logs |
+| `get` | Get a tenant recipe log entry by key |
+
 ---
 
 ## Storage & NAS
@@ -485,12 +562,44 @@ Cluster information. Source: `commands/cluster.py`
 
 ### `vrg node`
 
-Node information. Source: `commands/node.py`
+Node management. Source: `commands/node.py`
 
 | Subcommand | Description |
 |------------|-------------|
 | `list` | List nodes |
 | `get` | Get node details |
+| `maintenance` | Enable or disable maintenance mode (`--enable`/`--disable`) |
+| `restart` | Restart a node |
+
+### `vrg gpu`
+
+GPU configuration management. Source: `commands/gpu.py`
+
+| Subcommand | Description |
+|------------|-------------|
+| `list` | List GPU configurations |
+| `get` | Get GPU configuration details |
+| `update` | Change GPU mode and optionally assign a vGPU profile |
+| `stats` | Show GPU utilization statistics |
+| `instances` | List VMs using a GPU |
+
+### `vrg gpu profile`
+
+NVIDIA vGPU profile catalog. Source: `commands/gpu.py`
+
+| Subcommand | Description |
+|------------|-------------|
+| `list` | List vGPU profiles |
+| `get` | Get vGPU profile details |
+
+### `vrg gpu device`
+
+Physical GPU device inventory. Source: `commands/gpu.py`
+
+| Subcommand | Description |
+|------------|-------------|
+| `list` | List physical GPU devices |
+| `get` | Get physical GPU device details |
 
 ### `vrg snapshot`
 
@@ -982,6 +1091,36 @@ Update logs. Source: `commands/update_log.py`
 |------------|-------------|
 | `list` | List update log entries |
 | `get` | Get log entry details |
+
+---
+
+## Billing & Integrations
+
+### `vrg billing`
+
+Billing and usage reports. Source: `commands/billing.py`
+
+| Subcommand | Description |
+|------------|-------------|
+| `list` | List billing records |
+| `get` | Get a billing record by key |
+| `generate` | Generate a new billing record |
+| `latest` | Get the most recent billing record |
+| `summary` | Show billing usage summary |
+
+### `vrg webhook`
+
+Webhook integration management. Source: `commands/webhook.py`
+
+| Subcommand | Description |
+|------------|-------------|
+| `list` | List webhooks |
+| `get` | Get webhook details |
+| `create` | Create a new webhook |
+| `update` | Update an existing webhook |
+| `delete` | Delete a webhook |
+| `send` | Send a test message to a webhook |
+| `history` | Show webhook delivery history |
 
 ---
 
