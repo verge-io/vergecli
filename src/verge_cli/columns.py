@@ -854,3 +854,51 @@ CERTIFICATE_COLUMNS: list[ColumnDef] = [
         wide_only=True,
     ),
 ]
+
+GPU_PROFILE_COLUMNS: list[ColumnDef] = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("name"),
+    ColumnDef("type"),
+    ColumnDef("framebuffer"),
+    ColumnDef("max_resolution", header="Max Resolution"),
+    ColumnDef("max_instance", header="Max Instances"),
+    ColumnDef("grid_license", header="Grid License"),
+]
+
+GPU_COLUMNS: list[ColumnDef] = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("name"),
+    ColumnDef("node_name", header="Node"),
+    ColumnDef("mode_display", header="Mode"),
+    ColumnDef("nvidia_vgpu_profile_display", header="vGPU Profile"),
+    ColumnDef("instances_count", header="Instances"),
+    ColumnDef("max_instances", header="Max Instances"),
+]
+
+GPU_STATS_COLUMNS: list[ColumnDef] = [
+    ColumnDef("gpus_total", header="GPUs Total"),
+    ColumnDef("gpus", header="GPUs Used"),
+    ColumnDef("gpus_idle", header="GPUs Idle"),
+    ColumnDef("vgpus_total", header="vGPUs Total"),
+    ColumnDef("vgpus", header="vGPUs Used"),
+    ColumnDef("vgpus_idle", header="vGPUs Idle"),
+]
+
+GPU_INSTANCE_COLUMNS: list[ColumnDef] = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("machine_name", header="Machine"),
+    ColumnDef("machine_type_display", header="Type"),
+    ColumnDef("mode_display", header="Mode"),
+    ColumnDef("machine_device_status", header="Device Status"),
+]
+
+GPU_DEVICE_COLUMNS: list[ColumnDef] = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("name"),
+    ColumnDef("node_name", header="Node"),
+    ColumnDef("slot"),
+    ColumnDef("vendor"),
+    ColumnDef("device", header="Device"),
+    ColumnDef("driver"),
+    ColumnDef("max_instances", header="Max Instances"),
+]

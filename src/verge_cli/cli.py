@@ -19,6 +19,7 @@ from verge_cli.commands import (
     completion,
     configure,
     file,
+    gpu,
     group,
     log,
     nas,
@@ -60,6 +61,7 @@ app.add_typer(cluster.app, name="cluster")
 app.add_typer(completion.app, name="completion")
 app.add_typer(configure.app, name="configure")
 app.add_typer(file.app, name="file")
+app.add_typer(gpu.app, name="gpu")
 app.add_typer(group.app, name="group")
 app.add_typer(log.app, name="log")
 app.add_typer(nas.app, name="nas")
