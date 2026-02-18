@@ -1550,3 +1550,173 @@ verify_ssl = false
 """
     )
     return config_file
+
+
+@pytest.fixture
+def mock_vm_import() -> MagicMock:
+    """Create a mock VmImport object (hex key)."""
+    imp = MagicMock()
+    imp.key = "ab12cd34ef56ab12cd34ef56ab12cd34ef56ab12"
+    imp.name = "ubuntu-import"
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "$key": "ab12cd34ef56ab12cd34ef56ab12cd34ef56ab12",
+            "name": "ubuntu-import",
+            "status": "ready",
+            "file": 5,
+            "volume": "",
+            "volume_path": "",
+            "preserve_macs": True,
+            "preserve_drive_format": False,
+            "preferred_tier": "",
+            "no_optical_drives": False,
+            "override_drive_interface": "",
+            "override_nic_interface": "",
+            "cleanup_on_delete": True,
+            "shared_object": 0,
+        }
+        return data.get(key, default)
+
+    imp.get = mock_get
+    return imp
+
+
+@pytest.fixture
+def mock_vm_import_log() -> MagicMock:
+    """Create a mock VmImportLog object (int key)."""
+    log = MagicMock()
+    log.key = 500
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "$key": 500,
+            "level": "message",
+            "text": "Import started",
+            "timestamp": 1707350400000000,
+            "user": "admin",
+            "vm_import": "ab12cd34ef56ab12cd34ef56ab12cd34ef56ab12",
+        }
+        return data.get(key, default)
+
+    log.get = mock_get
+    return log
+
+
+@pytest.fixture
+def mock_vm_export() -> MagicMock:
+    """Create a mock VolumeVmExport object (int key).
+
+    Note: VolumeVmExport has no ``name`` attribute — uses ``volume_name``
+    from the SDK's default fields.
+    """
+    exp = MagicMock(spec=[])  # spec=[] prevents auto-creating .name
+    exp.key = 10
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "$key": 10,
+            "volume_name": "vm-exports",
+            "volume_display": "vm-exports",
+            "status": "idle",
+            "volume": "ca094f47c075bca00ffc76c2cdfc5aafc7138308",
+            "quiesced": True,
+            "create_current": True,
+            "max_exports": 3,
+        }
+        return data.get(key, default)
+
+    exp.get = mock_get
+    return exp
+
+
+@pytest.fixture
+def mock_vm_export_stat() -> MagicMock:
+    """Create a mock VolumeVmExportStat object (int key).
+
+    Note: VolumeVmExportStat has no ``name`` attribute — uses ``file_name``.
+    """
+    stat = MagicMock(spec=[])  # spec=[] prevents auto-creating .name
+    stat.key = 100
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "$key": 100,
+            "file_name": "backup-2026-02-18",
+            "virtual_machines": 3,
+            "export_success": 3,
+            "errors": 0,
+            "size_bytes": 53687091200,
+            "duration": 120,
+            "timestamp": 1707350400,
+            "volume_vm_exports": 10,
+            "quiesced": True,
+        }
+        return data.get(key, default)
+
+    stat.get = mock_get
+    return stat
+
+
+@pytest.fixture
+def mock_tenant_recipe() -> MagicMock:
+    """Create a mock TenantRecipe object (hex key)."""
+    recipe = MagicMock()
+    recipe.key = "cc11dd22ee33ff44cc11dd22ee33ff44cc11dd22"
+    recipe.name = "Standard Tenant"
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "$key": "cc11dd22ee33ff44cc11dd22ee33ff44cc11dd22",
+            "name": "Standard Tenant",
+            "description": "Standard tenant recipe",
+            "enabled": True,
+            "version": "1.0",
+            "icon": "",
+            "preserve_certs": False,
+        }
+        return data.get(key, default)
+
+    recipe.get = mock_get
+    return recipe
+
+
+@pytest.fixture
+def mock_tenant_recipe_instance() -> MagicMock:
+    """Create a mock TenantRecipeInstance object (int key)."""
+    inst = MagicMock()
+    inst.key = 60
+    inst.name = "acme-tenant"
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "$key": 60,
+            "name": "acme-tenant",
+            "recipe_name": "Standard Tenant",
+            "recipe": "cc11dd22ee33ff44cc11dd22ee33ff44cc11dd22",
+        }
+        return data.get(key, default)
+
+    inst.get = mock_get
+    return inst
+
+
+@pytest.fixture
+def mock_tenant_recipe_log() -> MagicMock:
+    """Create a mock TenantRecipeLog object (int key)."""
+    log = MagicMock()
+    log.key = 600
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data: dict[str, Any] = {
+            "$key": 600,
+            "level": "message",
+            "text": "Tenant recipe deployed successfully",
+            "timestamp": 1707350400000000,
+            "user": "admin",
+            "tenant_recipe": "cc11dd22ee33ff44cc11dd22ee33ff44cc11dd22",
+        }
+        return data.get(key, default)
+
+    log.get = mock_get
+    return log

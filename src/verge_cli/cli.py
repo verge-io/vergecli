@@ -34,6 +34,7 @@ from verge_cli.commands import (
     tag,
     task,
     tenant,
+    tenant_recipe,
     update,
     user,
     vm,
@@ -72,6 +73,7 @@ app.add_typer(system.app, name="system")
 app.add_typer(tag.app, name="tag")
 app.add_typer(task.app, name="task")
 app.add_typer(tenant.app, name="tenant")
+app.add_typer(tenant_recipe.app, name="tenant-recipe")
 app.add_typer(update.app, name="update")
 app.add_typer(user.app, name="user")
 app.add_typer(vm.app, name="vm")
