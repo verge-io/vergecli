@@ -1782,3 +1782,162 @@ def mock_tenant_recipe_log() -> MagicMock:
 
     log.get = mock_get
     return log
+
+
+@pytest.fixture
+def mock_vgpu_profile() -> MagicMock:
+    """Create a mock NVIDIA vGPU profile object."""
+    profile = MagicMock()
+    profile.key = 1
+    profile.name = "nvidia-256c"
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data = {
+            "$key": 1,
+            "name": "nvidia-256c",
+            "type": "C",
+            "framebuffer": "256M",
+            "max_resolution": "1920x1200",
+            "max_instance": 24,
+            "grid_license": "vCS",
+        }
+        return data.get(key, default)
+
+    profile.get = mock_get
+    return profile
+
+
+@pytest.fixture
+def mock_node_gpu() -> MagicMock:
+    """Create a mock node GPU object."""
+    gpu = MagicMock()
+    gpu.key = 1
+    gpu.name = "NVIDIA A100"
+    gpu.node_name = "node1"
+    gpu.node_key = 10
+    gpu.mode_display = "nvidia_vgpu"
+    gpu.nvidia_vgpu_profile_display = "nvidia-256c"
+    gpu.instances_count = 3
+    gpu.max_instances = 24
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data = {
+            "$key": 1,
+            "name": "NVIDIA A100",
+            "node_name": "node1",
+            "node_key": 10,
+            "mode": "nvidia_vgpu",
+            "mode_display": "nvidia_vgpu",
+            "nvidia_vgpu_profile": 1,
+            "nvidia_vgpu_profile_display": "nvidia-256c",
+            "instances_count": 3,
+            "max_instances": 24,
+        }
+        return data.get(key, default)
+
+    gpu.get = mock_get
+
+    # Sub-managers for stats and instances
+    mock_stats = MagicMock()
+    mock_stats.gpus_total = 1
+    mock_stats.gpus = 1
+    mock_stats.gpus_idle = 0
+    mock_stats.vgpus_total = 24
+    mock_stats.vgpus = 3
+    mock_stats.vgpus_idle = 21
+
+    def stats_get(key: str, default: Any = None) -> Any:
+        data = {
+            "gpus_total": 1,
+            "gpus": 1,
+            "gpus_idle": 0,
+            "vgpus_total": 24,
+            "vgpus": 3,
+            "vgpus_idle": 21,
+        }
+        return data.get(key, default)
+
+    mock_stats.get = stats_get
+    gpu.stats.get.return_value = mock_stats
+
+    mock_instance = MagicMock()
+    mock_instance.key = 100
+    mock_instance.machine_name = "test-vm"
+    mock_instance.machine_type_display = "VM"
+    mock_instance.mode_display = "nvidia_vgpu"
+    mock_instance.machine_device_status = "running"
+
+    def instance_get(key: str, default: Any = None) -> Any:
+        data = {
+            "$key": 100,
+            "machine_name": "test-vm",
+            "machine_type_display": "VM",
+            "mode_display": "nvidia_vgpu",
+            "machine_device_status": "running",
+        }
+        return data.get(key, default)
+
+    mock_instance.get = instance_get
+    gpu.instances.list.return_value = [mock_instance]
+
+    return gpu
+
+
+@pytest.fixture
+def mock_vgpu_device() -> MagicMock:
+    """Create a mock vGPU device object."""
+    device = MagicMock()
+    device.key = 5
+    device.name = "NVIDIA A100 [0000:3b:00.0]"
+    device.node_name = "node1"
+    device.slot = "3b:00.0"
+    device.vendor = "NVIDIA Corporation"
+    device.device = "A100 PCIe 40GB"
+    device.driver = "nvidia"
+    device.max_instances = 24
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data = {
+            "$key": 5,
+            "name": "NVIDIA A100 [0000:3b:00.0]",
+            "node_name": "node1",
+            "slot": "3b:00.0",
+            "vendor": "NVIDIA Corporation",
+            "device": "A100 PCIe 40GB",
+            "driver": "nvidia",
+            "max_instances": 24,
+        }
+        return data.get(key, default)
+
+    device.get = mock_get
+    return device
+
+
+@pytest.fixture
+def mock_host_gpu_device() -> MagicMock:
+    """Create a mock host GPU device object."""
+    device = MagicMock()
+    device.key = 6
+    device.name = "NVIDIA T400 [0000:86:00.0]"
+    device.node_name = "node1"
+    device.slot = "86:00.0"
+    device.vendor = "NVIDIA Corporation"
+    device.device = "T400 4GB"
+    device.driver = "nvidia"
+    device.max_instances = 1
+
+    def mock_get(key: str, default: Any = None) -> Any:
+        data = {
+            "$key": 6,
+            "name": "NVIDIA T400 [0000:86:00.0]",
+            "node_name": "node1",
+            "slot": "86:00.0",
+            "vendor": "NVIDIA Corporation",
+            "device": "T400 4GB",
+            "driver": "nvidia",
+            "max_instances": 1,
+        }
+        return data.get(key, default)
+
+    device.get = mock_get
+    return device
