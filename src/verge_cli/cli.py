@@ -12,6 +12,7 @@ from verge_cli.commands import (
     alarm,
     api_key,
     auth_source,
+    billing,
     catalog,
     certificate,
     cluster,
@@ -38,6 +39,7 @@ from verge_cli.commands import (
     update,
     user,
     vm,
+    webhook,
 )
 from verge_cli.config import get_effective_config
 
@@ -51,6 +53,7 @@ app = typer.Typer(
 app.add_typer(alarm.app, name="alarm")
 app.add_typer(api_key.app, name="api-key")
 app.add_typer(auth_source.app, name="auth-source")
+app.add_typer(billing.app, name="billing")
 app.add_typer(catalog.app, name="catalog")
 app.add_typer(certificate.app, name="certificate")
 app.add_typer(cluster.app, name="cluster")
@@ -77,6 +80,7 @@ app.add_typer(tenant_recipe.app, name="tenant-recipe")
 app.add_typer(update.app, name="update")
 app.add_typer(user.app, name="user")
 app.add_typer(vm.app, name="vm")
+app.add_typer(webhook.app, name="webhook")
 
 
 def version_callback(value: bool) -> None:

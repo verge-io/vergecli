@@ -1522,6 +1522,68 @@ def mock_shared_object() -> MagicMock:
 
 
 @pytest.fixture
+def mock_billing_record() -> MagicMock:
+    """Create a mock BillingRecord object."""
+    record = MagicMock()
+    record.key = 1
+    record.created_epoch = 1707000000
+    record.from_epoch = 1706900000
+    record.to_epoch = 1707000000
+    record.used_cores = 8
+    record.total_cores = 16
+    record.online_cores = 16
+    record.total_nodes = 2
+    record.online_nodes = 2
+    record.running_machines = 5
+    record.used_ram = 16384
+    record.used_ram_gb = 16.0
+    record.total_ram = 32768
+    record.total_ram_gb = 32.0
+    record.total_storage_used_gb = 500.0
+    record.total_storage_total_gb = 2000.0
+    record.description = "Billing record"
+    record.sent_epoch = 1707000000
+    record.cpu_utilization_pct = 50.0
+    record.ram_utilization_pct = 50.0
+    return record
+
+
+@pytest.fixture
+def mock_webhook() -> MagicMock:
+    """Create a mock Webhook object."""
+    wh = MagicMock()
+    wh.key = 10
+    wh.name = "my-webhook"
+    wh.webhook_type = "custom"
+    wh.url = "https://example.com/hook"
+    wh.authorization_type_display = "None"
+    wh.is_insecure = False
+    wh.timeout = 5
+    wh.retries = 3
+    wh.headers = {}
+    return wh
+
+
+@pytest.fixture
+def mock_webhook_history() -> MagicMock:
+    """Create a mock WebhookHistory object."""
+    from datetime import datetime
+
+    entry = MagicMock()
+    entry.key = 100
+    entry.webhook_key = 10
+    entry.status_display = "Sent"
+    entry.status_info = "200 OK"
+    entry.message_raw = '{"test": true}'
+    entry.last_attempt_at = datetime(2026, 2, 10, 12, 0, 0)
+    entry.created_at = datetime(2026, 2, 10, 11, 59, 0)
+    entry.is_pending = False
+    entry.is_sent = True
+    entry.has_error = False
+    return entry
+
+
+@pytest.fixture
 def temp_config_dir(tmp_path: Path) -> Path:
     """Create a temporary config directory."""
     config_dir = tmp_path / ".vrg"
