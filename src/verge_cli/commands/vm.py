@@ -463,6 +463,176 @@ def vm_validate(
     output_success(f"Template '{file}' is valid.", quiet=quiet)
 
 
+@app.command("clone")
+@handle_errors()
+def vm_clone(
+    ctx: typer.Context,
+    vm: Annotated[str, typer.Argument(help="VM name or key")],
+    name: Annotated[str, typer.Option("--name", "-n", help="Name for the cloned VM")] = "",
+    preserve_macs: Annotated[
+        bool, typer.Option("--preserve-macs", help="Preserve MAC addresses")
+    ] = False,
+) -> None:
+    """Clone a virtual machine."""
+    vctx = get_context(ctx)
+
+    key = resolve_resource_id(vctx.client.vms, vm, "VM")
+    vm_obj = vctx.client.vms.get(key)
+
+    result = vm_obj.clone(name=name, preserve_macs=preserve_macs)
+
+    output_success(f"Cloned VM '{vm_obj.name}'", quiet=vctx.quiet)
+
+    output_result(
+        result,
+        output_format=vctx.output_format,
+        query=vctx.query,
+        quiet=vctx.quiet,
+        no_color=vctx.no_color,
+    )
+
+
+@app.command("migrate")
+@handle_errors()
+def vm_migrate(
+    ctx: typer.Context,
+    vm: Annotated[str, typer.Argument(help="VM name or key")],
+    node: Annotated[
+        str | None,
+        typer.Option("--node", help="Target node name or key"),
+    ] = None,
+) -> None:
+    """Live migrate a virtual machine to another node."""
+    vctx = get_context(ctx)
+
+    key = resolve_resource_id(vctx.client.vms, vm, "VM")
+    vm_obj = vctx.client.vms.get(key)
+
+    if not vm_obj.is_running:
+        typer.echo(f"Error: VM '{vm_obj.name}' is not running.", err=True)
+        raise typer.Exit(1)
+
+    preferred_node: int | None = None
+    if node is not None:
+        preferred_node = resolve_resource_id(vctx.client.nodes, node, "Node")
+
+    vm_obj.migrate(preferred_node=preferred_node)
+    output_success(f"Migrating VM '{vm_obj.name}'", quiet=vctx.quiet)
+
+
+@app.command("hibernate")
+@handle_errors()
+def vm_hibernate(
+    ctx: typer.Context,
+    vm: Annotated[str, typer.Argument(help="VM name or key")],
+) -> None:
+    """Hibernate a virtual machine (save memory to disk and power off)."""
+    vctx = get_context(ctx)
+
+    key = resolve_resource_id(vctx.client.vms, vm, "VM")
+    vm_obj = vctx.client.vms.get(key)
+
+    if not vm_obj.is_running:
+        typer.echo(f"Error: VM '{vm_obj.name}' is not running.", err=True)
+        raise typer.Exit(1)
+
+    vm_obj.hibernate()
+    output_success(f"Hibernating VM '{vm_obj.name}'", quiet=vctx.quiet)
+
+
+@app.command("tag")
+@handle_errors()
+def vm_tag(
+    ctx: typer.Context,
+    vm: Annotated[str, typer.Argument(help="VM name or key")],
+    tag: Annotated[str, typer.Argument(help="Tag name or key")],
+) -> None:
+    """Add a tag to a virtual machine."""
+    vctx = get_context(ctx)
+
+    key = resolve_resource_id(vctx.client.vms, vm, "VM")
+    vm_obj = vctx.client.vms.get(key)
+
+    tag_key = resolve_resource_id(vctx.client.tags, tag, "Tag")
+
+    vm_obj.tag(int(tag_key))
+    output_success(f"Tagged VM '{vm_obj.name}' with tag '{tag}'", quiet=vctx.quiet)
+
+
+@app.command("untag")
+@handle_errors()
+def vm_untag(
+    ctx: typer.Context,
+    vm: Annotated[str, typer.Argument(help="VM name or key")],
+    tag: Annotated[str, typer.Argument(help="Tag name or key")],
+) -> None:
+    """Remove a tag from a virtual machine."""
+    vctx = get_context(ctx)
+
+    key = resolve_resource_id(vctx.client.vms, vm, "VM")
+    vm_obj = vctx.client.vms.get(key)
+
+    tag_key = resolve_resource_id(vctx.client.tags, tag, "Tag")
+
+    vm_obj.untag(int(tag_key))
+    output_success(f"Removed tag '{tag}' from VM '{vm_obj.name}'", quiet=vctx.quiet)
+
+
+@app.command("favorite")
+@handle_errors()
+def vm_favorite(
+    ctx: typer.Context,
+    vm: Annotated[str, typer.Argument(help="VM name or key")],
+) -> None:
+    """Mark a virtual machine as a favorite."""
+    vctx = get_context(ctx)
+
+    key = resolve_resource_id(vctx.client.vms, vm, "VM")
+    vm_obj = vctx.client.vms.get(key)
+
+    vm_obj.favorite()
+    output_success(f"Favorited VM '{vm_obj.name}'", quiet=vctx.quiet)
+
+
+@app.command("unfavorite")
+@handle_errors()
+def vm_unfavorite(
+    ctx: typer.Context,
+    vm: Annotated[str, typer.Argument(help="VM name or key")],
+) -> None:
+    """Remove a virtual machine from favorites."""
+    vctx = get_context(ctx)
+
+    key = resolve_resource_id(vctx.client.vms, vm, "VM")
+    vm_obj = vctx.client.vms.get(key)
+
+    vm_obj.unfavorite()
+    output_success(f"Unfavorited VM '{vm_obj.name}'", quiet=vctx.quiet)
+
+
+@app.command("console")
+@handle_errors()
+def vm_console(
+    ctx: typer.Context,
+    vm: Annotated[str, typer.Argument(help="VM name or key")],
+) -> None:
+    """Get console connection info for a virtual machine."""
+    vctx = get_context(ctx)
+
+    key = resolve_resource_id(vctx.client.vms, vm, "VM")
+    vm_obj = vctx.client.vms.get(key)
+
+    info = vm_obj.get_console_info()
+
+    output_result(
+        info,
+        output_format=vctx.output_format,
+        query=vctx.query,
+        quiet=vctx.quiet,
+        no_color=vctx.no_color,
+    )
+
+
 def _vm_to_dict(vm: Any) -> dict[str, Any]:
     """Convert a VM object to a dictionary for output."""
     return {
