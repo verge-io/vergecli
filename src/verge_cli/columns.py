@@ -367,6 +367,26 @@ NODE_COLUMNS = [
     ColumnDef("vergeos_version", header="Version", wide_only=True),
 ]
 
+NODE_PCI_COLUMNS = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("name"),
+    ColumnDef("slot"),
+    ColumnDef("vendor"),
+    ColumnDef("device", header="Device"),
+    ColumnDef("driver"),
+    ColumnDef("class_display", header="Class"),
+]
+
+NODE_GPU_COLUMNS = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("name"),
+    ColumnDef("slot"),
+    ColumnDef("vendor"),
+    ColumnDef("device", header="Device"),
+    ColumnDef("driver"),
+    ColumnDef("max_instances", header="Max Instances"),
+]
+
 STORAGE_COLUMNS = [
     ColumnDef("$key", header="Key"),
     ColumnDef("tier", header="Tier #"),
@@ -573,6 +593,68 @@ SITE_SYNC_OUTGOING_COLUMNS = [
     ColumnDef("last_run", format_fn=format_epoch, wide_only=True),
     ColumnDef("destination_tier", header="Dest Tier", wide_only=True),
     ColumnDef("description", wide_only=True),
+]
+
+SHARED_OBJECT_COLUMNS = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("name"),
+    ColumnDef("tenant_name", header="Tenant"),
+    ColumnDef("object_type", header="Type"),
+    ColumnDef("is_inbox", header="Inbox", format_fn=format_bool_yn, style_map=BOOL_STYLES),
+    # wide-only
+    ColumnDef("description", wide_only=True),
+    ColumnDef("object_id", header="Object ID", wide_only=True),
+]
+
+SYSTEM_SETTING_COLUMNS = [
+    ColumnDef("key"),
+    ColumnDef("value"),
+    ColumnDef("default_value", header="Default"),
+    ColumnDef("modified", format_fn=format_bool_yn, style_map=FLAG_STYLES),
+    # wide-only
+    ColumnDef("description", wide_only=True),
+]
+
+SYSTEM_LICENSE_COLUMNS = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("name"),
+    ColumnDef("is_valid", header="Valid", format_fn=format_bool_yn, style_map=BOOL_STYLES),
+    ColumnDef("valid_from", header="Valid From"),
+    ColumnDef("valid_until", header="Valid Until"),
+    ColumnDef("features"),
+    # wide-only
+    ColumnDef(
+        "auto_renewal",
+        header="Auto Renew",
+        format_fn=format_bool_yn,
+        style_map=BOOL_STYLES,
+        wide_only=True,
+    ),
+    ColumnDef(
+        "allow_branding",
+        header="Branding",
+        format_fn=format_bool_yn,
+        style_map=BOOL_STYLES,
+        wide_only=True,
+    ),
+    ColumnDef("note", wide_only=True),
+]
+
+SITE_SYNC_SCHEDULE_COLUMNS = [
+    ColumnDef("$key", header="Key"),
+    ColumnDef("sync_name", header="Sync"),
+    ColumnDef("profile_period_name", header="Profile Period"),
+    ColumnDef("retention", header="Retention (s)"),
+    ColumnDef("priority"),
+    # wide-only
+    ColumnDef(
+        "do_not_expire",
+        header="No Expire",
+        format_fn=format_bool_yn,
+        style_map=BOOL_STYLES,
+        wide_only=True,
+    ),
+    ColumnDef("destination_prefix", header="Dest Prefix", wide_only=True),
 ]
 
 NAS_SERVICE_COLUMNS = [
