@@ -174,6 +174,14 @@ def configure_cmd(
             help="Anonymize statistics.",
         ),
     ] = None,
+    user: Annotated[
+        str | None,
+        typer.Option("--user", help="Update server username (for licensing)."),
+    ] = None,
+    password: Annotated[
+        str | None,
+        typer.Option("--password", help="Update server password (for licensing)."),
+    ] = None,
 ) -> None:
     """Configure update settings."""
     vctx = get_context(ctx)
@@ -202,6 +210,10 @@ def configure_cmd(
         kwargs["snapshot_cloud_expire_seconds"] = snapshot_expire
     if anonymize_stats is not None:
         kwargs["anonymize_statistics"] = anonymize_stats
+    if user is not None:
+        kwargs["user"] = user
+    if password is not None:
+        kwargs["password"] = password
     result = vctx.client.update_settings.update(**kwargs)
     output_result(
         _settings_to_dict(result),
