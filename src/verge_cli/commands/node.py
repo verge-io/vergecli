@@ -6,7 +6,7 @@ from typing import Annotated, Any
 
 import typer
 
-from verge_cli.columns import NODE_COLUMNS
+from verge_cli.columns import NODE_COLUMNS, NODE_GPU_COLUMNS, NODE_PCI_COLUMNS
 from verge_cli.context import get_context
 from verge_cli.errors import handle_errors
 from verge_cli.output import output_result, output_success
@@ -40,6 +40,32 @@ def _node_to_dict(node: Any) -> dict[str, Any]:
         "cpu": node.get("cpu", ""),
         "core_temp": getattr(node, "core_temp", node.get("core_temp")),
         "vergeos_version": getattr(node, "vergeos_version", node.get("vergeos_version", "")),
+    }
+
+
+def _pci_to_dict(pci: Any) -> dict[str, Any]:
+    """Convert a NodePCIDevice SDK object to a dict for output."""
+    return {
+        "$key": pci.key,
+        "name": getattr(pci, "name", pci.get("name", "")),
+        "slot": pci.get("slot", ""),
+        "vendor": pci.get("vendor", ""),
+        "device": pci.get("device", ""),
+        "driver": pci.get("driver", ""),
+        "class_display": pci.get("class_display", pci.get("class", "")),
+    }
+
+
+def _gpu_to_dict(gpu: Any) -> dict[str, Any]:
+    """Convert a NodeGpu SDK object to a dict for output."""
+    return {
+        "$key": gpu.key,
+        "name": getattr(gpu, "name", gpu.get("name", "")),
+        "slot": gpu.get("slot", ""),
+        "vendor": gpu.get("vendor", ""),
+        "device": gpu.get("device", ""),
+        "driver": gpu.get("driver", ""),
+        "max_instances": gpu.get("max_instances"),
     }
 
 
@@ -142,3 +168,65 @@ def node_restart(
 
     vctx.client.nodes.restart(key)
     output_success(f"Restarting node '{node}'", quiet=vctx.quiet)
+
+
+@app.command("pci-list")
+@handle_errors()
+def node_pci_list(
+    ctx: typer.Context,
+    node: Annotated[str, typer.Argument(help="Node name or key")],
+) -> None:
+    """List PCI devices on a node."""
+    vctx = get_context(ctx)
+    key = resolve_resource_id(vctx.client.nodes, node, "Node")
+    devices = vctx.client.nodes.pci_devices(key).list()
+    data = [_pci_to_dict(d) for d in devices]
+    output_result(
+        data,
+        output_format=vctx.output_format,
+        query=vctx.query,
+        columns=NODE_PCI_COLUMNS,
+        quiet=vctx.quiet,
+        no_color=vctx.no_color,
+    )
+
+
+@app.command("gpu-list")
+@handle_errors()
+def node_gpu_list(
+    ctx: typer.Context,
+    node: Annotated[str, typer.Argument(help="Node name or key")],
+) -> None:
+    """List GPU devices on a node."""
+    vctx = get_context(ctx)
+    key = resolve_resource_id(vctx.client.nodes, node, "Node")
+    gpus = vctx.client.nodes.gpus(key).list()
+    data = [_gpu_to_dict(g) for g in gpus]
+    output_result(
+        data,
+        output_format=vctx.output_format,
+        query=vctx.query,
+        columns=NODE_GPU_COLUMNS,
+        quiet=vctx.quiet,
+        no_color=vctx.no_color,
+    )
+
+
+@app.command("stats")
+@handle_errors()
+def node_stats(
+    ctx: typer.Context,
+    node: Annotated[str, typer.Argument(help="Node name or key")],
+) -> None:
+    """Display statistics for a node."""
+    vctx = get_context(ctx)
+    key = resolve_resource_id(vctx.client.nodes, node, "Node")
+    node_obj = vctx.client.nodes.get(key)
+    stats = node_obj.stats.get()
+    output_result(
+        stats,
+        output_format=vctx.output_format,
+        query=vctx.query,
+        quiet=vctx.quiet,
+        no_color=vctx.no_color,
+    )
