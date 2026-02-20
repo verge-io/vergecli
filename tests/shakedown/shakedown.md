@@ -24,6 +24,7 @@
 |----------|------|-------|
 | Network | `shakedown-net` | Internal network, e.g. 10.99.99.0/24 |
 | VM | `shakedown-vm` | Minimal: 1 CPU, 512MB RAM, Linux |
+| VM Clone | `shakedown-vm-clone` | Clone of shakedown-vm (created & deleted in test) |
 | Tenant | `shakedown-tenant` | Minimal tenant deployment |
 | NAS Service | `shakedown-nas` | NAS service VM |
 | NAS Volume | `shakedown-vol` | Small test volume |
@@ -159,6 +160,47 @@ Warmup / read-only tests. Use existing config or create one.
 - [ ] `vrg vm start shakedown-vm` — restart for further tests
 - [ ] `vrg vm restart shakedown-vm` — graceful restart
 - [ ] `vrg vm reset shakedown-vm --yes` — hard reset
+
+### Clone
+
+- [ ] `vrg vm clone shakedown-vm --name shakedown-vm-clone` — VM cloned
+- [ ] `vrg vm get shakedown-vm-clone` — verify clone exists (stopped, same CPU/RAM)
+- [ ] `vrg vm clone shakedown-vm --name shakedown-vm-clone2 --preserve-macs` — clone with MAC preservation
+- [ ] `vrg vm delete shakedown-vm-clone2 --yes` — cleanup second clone
+- [ ] `vrg vm delete shakedown-vm-clone --yes` — cleanup first clone
+
+### Console
+
+- [ ] `vrg vm console shakedown-vm` — shows console info (type, host, port, url)
+- [ ] `vrg -o json vm console shakedown-vm` — JSON output includes console_type, host, port, web_url, is_available
+
+### Migrate
+
+- [ ] `vrg vm migrate shakedown-vm` — auto node selection (succeeds on multi-node cluster)
+- [ ] `vrg vm migrate shakedown-vm --node <target-node>` — explicit target node
+- [ ] `vrg vm stop shakedown-vm --wait` — stop for migrate error test
+- [ ] `vrg vm migrate shakedown-vm` — fails with "not running" (exit 1)
+- [ ] `vrg vm start shakedown-vm --wait` — restart for further tests
+
+### Hibernate
+
+- [ ] `vrg vm hibernate shakedown-vm` — VM enters hibernating/hibernated state
+- [ ] `vrg vm get shakedown-vm` — verify status is hibernated (wait ~15s if still hibernating)
+- [ ] `vrg vm start shakedown-vm --wait` — resume from hibernate, VM running again
+
+### Favorite / Unfavorite
+
+- [ ] `vrg vm favorite shakedown-vm` — VM marked as favorite
+- [ ] `vrg vm unfavorite shakedown-vm` — VM removed from favorites
+
+### Tag / Untag
+
+> Requires shakedown-tag to exist (created in Section 15). If running out of order, create a tag first.
+
+- [ ] `vrg vm tag shakedown-vm shakedown-tag` — tag assigned to VM
+- [ ] `vrg vm untag shakedown-vm shakedown-tag` — tag removed from VM
+- [ ] `vrg vm tag shakedown-vm 1` — tag by numeric key works
+- [ ] `vrg vm untag shakedown-vm 1` — untag by numeric key works
 
 ### Drives
 
