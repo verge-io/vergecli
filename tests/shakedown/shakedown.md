@@ -44,6 +44,9 @@
 | Tag Category | `shakedown-category` | Tag category |
 | Tag | `shakedown-tag` | Tag for resource tagging |
 | Resource Group | `shakedown-rg` | PCI resource group |
+| Shared Object | `shakedown-shared` | VM shared with tenant |
+| Restored VM | `shakedown-restored-vm` | VM restored from cloud snapshot |
+| Restore Snapshot | `shakedown-restore-snap` | Cloud snapshot for restore test |
 
 ---
 
@@ -63,6 +66,25 @@ Warmup / read-only tests. Use existing config or create one.
 - [ ] `vrg system info` — returns system name, version, uptime, cluster info
 - [ ] `vrg system version` — returns VergeOS version string
 
+### System Settings
+
+- [ ] `vrg system settings list` — shows system settings
+- [ ] `vrg system settings list --modified` — shows only modified settings
+- [ ] `vrg system settings get <setting-key>` — shows specific setting value and default
+
+### System License
+
+- [ ] `vrg system license list` — lists licenses with validity status
+- [ ] `vrg system license get <id>` — license details (is_valid, valid_from, valid_until, features, auto_renewal)
+- [ ] `vrg system license generate-payload` — generates air-gap license request payload (read-only, safe to run)
+
+> Do NOT run `vrg system license add` during shakedown — destructive to licensing.
+
+### System Inventory
+
+- [ ] `vrg system inventory` — full system inventory
+- [ ] `vrg system inventory --vms --nodes` — filtered inventory (only VMs and nodes)
+
 ### Cluster
 
 - [ ] `vrg cluster list` — lists clusters
@@ -73,6 +95,9 @@ Warmup / read-only tests. Use existing config or create one.
 
 - [ ] `vrg node list` — lists all nodes with status
 - [ ] `vrg node get <name>` — shows node details (CPU, RAM, role)
+- [ ] `vrg node pci-list <name>` — lists PCI devices on a node
+- [ ] `vrg node gpu-list <name>` — lists GPU devices on a node (may be empty if no GPUs)
+- [ ] `vrg node stats <name>` — shows node statistics (CPU, RAM, temp)
 
 ### Storage
 
@@ -144,6 +169,12 @@ Warmup / read-only tests. Use existing config or create one.
 - [ ] `vrg network diag leases shakedown-net` — shows DHCP leases (may be empty)
 - [ ] `vrg network diag addresses shakedown-net` — shows IP addresses in use
 - [ ] `vrg network diag stats shakedown-net` — shows network statistics
+
+### Network Dashboard
+
+- [ ] `vrg network diag dashboard overview` — shows network dashboard summary
+- [ ] `vrg network diag dashboard ipsec-status shakedown-net` — IPSec active connections (may be empty)
+- [ ] `vrg network diag dashboard wireguard-status shakedown-net` — WireGuard peer status (may be empty)
 
 ---
 
@@ -342,6 +373,16 @@ Warmup / read-only tests. Use existing config or create one.
 - [ ] `vrg snapshot tenants shakedown-snap` — lists tenants in snapshot
 - [ ] `vrg snapshot delete shakedown-snap --yes` — deleted
 
+### Cloud Snapshot Restore
+
+> Requires a cloud snapshot with at least one VM. Create a snapshot first, then restore.
+
+- [ ] `vrg snapshot create --name shakedown-restore-snap` — create snapshot for restore test
+- [ ] `vrg snapshot restore-vm shakedown-restore-snap --vm shakedown-vm --new-name shakedown-restored-vm` — restore VM from snapshot
+- [ ] `vrg vm get shakedown-restored-vm` — verify restored VM exists
+- [ ] `vrg vm delete shakedown-restored-vm --yes` — cleanup restored VM
+- [ ] `vrg snapshot delete shakedown-restore-snap --yes` — cleanup restore snapshot
+
 ### Snapshot Profiles
 
 - [ ] `vrg snapshot profile create --name shakedown-profile --description "Test profile"` — created
@@ -443,6 +484,25 @@ Warmup / read-only tests. Use existing config or create one.
 - [ ] `vrg site sync outgoing get <sync-id>` — sync details
 - [ ] `vrg site sync outgoing disable <sync-id>` — disabled
 - [ ] `vrg site sync outgoing enable <sync-id>` — re-enabled
+- [ ] `vrg site sync outgoing start <sync-id>` — trigger sync now
+- [ ] `vrg site sync outgoing stop <sync-id>` — stop running sync
+- [ ] `vrg site sync outgoing set-throttle <sync-id> --mbps 100` — set bandwidth throttle
+- [ ] `vrg site sync outgoing disable-throttle <sync-id>` — remove bandwidth throttle
+- [ ] `vrg site sync outgoing refresh-remote <sync-id>` — refresh remote snapshots
+
+### Sync Schedules
+
+- [ ] `vrg site sync schedule list` — lists sync schedules
+- [ ] `vrg site sync schedule list --sync <sync-id>` — lists schedules for specific sync
+- [ ] `vrg site sync schedule get <schedule-id>` — schedule details
+
+> Create/delete schedules only if a sync exists:
+
+- [ ] `vrg site sync schedule create --sync-key <sync-key> --profile-period-key <period-key> --retention 3600` — schedule created
+- [ ] `vrg site sync schedule delete <schedule-id> --yes` — schedule deleted
+
+### Incoming Syncs
+
 - [ ] `vrg site sync incoming list` — lists incoming syncs
 - [ ] `vrg site sync incoming get <sync-id>` — sync details
 - [ ] `vrg site sync incoming disable <sync-id>` — disabled
@@ -802,7 +862,29 @@ Warmup / read-only tests. Use existing config or create one.
 
 ---
 
-## 16. Cross-Cutting Tests
+## 16. Shared Objects
+
+> Shared objects allow sharing VMs between tenants. Requires shakedown-tenant and shakedown-vm.
+
+- [ ] `vrg shared-object list` — lists shared objects (may be empty)
+- [ ] `vrg shared-object create --tenant-key <tenant-key> --vm-name shakedown-vm --name "shakedown-shared"` — share VM with tenant
+- [ ] `vrg shared-object get shakedown-shared` — shows shared object details
+- [ ] `vrg shared-object list --tenant <tenant-key>` — filters by tenant
+- [ ] `vrg shared-object list --inbox` — shows only inbox (received) objects
+- [ ] `vrg shared-object refresh shakedown-shared` — refresh shared object state
+- [ ] `vrg shared-object delete shakedown-shared --yes` — delete shared object
+
+---
+
+## 17. Update Configure Licensing
+
+> Non-airgap systems set licensing credentials via update server configuration.
+
+- [ ] `vrg update configure --user <user> --password <pass>` — set update server credentials (verify no error)
+
+---
+
+## 18. Cross-Cutting Tests
 
 Run these against any representative commands (e.g., `vm list`, `network get`).
 
@@ -835,7 +917,7 @@ Run these against any representative commands (e.g., `vm list`, `network get`).
 
 ---
 
-## 17. Cleanup
+## 19. Cleanup
 
 Delete all test resources in reverse order. Verify each deletion.
 
@@ -846,6 +928,11 @@ Delete all test resources in reverse order. Verify each deletion.
 - [ ] Delete tag category: `vrg tag category delete shakedown-category --yes`
 - [ ] Delete resource group (if created): `vrg resource-group delete shakedown-rg --yes`
 - [ ] Delete tenant share (if created): `vrg tenant share delete shakedown-tenant <share-id> --yes`
+- [ ] Delete shared object (if created): `vrg shared-object delete shakedown-shared --yes`
+
+### Sync Schedule Cleanup
+
+- [ ] Delete sync schedule (if created): `vrg site sync schedule delete <schedule-id> --yes`
 
 ### OIDC & Certificate Cleanup
 
@@ -917,7 +1004,7 @@ Delete all test resources in reverse order. Verify each deletion.
 
 ---
 
-## 18. Results
+## 20. Results
 
 ### Summary
 
@@ -938,8 +1025,10 @@ Delete all test resources in reverse order. Verify each deletion.
 | 13. Catalogs & Updates | | | | |
 | 14. Monitoring & Observability | | | | |
 | 15. Tags & Organization | | | | |
-| 16. Cross-Cutting | | | | |
-| 17. Cleanup | | | | |
+| 16. Shared Objects | | | | |
+| 17. Update Configure Licensing | | | | |
+| 18. Cross-Cutting | | | | |
+| 19. Cleanup | | | | |
 | **Total** | | | | |
 
 ### Issues Found
