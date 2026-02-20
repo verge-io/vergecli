@@ -1,0 +1,41 @@
+name: Update Homebrew Formula
+
+on:
+  workflow_run:
+    workflows: ["Publish to PyPI"]
+    types: [completed]
+
+jobs:
+  update-formula:
+    name: Update Homebrew tap
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Wait for PyPI to index
+        run: sleep 30
+
+      - name: Generate formula
+        run: uv run python scripts/generate_homebrew_formula.py > vrg.rb
+
+      - name: Push to homebrew-tap
+        env:
+          TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        run: |
+          git clone https://x-access-token:${TAP_TOKEN}@github.com/verge-io/homebrew-tap.git tap
+          cp vrg.rb tap/Formula/vrg.rb
+          cd tap
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/vrg.rb
+          git diff --cached --quiet && echo "No changes" && exit 0
+          VERSION=$(grep 'url.*vrg-' Formula/vrg.rb | grep -oP '\d+\.\d+\.\d+')
+          git commit -m "Update vrg to ${VERSION}"
+          git push
