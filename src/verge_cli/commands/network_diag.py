@@ -7,6 +7,7 @@ from typing import Annotated, Any
 import typer
 
 from verge_cli.columns import ADDRESS_COLUMNS, LEASE_COLUMNS
+from verge_cli.commands import network_dashboard
 from verge_cli.context import get_context
 from verge_cli.errors import handle_errors
 from verge_cli.output import output_result
@@ -17,6 +18,8 @@ app = typer.Typer(
     help="Network diagnostics and statistics.",
     no_args_is_help=True,
 )
+
+app.add_typer(network_dashboard.app, name="dashboard")
 
 
 def _item_to_dict(item: Any) -> dict[str, Any]:
