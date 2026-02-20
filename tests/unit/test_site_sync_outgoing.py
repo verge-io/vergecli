@@ -113,3 +113,64 @@ def test_outgoing_disable(cli_runner, mock_client, mock_sync_outgoing):
     assert result.exit_code == 0
     assert "Disabled" in result.output
     mock_client.site_syncs.disable.assert_called_once_with(800)
+
+
+def test_outgoing_start(cli_runner, mock_client, mock_sync_outgoing):
+    """vrg site sync outgoing start should trigger a sync."""
+    mock_client.site_syncs.list.return_value = [mock_sync_outgoing]
+
+    result = cli_runner.invoke(app, ["site", "sync", "outgoing", "start", "prod-to-backup"])
+
+    assert result.exit_code == 0
+    assert "Started" in result.output
+    mock_client.site_syncs.start.assert_called_once_with(800)
+
+
+def test_outgoing_stop(cli_runner, mock_client, mock_sync_outgoing):
+    """vrg site sync outgoing stop should stop a running sync."""
+    mock_client.site_syncs.list.return_value = [mock_sync_outgoing]
+
+    result = cli_runner.invoke(app, ["site", "sync", "outgoing", "stop", "prod-to-backup"])
+
+    assert result.exit_code == 0
+    assert "Stopped" in result.output
+    mock_client.site_syncs.stop.assert_called_once_with(800)
+
+
+def test_outgoing_set_throttle(cli_runner, mock_client, mock_sync_outgoing):
+    """vrg site sync outgoing set-throttle should set bandwidth limit."""
+    mock_client.site_syncs.list.return_value = [mock_sync_outgoing]
+
+    result = cli_runner.invoke(
+        app, ["site", "sync", "outgoing", "set-throttle", "prod-to-backup", "--mbps", "100"]
+    )
+
+    assert result.exit_code == 0
+    assert "100 Mbps" in result.output
+    mock_client.site_syncs.set_throttle.assert_called_once_with(800, 100)
+
+
+def test_outgoing_disable_throttle(cli_runner, mock_client, mock_sync_outgoing):
+    """vrg site sync outgoing disable-throttle should remove bandwidth limit."""
+    mock_client.site_syncs.list.return_value = [mock_sync_outgoing]
+
+    result = cli_runner.invoke(
+        app, ["site", "sync", "outgoing", "disable-throttle", "prod-to-backup"]
+    )
+
+    assert result.exit_code == 0
+    assert "Disabled throttle" in result.output
+    mock_client.site_syncs.disable_throttle.assert_called_once_with(800)
+
+
+def test_outgoing_refresh_remote(cli_runner, mock_client, mock_sync_outgoing):
+    """vrg site sync outgoing refresh-remote should refresh remote snapshots."""
+    mock_client.site_syncs.list.return_value = [mock_sync_outgoing]
+
+    result = cli_runner.invoke(
+        app, ["site", "sync", "outgoing", "refresh-remote", "prod-to-backup"]
+    )
+
+    assert result.exit_code == 0
+    assert "Refreshed remote snapshots" in result.output
+    mock_client.site_syncs.refresh_remote_snapshots.assert_called_once_with(800)

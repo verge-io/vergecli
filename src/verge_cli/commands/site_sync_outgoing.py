@@ -122,3 +122,69 @@ def disable_cmd(
     key = resolve_resource_id(vctx.client.site_syncs, sync, "Outgoing Sync")
     vctx.client.site_syncs.disable(key)
     output_success(f"Disabled outgoing sync '{sync}'", quiet=vctx.quiet)
+
+
+@app.command("start")
+@handle_errors()
+def start_cmd(
+    ctx: typer.Context,
+    sync: Annotated[str, typer.Argument(help="Sync name or key")],
+) -> None:
+    """Trigger an outgoing site sync to run now."""
+    vctx = get_context(ctx)
+    key = resolve_resource_id(vctx.client.site_syncs, sync, "Outgoing Sync")
+    vctx.client.site_syncs.start(key)
+    output_success(f"Started outgoing sync '{sync}'", quiet=vctx.quiet)
+
+
+@app.command("stop")
+@handle_errors()
+def stop_cmd(
+    ctx: typer.Context,
+    sync: Annotated[str, typer.Argument(help="Sync name or key")],
+) -> None:
+    """Stop a running outgoing site sync."""
+    vctx = get_context(ctx)
+    key = resolve_resource_id(vctx.client.site_syncs, sync, "Outgoing Sync")
+    vctx.client.site_syncs.stop(key)
+    output_success(f"Stopped outgoing sync '{sync}'", quiet=vctx.quiet)
+
+
+@app.command("set-throttle")
+@handle_errors()
+def set_throttle_cmd(
+    ctx: typer.Context,
+    sync: Annotated[str, typer.Argument(help="Sync name or key")],
+    mbps: Annotated[int, typer.Option("--mbps", help="Throttle limit in Mbps")],
+) -> None:
+    """Set bandwidth throttle on an outgoing site sync."""
+    vctx = get_context(ctx)
+    key = resolve_resource_id(vctx.client.site_syncs, sync, "Outgoing Sync")
+    vctx.client.site_syncs.set_throttle(key, mbps)
+    output_success(f"Set throttle to {mbps} Mbps on outgoing sync '{sync}'", quiet=vctx.quiet)
+
+
+@app.command("disable-throttle")
+@handle_errors()
+def disable_throttle_cmd(
+    ctx: typer.Context,
+    sync: Annotated[str, typer.Argument(help="Sync name or key")],
+) -> None:
+    """Remove bandwidth throttle from an outgoing site sync."""
+    vctx = get_context(ctx)
+    key = resolve_resource_id(vctx.client.site_syncs, sync, "Outgoing Sync")
+    vctx.client.site_syncs.disable_throttle(key)
+    output_success(f"Disabled throttle on outgoing sync '{sync}'", quiet=vctx.quiet)
+
+
+@app.command("refresh-remote")
+@handle_errors()
+def refresh_remote_cmd(
+    ctx: typer.Context,
+    sync: Annotated[str, typer.Argument(help="Sync name or key")],
+) -> None:
+    """Refresh remote snapshots for an outgoing site sync."""
+    vctx = get_context(ctx)
+    key = resolve_resource_id(vctx.client.site_syncs, sync, "Outgoing Sync")
+    vctx.client.site_syncs.refresh_remote_snapshots(key)
+    output_success(f"Refreshed remote snapshots for outgoing sync '{sync}'", quiet=vctx.quiet)
