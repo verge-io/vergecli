@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import typer
 
-from verge_cli.commands import site_sync_incoming, site_sync_outgoing
+from verge_cli.commands import site_sync_incoming, site_sync_outgoing, site_sync_schedule
 
 app = typer.Typer(
     name="sync",
@@ -14,3 +14,4 @@ app = typer.Typer(
 
 app.add_typer(site_sync_outgoing.app, name="outgoing")
 app.add_typer(site_sync_incoming.app, name="incoming")
+app.add_typer(site_sync_schedule.app, name="schedule")
