@@ -217,3 +217,72 @@ def tenants_cmd(
         quiet=vctx.quiet,
         no_color=vctx.no_color,
     )
+
+
+@app.command("restore-vm")
+@handle_errors()
+def restore_vm_cmd(
+    ctx: typer.Context,
+    snapshot: Annotated[str, typer.Argument(help="Snapshot name or key")],
+    vm: Annotated[str, typer.Option("--vm", help="VM name or key to restore")],
+    new_name: Annotated[
+        str | None,
+        typer.Option("--new-name", help="Name for the restored VM"),
+    ] = None,
+) -> None:
+    """Restore a VM from a cloud snapshot."""
+    vctx = get_context(ctx)
+    snap_key = resolve_resource_id(vctx.client.cloud_snapshots, snapshot, "Cloud snapshot")
+
+    # Resolve VM within the snapshot
+    kwargs: dict[str, Any] = {"snapshot_key": snap_key}
+    if vm.isdigit():
+        kwargs["vm_key"] = int(vm)
+    else:
+        kwargs["vm_name"] = vm
+    if new_name:
+        kwargs["new_name"] = new_name
+
+    result = vctx.client.cloud_snapshots.restore_vm(**kwargs)
+    output_success(f"Restored VM '{vm}' from snapshot '{snapshot}'", quiet=vctx.quiet)
+    output_result(
+        result,
+        output_format=vctx.output_format,
+        query=vctx.query,
+        quiet=vctx.quiet,
+        no_color=vctx.no_color,
+    )
+
+
+@app.command("restore-tenant")
+@handle_errors()
+def restore_tenant_cmd(
+    ctx: typer.Context,
+    snapshot: Annotated[str, typer.Argument(help="Snapshot name or key")],
+    tenant: Annotated[str, typer.Option("--tenant", help="Tenant name or key to restore")],
+    new_name: Annotated[
+        str | None,
+        typer.Option("--new-name", help="Name for the restored tenant"),
+    ] = None,
+) -> None:
+    """Restore a tenant from a cloud snapshot."""
+    vctx = get_context(ctx)
+    snap_key = resolve_resource_id(vctx.client.cloud_snapshots, snapshot, "Cloud snapshot")
+
+    kwargs: dict[str, Any] = {"snapshot_key": snap_key}
+    if tenant.isdigit():
+        kwargs["tenant_key"] = int(tenant)
+    else:
+        kwargs["tenant_name"] = tenant
+    if new_name:
+        kwargs["new_name"] = new_name
+
+    result = vctx.client.cloud_snapshots.restore_tenant(**kwargs)
+    output_success(f"Restored tenant '{tenant}' from snapshot '{snapshot}'", quiet=vctx.quiet)
+    output_result(
+        result,
+        output_format=vctx.output_format,
+        query=vctx.query,
+        quiet=vctx.quiet,
+        no_color=vctx.no_color,
+    )
