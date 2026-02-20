@@ -8,17 +8,41 @@ Command-line interface for [VergeOS](https://www.verge.io) — manage virtual ma
 
 ## Installation
 
+### pipx (recommended)
+
+```bash
+pipx install verge-cli
+```
+
+### pip
+
 ```bash
 pip install verge-cli
 ```
 
-Or with [uv](https://github.com/astral-sh/uv):
+### uv
 
 ```bash
 uv tool install verge-cli
 ```
 
-Verify the installation:
+### Homebrew
+
+```bash
+brew install verge-io/tap/verge-cli
+```
+
+### Standalone binary
+
+Download a pre-built binary from the [latest release](https://github.com/verge-io/vergecli/releases/latest) and place it in your `PATH`. Available for Linux (x86_64), macOS (ARM64), and Windows (x86_64).
+
+**macOS note:** You may need to remove the quarantine attribute:
+
+```bash
+xattr -d com.apple.quarantine ./vrg
+```
+
+### Verify
 
 ```bash
 vrg --version
