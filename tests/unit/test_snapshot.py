@@ -254,3 +254,85 @@ def test_snapshot_create_retention_and_never_expire_error(cli_runner, mock_clien
 
     assert result.exit_code == 2
     assert "mutually exclusive" in result.output
+
+
+def test_snapshot_restore_vm(cli_runner, mock_client, mock_cloud_snapshot):
+    """vrg snapshot restore-vm should restore a VM from a snapshot."""
+    mock_client.cloud_snapshots.list.return_value = [mock_cloud_snapshot]
+    mock_client.cloud_snapshots.restore_vm.return_value = {"key": 999, "name": "restored-vm"}
+
+    result = cli_runner.invoke(
+        app,
+        ["snapshot", "restore-vm", "daily-2026-02-08", "--vm", "web-server"],
+    )
+
+    assert result.exit_code == 0
+    assert "Restored" in result.output
+    mock_client.cloud_snapshots.restore_vm.assert_called_once_with(
+        snapshot_key=800, vm_name="web-server"
+    )
+
+
+def test_snapshot_restore_vm_with_new_name(cli_runner, mock_client, mock_cloud_snapshot):
+    """vrg snapshot restore-vm --new-name should set the restored VM name."""
+    mock_client.cloud_snapshots.list.return_value = [mock_cloud_snapshot]
+    mock_client.cloud_snapshots.restore_vm.return_value = {"key": 999, "name": "my-clone"}
+
+    result = cli_runner.invoke(
+        app,
+        [
+            "snapshot",
+            "restore-vm",
+            "daily-2026-02-08",
+            "--vm",
+            "900",
+            "--new-name",
+            "my-clone",
+        ],
+    )
+
+    assert result.exit_code == 0
+    mock_client.cloud_snapshots.restore_vm.assert_called_once_with(
+        snapshot_key=800, vm_key=900, new_name="my-clone"
+    )
+
+
+def test_snapshot_restore_tenant(cli_runner, mock_client, mock_cloud_snapshot):
+    """vrg snapshot restore-tenant should restore a tenant from a snapshot."""
+    mock_client.cloud_snapshots.list.return_value = [mock_cloud_snapshot]
+    mock_client.cloud_snapshots.restore_tenant.return_value = {"key": 960, "name": "acme-restored"}
+
+    result = cli_runner.invoke(
+        app,
+        ["snapshot", "restore-tenant", "daily-2026-02-08", "--tenant", "acme-tenant"],
+    )
+
+    assert result.exit_code == 0
+    assert "Restored" in result.output
+    mock_client.cloud_snapshots.restore_tenant.assert_called_once_with(
+        snapshot_key=800, tenant_name="acme-tenant"
+    )
+
+
+def test_snapshot_restore_tenant_with_new_name(cli_runner, mock_client, mock_cloud_snapshot):
+    """vrg snapshot restore-tenant --new-name should set the restored tenant name."""
+    mock_client.cloud_snapshots.list.return_value = [mock_cloud_snapshot]
+    mock_client.cloud_snapshots.restore_tenant.return_value = {"key": 960, "name": "acme-clone"}
+
+    result = cli_runner.invoke(
+        app,
+        [
+            "snapshot",
+            "restore-tenant",
+            "daily-2026-02-08",
+            "--tenant",
+            "950",
+            "--new-name",
+            "acme-clone",
+        ],
+    )
+
+    assert result.exit_code == 0
+    mock_client.cloud_snapshots.restore_tenant.assert_called_once_with(
+        snapshot_key=800, tenant_key=950, new_name="acme-clone"
+    )
