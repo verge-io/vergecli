@@ -2,7 +2,7 @@
 
 Command-line interface for [VergeOS](https://www.verge.io) — manage virtual machines, networks, DNS, firewall rules, and more from your terminal.
 
-[![PyPI version](https://img.shields.io/pypi/v/verge-cli)](https://pypi.org/project/verge-cli/)
+[![PyPI version](https://img.shields.io/pypi/v/vrg)](https://pypi.org/project/vrg/)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
@@ -11,30 +11,30 @@ Command-line interface for [VergeOS](https://www.verge.io) — manage virtual ma
 ### pipx (recommended)
 
 ```bash
-pipx install verge-cli
+pipx install vrg
 ```
 
 ### pip
 
 ```bash
-pip install verge-cli
+pip install vrg
 ```
 
 ### uv
 
 ```bash
-uv tool install verge-cli
+uv tool install vrg
 ```
 
 ### Homebrew
 
 ```bash
-brew install verge-io/tap/verge-cli
+brew install verge-io/tap/vrg
 ```
 
 ### Standalone binary
 
-Download a pre-built binary from the [latest release](https://github.com/verge-io/vergecli/releases/latest) and place it in your `PATH`. Available for Linux (x86_64), macOS (ARM64), and Windows (x86_64).
+Download a pre-built binary from the [latest release](https://github.com/verge-io/vrg/releases/latest) and place it in your `PATH`. Available for Linux (x86_64), macOS (ARM64), and Windows (x86_64).
 
 **macOS note:** You may need to remove the quarantine attribute:
 
@@ -158,8 +158,8 @@ Tab completion is available for bash, zsh, fish, and PowerShell. Run `vrg --inst
 We welcome contributions! Please read the following before submitting a pull request.
 
 ```bash
-git clone https://github.com/verge-io/verge-cli.git
-cd verge-cli
+git clone https://github.com/verge-io/vrg.git
+cd vrg
 uv sync --all-extras
 uv run pytest              # Tests
 uv run ruff check .        # Lint

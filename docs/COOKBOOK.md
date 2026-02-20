@@ -1,12 +1,12 @@
 # Verge CLI Cookbook
 
-Practical recipes for common verge-cli tasks. Each recipe includes a goal, steps, verification, and optional cleanup.
+Practical recipes for common vrg tasks. Each recipe includes a goal, steps, verification, and optional cleanup.
 
 ---
 
 ## Recipe 1: Getting Started
 
-**Goal:** Install verge-cli and connect to your VergeOS instance.
+**Goal:** Install vrg and connect to your VergeOS instance.
 
 ### Steps
 
@@ -14,10 +14,10 @@ Practical recipes for common verge-cli tasks. Each recipe includes a goal, steps
 
 ```bash
 # Using uv (recommended)
-uv tool install verge-cli
+uv tool install vrg
 
 # Or using pip
-pip install verge-cli
+pip install vrg
 ```
 
 2. Run interactive setup to create a configuration profile:

@@ -6,8 +6,8 @@ Guide for contributing to the Verge CLI project.
 
 ```bash
 # Clone the repository
-git clone https://github.com/verge-io/verge-cli.git
-cd verge-cli
+git clone https://github.com/verge-io/vrg.git
+cd vrg
 
 # Install with development dependencies
 uv sync --all-extras

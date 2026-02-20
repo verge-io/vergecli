@@ -31,7 +31,7 @@ uv build                             # Build package
 ## Project Structure
 
 ```text
-verge-cli/
+vrg/
 ├── src/verge_cli/
 │   ├── __init__.py         # Version string
 │   ├── __main__.py         # Entry point for `python -m verge_cli`
