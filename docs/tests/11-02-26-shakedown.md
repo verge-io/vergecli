@@ -1,6 +1,6 @@
 # Verge CLI Shakedown Test
 
-> Full system integration test for verge-cli against a live VergeOS instance.
+> Full system integration test for vrg against a live VergeOS instance.
 >
 > **LAB/DEV ENVIRONMENT ONLY** — never run this against production.
 
@@ -935,7 +935,7 @@ Warmup / read-only tests. Use existing config or create one.
 
 - **Date:** 2026-02-11
 - **VergeOS Version:** 26.0.2.1
-- **CLI Version:** verge-cli 0.1.0
+- **CLI Version:** vrg 0.1.0
 - **SDK Version:** pyvergeos 1.0.3
 - **Python:** 3.12
 - **Cloud:** midgard (2-node cluster, 4 storage tiers)

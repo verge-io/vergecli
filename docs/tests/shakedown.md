@@ -1,6 +1,6 @@
 # Verge CLI Shakedown Test
 
-> Full system integration test for verge-cli against a live VergeOS instance.
+> Full system integration test for vrg against a live VergeOS instance.
 >
 > **LAB/DEV ENVIRONMENT ONLY** — never run this against production.
 

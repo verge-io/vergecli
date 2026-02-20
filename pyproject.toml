@@ -1,5 +1,5 @@
 [project]
-name = "verge-cli"
+name = "vrg"
 version = "1.0.0"
 description = "Command-line interface for VergeOS"
 readme = "README.md"
@@ -49,8 +49,8 @@ vrg = "verge_cli.cli:app"
 [project.urls]
 Homepage = "https://www.verge.io"
 Documentation = "https://docs.verge.io"
-Repository = "https://github.com/verge-io/verge-cli"
-Issues = "https://github.com/verge-io/verge-cli/issues"
+Repository = "https://github.com/verge-io/vrg"
+Issues = "https://github.com/verge-io/vrg/issues"
 
 [build-system]
 requires = ["hatchling"]
