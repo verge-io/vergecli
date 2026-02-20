@@ -1,6 +1,6 @@
 [project]
 name = "verge-cli"
-version = "0.1.0"
+version = "1.0.0"
 description = "Command-line interface for VergeOS"
 readme = "README.md"
 license = "Apache-2.0"
@@ -10,7 +10,7 @@ authors = [
 ]
 keywords = ["vergeos", "cli", "virtualization", "cloud"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
     "Intended Audience :: System Administrators",
     "License :: OSI Approved :: Apache Software License",
