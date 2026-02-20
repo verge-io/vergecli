@@ -18,9 +18,6 @@ jobs:
           - target: linux-x86_64
             runner: ubuntu-22.04
             artifact: vrg
-          - target: macos-x86_64
-            runner: macos-13
-            artifact: vrg
           - target: macos-arm64
             runner: macos-latest
             artifact: vrg
