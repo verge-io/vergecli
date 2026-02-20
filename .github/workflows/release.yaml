@@ -1,0 +1,103 @@
+name: Build Release Binaries
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+env:
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - target: linux-x86_64
+            runner: ubuntu-22.04
+            artifact: vrg
+          - target: macos-x86_64
+            runner: macos-13
+            artifact: vrg
+          - target: macos-arm64
+            runner: macos-latest
+            artifact: vrg
+          - target: windows-x86_64
+            runner: windows-latest
+            artifact: vrg.exe
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      - name: Install PyInstaller
+        run: uv pip install pyinstaller
+
+      - name: Build binary
+        run: uv run pyinstaller vrg.spec
+
+      - name: Get version
+        id: version
+        shell: bash
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Rename artifact (Unix)
+        if: runner.os != 'Windows'
+        run: mv dist/vrg dist/vrg-${{ steps.version.outputs.version }}-${{ matrix.target }}
+
+      - name: Rename artifact (Windows)
+        if: runner.os == 'Windows'
+        run: mv dist/vrg.exe dist/vrg-${{ steps.version.outputs.version }}-${{ matrix.target }}.exe
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vrg-${{ matrix.target }}
+          path: dist/vrg-*
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          generate_release_notes: true
+          files: artifacts/*
+          body: |
+            ## Installation
+
+            ### pip / pipx (recommended)
+            ```bash
+            pipx install verge-cli
+            ```
+
+            ### Standalone binary
+            Download the binary for your platform below and place it in your PATH.
+
+            **macOS note:** Apple quarantine may block unsigned binaries. Run:
+            ```bash
+            xattr -d com.apple.quarantine ./vrg
+            ```
